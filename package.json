@@ -1,0 +1,25 @@
+{
+  "name": "fip-cli",
+  "version": "1.0.0",
+  "description": "FIP 一体化平台自动化 CLI",
+  "main": "bin/fip-cli.js",
+  "bin": {
+    "fip-cli": "./bin/fip-cli.js"
+  },
+  "scripts": {
+    "test": "node test/basic.test.js"
+  },
+  "keywords": [
+    "fip",
+    "automation",
+    "cli",
+    "webbridge"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "chrome-remote-interface": "^0.34.0",
+    "commander": "^12.0.0"
+  }
+}

@@ -1,0 +1,510 @@
+#!/usr/bin/env node
+
+const { program } = require('commander');
+const { navigate, evaluate } = require('../lib/browser');
+const { success, error, setScreenshotOptions } = require('../lib/output');
+const config = require('../lib/config');
+const fip = require('../lib/fip');
+
+program
+  .name('fip-cli')
+  .description('FIP 一体化平台自动化 CLI')
+  .version('1.0.0')
+  .option('--no-screenshot', '命令失败时不自动截图')
+  .option('--screenshot-dir <path>', '错误截图保存目录', './screenshots');
+
+program.on('option:no-screenshot', () => setScreenshotOptions({ screenshotOnError: false }));
+program.on('option:screenshot-dir', (dir) => setScreenshotOptions({ screenshotDir: dir }));
+
+program
+  .command('config [key] [value]')
+  .description('查看或设置配置（key: companyCode, taxCode, startDate, endDate 等）')
+  .action((key, value) => {
+    try {
+      if (!key) {
+        success(config.get());
+      } else if (value !== undefined) {
+        config.set(key, value);
+        success({ key, value, saved: true, config_file: config.CONFIG_FILE });
+      } else {
+        success({ key, value: config.get(key) });
+      }
+    } catch (e) {
+      error('config_error', e.message);
+    }
+  });
+
+program
+  .command('login-status')
+  .description('检查登录状态')
+  .action(async () => {
+    try {
+      const info = await fip.getPageInfo();
+      const isLoggedIn = info.url && info.url.includes('fip.cscec.com');
+      success({ logged_in: isLoggedIn, url: info.url, title: info.title });
+    } catch (e) {
+      error('login_status_error', e.message);
+    }
+  });
+
+program
+  .command('navigate <url>')
+  .description('导航到指定页面')
+  .action(async (url) => {
+    try {
+      const result = await navigate(url, false);
+      success({ navigated: true, url });
+    } catch (e) {
+      error('navigate_error', e.message);
+    }
+  });
+
+program
+  .command('tab <name>')
+  .description('切换 Dashboard 子页签 (我的单据/待办/已办/已办结)')
+  .action(async (name) => {
+    try {
+      await fip.clickDashboardTab(name);
+      success({ tab: name, switched: true });
+    } catch (e) {
+      error('tab_switch_error', e.message);
+    }
+  });
+
+program
+  .command('query')
+  .description('点击查询按钮')
+  .action(async () => {
+    try {
+      await fip.clickQueryButton();
+      const rows = await fip.getTableRowCount();
+      success({ queried: true, rows });
+    } catch (e) {
+      error('query_error', e.message);
+    }
+  });
+
+program
+  .command('menu <name>')
+  .description('打开侧边菜单 (如: 税务系统)')
+  .action(async (name) => {
+    try {
+      await fip.openSideMenu(name);
+      success({ menu: name, opened: true });
+    } catch (e) {
+      error('menu_error', e.message);
+    }
+  });
+
+program
+  .command('drawer <name>')
+  .description('点击 Drawer 子菜单项 (如: 税务台账/未开票收入台账)')
+  .action(async (name) => {
+    try {
+      await fip.clickDrawerItem(name);
+      success({ item: name, clicked: true });
+    } catch (e) {
+      error('drawer_error', e.message);
+    }
+  });
+
+program
+  .command('show-query')
+  .description('展开查询表单')
+  .action(async () => {
+    try {
+      await fip.clickShowQuery();
+      success({ show_query: true });
+    } catch (e) {
+      error('show_query_error', e.message);
+    }
+  });
+
+program
+  .command('set-date <start> <end>')
+  .description('设置日期范围 (格式: YYYY-MM-DD)')
+  .action(async (start, end) => {
+    try {
+      await fip.setDateRange(start, end);
+      success({ start_date: start, end_date: end, set: true });
+    } catch (e) {
+      error('set_date_error', e.message);
+    }
+  });
+
+program
+  .command('set-tax-period <start> <end>')
+  .description('设置税期 (格式: YYYY-MM)')
+  .action(async (start, end) => {
+    try {
+      await fip.setTaxPeriod(start, end);
+      success({ start_period: start, end_period: end, set: true });
+    } catch (e) {
+      error('set_tax_period_error', e.message);
+    }
+  });
+
+program
+  .command('rows')
+  .description('获取表格行数')
+  .action(async () => {
+    try {
+      const rows = await fip.getTableRowCount();
+      success(rows);
+    } catch (e) {
+      error('rows_error', e.message);
+    }
+  });
+
+program
+  .command('pick-company <code>')
+  .description('选择申请单位 (如: 1000200020040011)')
+  .action(async (code) => {
+    try {
+      await fip.clickPickerButton('申请单位');
+      await fip.pickFromDict(code);
+      success({ company_code: code, selected: true });
+    } catch (e) {
+      error('pick_company_error', e.message);
+    }
+  });
+
+program
+  .command('pick-tax-subject <code>')
+  .description('选择纳税主体 (如: 91110000101638302P 或 91110000101107173B)')
+  .action(async (code) => {
+    try {
+      await fip.pickTaxSubject(code);
+      success({ tax_code: code, selected: true });
+    } catch (e) {
+      error('pick_tax_subject_error', e.message);
+    }
+  });
+
+program
+  .command('page-info')
+  .description('获取当前页面信息（URL、标题）')
+  .action(async () => {
+    try {
+      const info = await fip.getPageInfo();
+      success(info);
+    } catch (e) {
+      error('page_info_error', e.message);
+    }
+  });
+
+program
+  .command('find-element <text>')
+  .description('查找页面上指定文本的可见元素坐标（调试用）')
+  .option('--left-min <n>', '最小 left 坐标', '0')
+  .option('--left-max <n>', '最大 left 坐标', '9999')
+  .option('--top-min <n>', '最小 top 坐标', '0')
+  .option('--top-max <n>', '最大 top 坐标', '9999')
+  .action(async (text, options) => {
+    try {
+      const result = await fip.findVisibleElementByText(text, {
+        leftMin: parseInt(options.leftMin),
+        leftMax: parseInt(options.leftMax),
+        topMin: parseInt(options.topMin),
+        topMax: parseInt(options.topMax)
+      });
+      success({ text, found: !!result, coordinates: result });
+    } catch (e) {
+      error('find_element_error', e.message);
+    }
+  });
+
+program
+  .command('wait <ms>')
+  .description('等待指定毫秒数')
+  .action(async (ms) => {
+    try {
+      await fip.sleep(parseInt(ms));
+      success({ waited: parseInt(ms) });
+    } catch (e) {
+      error('wait_error', e.message);
+    }
+  });
+
+program
+  .command('picker-button <label>')
+  .description('点击指定标签旁的 Picker 按钮（如：申请单位、纳税主体）')
+  .action(async (label) => {
+    try {
+      await fip.clickPickerButton(label);
+      success({ label, clicked: true });
+    } catch (e) {
+      error('picker_button_error', e.message);
+    }
+  });
+
+program
+  .command('pick-dict <code>')
+  .description('在已打开的 Picker 弹窗中查询并选择编码')
+  .action(async (code) => {
+    try {
+      await fip.pickFromDict(code);
+      success({ code, selected: true });
+    } catch (e) {
+      error('pick_dict_error', e.message);
+    }
+  });
+
+program
+  .command('open-bill <billId>')
+  .description('打开指定单据编号（自动搜索各标签页）')
+  .option('--tab <name>', '指定标签页（我的单据/待办/已办/已办结）')
+  .action(async (billId, options) => {
+    try {
+      const result = await fip.openBill(billId, options.tab || null);
+      success(result);
+    } catch (e) {
+      error('open_bill_error', e.message);
+    }
+  });
+
+program
+  .command('close-bill')
+  .description('关闭当前单据详情页，返回 Dashboard')
+  .action(async () => {
+    try {
+      const result = await fip.closeBill();
+      success(result);
+    } catch (e) {
+      error('close_bill_error', e.message);
+    }
+  });
+
+program
+  .command('wait-for-element <text>')
+  .description('轮询等待指定文本元素出现（默认超时10秒）')
+  .option('--timeout <ms>', '超时毫秒数', '10000')
+  .option('--interval <ms>', '轮询间隔毫秒数', '500')
+  .action(async (text, options) => {
+    try {
+      const result = await fip.waitForElement(text, {
+        timeout: parseInt(options.timeout),
+        interval: parseInt(options.interval)
+      });
+      success(result);
+    } catch (e) {
+      error('wait_for_element_error', e.message);
+    }
+  });
+
+program
+  .command('wait-for-popup')
+  .description('轮询等待弹窗出现（默认超时10秒）')
+  .option('--timeout <ms>', '超时毫秒数', '10000')
+  .action(async (options) => {
+    try {
+      const result = await fip.waitForPopup(parseInt(options.timeout));
+      success(result);
+    } catch (e) {
+      error('wait_for_popup_error', e.message);
+    }
+  });
+
+program
+  .command('wait-for-url <pattern>')
+  .description('轮询等待 URL 匹配指定正则（如 "FLOW_"）')
+  .option('--timeout <ms>', '超时毫秒数', '10000')
+  .action(async (pattern, options) => {
+    try {
+      const result = await fip.waitForUrl(pattern, parseInt(options.timeout));
+      success(result);
+    } catch (e) {
+      error('wait_for_url_error', e.message);
+    }
+  });
+
+program
+  .command('screenshot')
+  .description('截图并保存')
+  .option('-o, --output <path>', '输出路径')
+  .action(async (options) => {
+    try {
+      const { screenshot } = require('../lib/browser');
+      const fs = require('fs');
+      const result = await screenshot('png');
+      if (result.ok && result.data?.data) {
+        const path = options.output || `D:/claude/fip-cli/screenshot_${Date.now()}.png`;
+        fs.writeFileSync(path, Buffer.from(result.data.data, 'base64'));
+        success({ saved: true, path, size: result.data.data.length });
+      } else {
+        error('screenshot_error', result.error?.message || 'Unknown error');
+      }
+    } catch (e) {
+      error('screenshot_error', e.message);
+    }
+  });
+
+const cfg = config.get();
+
+program
+  .command('export-unbilled')
+  .description('未开票收入台账查询导出（完整流程）')
+  .option('--start-date <date>', '起始日期 (YYYY-MM-DD)', cfg.startDate)
+  .option('--end-date <date>', '截止日期 (YYYY-MM-DD)', cfg.endDate)
+  .option('--start-period <period>', '起始税期 (YYYY-MM)', cfg.startPeriod)
+  .option('--end-period <period>', '截止税期 (YYYY-MM)', cfg.endPeriod)
+  .option('--company-code <code>', '申请单位编码', cfg.companyCode)
+  .option('--tax-code <code>', '纳税主体税号', cfg.taxCode)
+  .option('--void-status <status>', '作废状态 (全部/未作废/已作废)', cfg.voidStatus)
+  .option('--query-only', '仅查询不导出', false)
+  .action(async (options) => {
+    try {
+      const result = await fip.exportUnbilledIncomeLedger({
+        startDate: options.startDate,
+        endDate: options.endDate,
+        startPeriod: options.startPeriod,
+        endPeriod: options.endPeriod,
+        companyCode: options.companyCode,
+        taxCode: options.taxCode,
+        voidStatus: options.voidStatus,
+        queryOnly: options.queryOnly
+      });
+      success(result);
+    } catch (e) {
+      error('export_unbilled_error', e.message);
+    }
+  });
+
+program
+  .command('export-input-transfer')
+  .description('进项转出明细台账查询导出（完整流程）')
+  .option('--start-period <period>', '起始税期 (YYYY-MM)', cfg.startPeriod)
+  .option('--end-period <period>', '截止税期 (YYYY-MM)', cfg.endPeriod)
+  .option('--company-code <code>', '转出单位编码', cfg.companyCode)
+  .option('--tax-code <code>', '纳税主体税号', cfg.taxCode)
+  .option('--doc-status <status>', '单据状态 (全部/制单中/审批中/流程结束/已作废)', cfg.docStatus)
+  .option('--query-only', '仅查询不导出', false)
+  .action(async (options) => {
+    try {
+      const result = await fip.exportInputTransferLedger({
+        startPeriod: options.startPeriod,
+        endPeriod: options.endPeriod,
+        companyCode: options.companyCode,
+        taxCode: options.taxCode,
+        docStatus: options.docStatus,
+        queryOnly: options.queryOnly
+      });
+      success(result);
+    } catch (e) {
+      error('export_input_transfer_error', e.message);
+    }
+  });
+
+program
+  .command('export-output-invoice')
+  .description('销项发票明细台账查询导出（完整流程）')
+  .option('--start-date <date>', '起始日期 (YYYY-MM-DD)', cfg.startDate)
+  .option('--end-date <date>', '截止日期 (YYYY-MM-DD)', cfg.endDate)
+  .option('--company-code <code>', '申请单位编码', cfg.companyCode)
+  .option('--seller-code <code>', '销方税号', cfg.sellerCode)
+  .option('--query-only', '仅查询不导出', false)
+  .action(async (options) => {
+    try {
+      const result = await fip.exportOutputInvoiceLedger({
+        startDate: options.startDate,
+        endDate: options.endDate,
+        companyCode: options.companyCode,
+        sellerCode: options.sellerCode,
+        queryOnly: options.queryOnly
+      });
+      success(result);
+    } catch (e) {
+      error('export_output_invoice_error', e.message);
+    }
+  });
+
+program
+  .command('export-vat-prepayment')
+  .description('增值税预缴款台账查询导出（完整流程）')
+  .option('--start-period <period>', '起始税期 (YYYY-MM)', cfg.startPeriod)
+  .option('--end-period <period>', '截止税期 (YYYY-MM)', cfg.endPeriod)
+  .option('--company-code <code>', '申请单位编码', cfg.companyCode)
+  .option('--tax-code <code>', '纳税主体税号', cfg.taxCode)
+  .option('--doc-type <type>', '单据类型 (完税预缴单/预缴计算单)', cfg.docType)
+  .option('--query-only', '仅查询不导出', false)
+  .action(async (options) => {
+    try {
+      const result = await fip.exportVatPrepaymentLedger({
+        startPeriod: options.startPeriod,
+        endPeriod: options.endPeriod,
+        companyCode: options.companyCode,
+        taxCode: options.taxCode,
+        docType: options.docType,
+        queryOnly: options.queryOnly
+      });
+      success(result);
+    } catch (e) {
+      error('export_vat_prepayment_error', e.message);
+    }
+  });
+
+program
+  .command('export-passenger-transport')
+  .description('旅客运输服务台账查询导出（完整流程）')
+  .option('--start-period <period>', '起始税期 (YYYY-MM)', cfg.startPeriod)
+  .option('--end-period <period>', '截止税期 (YYYY-MM)', cfg.endPeriod)
+  .option('--company-code <code>', '申请单位编码', cfg.companyCode)
+  .option('--tax-code <code>', '纳税主体税号', cfg.taxCode)
+  .option('--query-only', '仅查询不导出', false)
+  .action(async (options) => {
+    try {
+      const result = await fip.exportPassengerTransportLedger({
+        startPeriod: options.startPeriod,
+        endPeriod: options.endPeriod,
+        companyCode: options.companyCode,
+        taxCode: options.taxCode,
+        queryOnly: options.queryOnly
+      });
+      success(result);
+    } catch (e) {
+      error('export_passenger_transport_error', e.message);
+    }
+  });
+
+program
+  .command('examples')
+  .description('显示使用示例')
+  .action(() => {
+    console.log(`
+FIP CLI 使用示例
+================
+
+1. 检查登录状态
+   fip-cli login-status
+
+2. 导航到指定页面
+   fip-cli navigate "https://fip.cscec.com/OSPPortal/CSCPortal.jsp#/gwt/00010004000400070001"
+
+3. 查询未开票收入台账（仅查询）
+   fip-cli export-unbilled --query-only
+
+4. 导出未开票收入台账（默认参数）
+   fip-cli export-unbilled
+
+5. 导出进项转出明细台账（指定税期）
+   fip-cli export-input-transfer --start-period 2026-04 --end-period 2026-04
+
+6. 导出销项发票明细台账
+   fip-cli export-output-invoice --start-date 2026-04-01 --end-date 2026-04-30
+
+7. 导出增值税预缴款台账
+   fip-cli export-vat-prepayment --start-period 2026-04 --end-period 2026-04
+
+8. 导出旅客运输服务台账
+   fip-cli export-passenger-transport --start-period 2026-04 --end-period 2026-04
+
+9. 选择申请单位
+   fip-cli pick-company 1000200020040011
+
+10. 选择纳税主体
+    fip-cli pick-tax-subject 91110000101107173B
+`);
+    process.exit(0);
+  });
+
+program.parse();
