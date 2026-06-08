@@ -344,26 +344,30 @@ const cfg = config.get();
 program
   .command('export-unbilled')
   .description('未开票收入台账查询导出（完整流程）')
-  .option('--start-date <date>', '起始日期 (YYYY-MM-DD)', cfg.startDate)
-  .option('--end-date <date>', '截止日期 (YYYY-MM-DD)', cfg.endDate)
-  .option('--start-period <period>', '起始税期 (YYYY-MM)', cfg.startPeriod)
-  .option('--end-period <period>', '截止税期 (YYYY-MM)', cfg.endPeriod)
-  .option('--company-code <code>', '申请单位编码', cfg.companyCode)
-  .option('--tax-code <code>', '纳税主体税号', cfg.taxCode)
-  .option('--void-status <status>', '作废状态 (全部/未作废/已作废)', cfg.voidStatus)
+  .option('--start-date <date>', '起始日期 (YYYY-MM-DD)')
+  .option('--end-date <date>', '截止日期 (YYYY-MM-DD)')
+  .option('--start-period <period>', '起始税期 (YYYY-MM)')
+  .option('--end-period <period>', '截止税期 (YYYY-MM)')
+  .option('--company-code <code>', '申请单位编码')
+  .option('--tax-code <code>', '纳税主体税号')
+  .option('--void-status <status>', '作废状态 (全部/未作废/已作废)')
   .option('--query-only', '仅查询不导出', false)
   .action(async (options) => {
     try {
-      const result = await fip.exportUnbilledIncomeLedger({
-        startDate: options.startDate,
-        endDate: options.endDate,
-        startPeriod: options.startPeriod,
-        endPeriod: options.endPeriod,
-        companyCode: options.companyCode,
-        taxCode: options.taxCode,
-        voidStatus: options.voidStatus,
-        queryOnly: options.queryOnly
-      });
+      await fip.ensureConnection();
+      const args = Object.fromEntries(
+        Object.entries({
+          startDate: options.startDate,
+          endDate: options.endDate,
+          startPeriod: options.startPeriod,
+          endPeriod: options.endPeriod,
+          companyCode: options.companyCode,
+          taxCode: options.taxCode,
+          voidStatus: options.voidStatus,
+          queryOnly: options.queryOnly
+        }).filter(([_, v]) => v !== undefined)
+      );
+      const result = await fip.exportUnbilledIncomeLedger(args);
       success(result);
     } catch (e) {
       error('export_unbilled_error', e.message);
@@ -505,6 +509,95 @@ FIP CLI 使用示例
     fip-cli pick-tax-subject 91110000101107173B
 `);
     process.exit(0);
+  });
+
+program
+  .command('extract-invoice')
+  .description('从当前开票单页面提取字段（调试用）')
+  .action(async () => {
+    try {
+      const fields = await fip.extractInvoiceFields();
+      success(fields);
+    } catch (e) {
+      error('extract_invoice_error', e.message);
+    }
+  });
+
+program
+  .command('audit-invoice [billId]')
+  .description('智能审核开票单（自动提取字段+核对+生成报告）')
+  .option('--confirmed-amount <amount>', '累计确权额（人工提供，如 50000000）')
+  .option('--attachment-contract <amount>', '附件合同金额（用于核对）')
+  .option('--format <type>', '报告格式 (text/json/md)', 'text')
+  .option('--output <path>', '报告输出文件路径')
+  .option('--keep-open', '审核后不关闭单据', false)
+  .action(async (billId, options) => {
+    try {
+      await fip.ensureConnection();
+
+      // 1. 如果提供了 billId，先打开单据
+      if (billId) {
+        console.log(`打开单据 ${billId}...`);
+        await fip.openBill(billId);
+        await fip.sleep(3000);
+      }
+
+      // 2. 提取字段
+      console.log('提取单据字段...');
+      const fields = await fip.extractInvoiceFields();
+
+      if (!fields.invoice_no) {
+        throw new Error('未能从页面提取到单据编号，请确认当前页面是开票单详情页');
+      }
+
+      console.log(`提取成功: 单据 ${fields.invoice_no}`);
+
+      // 3. 合并人工输入的参数（转为数字）
+      if (options.confirmedAmount) {
+        fields.confirmed_amount = parseFloat(options.confirmedAmount);
+      }
+      if (options.attachmentContract) {
+        fields.attachment_contract_amount = parseFloat(options.attachmentContract);
+      }
+
+      // 4. 执行审核
+      console.log('执行自动核对...');
+      const result = fip.auditInvoice(fields);
+
+      // 5. 生成报告
+      let report;
+      if (options.format === 'json') {
+        report = fip.generateAuditJsonReport(result);
+      } else if (options.format === 'md') {
+        report = fip.generateAuditMarkdownReport(result);
+      } else {
+        report = fip.generateAuditTextReport(result);
+      }
+
+      // 6. 输出到文件或控制台
+      if (options.output) {
+        const fs = require('fs');
+        fs.writeFileSync(options.output, report, 'utf8');
+        console.log(`报告已保存: ${options.output}`);
+      }
+
+      // 7. 关闭单据（除非 --keep-open）
+      if (billId && !options.keepOpen) {
+        console.log('关闭单据...');
+        await fip.closeBill();
+      }
+
+      // 8. 返回结果
+      success({
+        invoice_no: result.invoice_no,
+        stats: result.stats,
+        report: options.output ? null : report,
+        output_file: options.output || null,
+        format: options.format
+      });
+    } catch (e) {
+      error('audit_invoice_error', e.message);
+    }
   });
 
 program.parse();
