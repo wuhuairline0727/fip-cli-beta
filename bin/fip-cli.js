@@ -702,4 +702,11 @@ program
     }
   });
 
-program.parse();
+program.parseAsync(process.argv).catch(async (err) => {
+  if (err.isFipError) {
+    process.exit(1);
+  }
+  // 未捕获的异常
+  await error('uncaught_error', err.message);
+  process.exit(1);
+});
