@@ -157,6 +157,23 @@ program
   });
 
 program
+  .command('table-data')
+  .description('读取当前页面表格数据')
+  .option('--max-rows <n>', '最大行数', '1000')
+  .option('--no-headers', '不包含表头')
+  .action(async (options) => {
+    try {
+      const result = await fip.getTableData({
+        maxRows: parseInt(options.maxRows),
+        includeHeaders: options.headers !== false
+      });
+      success(result);
+    } catch (e) {
+      error('table_data_error', e.message);
+    }
+  });
+
+program
   .command('pick-company <code>')
   .description('选择申请单位 (如: 1000200020040011)')
   .action(async (code) => {
@@ -272,6 +289,36 @@ program
       success(result);
     } catch (e) {
       error('close_bill_error', e.message);
+    }
+  });
+
+program
+  .command('list-attachments')
+  .description('列出当前单据的所有附件')
+  .option('--dir <path>', '下载目录', './downloads')
+  .action(async (options) => {
+    try {
+      const result = await fip.listAttachments({ downloadDir: options.dir });
+      success(result);
+    } catch (e) {
+      error('list_attachments_error', e.message);
+    }
+  });
+
+program
+  .command('download-attachments')
+  .description('下载当前单据的所有附件')
+  .option('--dir <path>', '保存目录', './downloads')
+  .option('--chrome-dir <path>', 'Chrome下载目录（默认自动检测）')
+  .action(async (options) => {
+    try {
+      const result = await fip.downloadAttachments({
+        downloadDir: options.dir,
+        chromeDownloadDir: options.chromeDir
+      });
+      success(result);
+    } catch (e) {
+      error('download_attachments_error', e.message);
     }
   });
 
@@ -467,6 +514,61 @@ program
       success(result);
     } catch (e) {
       error('export_passenger_transport_error', e.message);
+    }
+  });
+
+program
+  .command('export-all')
+  .description('批量导出多个台账')
+  .option('--start-period <period>', '起始税期 (YYYY-MM)', cfg.startPeriod)
+  .option('--end-period <period>', '截止税期 (YYYY-MM)', cfg.endPeriod)
+  .option('--start-date <date>', '起始日期 (YYYY-MM-DD)', cfg.startDate)
+  .option('--end-date <date>', '截止日期 (YYYY-MM-DD)', cfg.endDate)
+  .option('--company-code <code>', '申请单位编码', cfg.companyCode)
+  .option('--tax-code <code>', '纳税主体税号', cfg.taxCode)
+  .option('--seller-code <code>', '销方税号', cfg.sellerCode)
+  .option('--void-status <status>', '作废状态', cfg.voidStatus)
+  .option('--doc-status <status>', '单据状态', cfg.docStatus)
+  .option('--doc-type <type>', '单据类型', cfg.docType)
+  .option('--ledgers <list>', '指定台账（逗号分隔）', 'unbilled,input-transfer,output-invoice,vat-prepayment,passenger-transport')
+  .option('--query-only', '仅查询不导出', false)
+  .action(async (options) => {
+    try {
+      const ledgers = options.ledgers.split(',');
+      const results = {};
+      const ledgerMap = {
+        'unbilled': 'exportUnbilledIncomeLedger',
+        'input-transfer': 'exportInputTransferLedger',
+        'output-invoice': 'exportOutputInvoiceLedger',
+        'vat-prepayment': 'exportVatPrepaymentLedger',
+        'passenger-transport': 'exportPassengerTransportLedger'
+      };
+      for (const name of ledgers) {
+        const fnName = ledgerMap[name.trim()];
+        if (!fnName || !fip[fnName]) {
+          results[name] = { error: 'Unknown ledger' };
+          continue;
+        }
+        let params = { queryOnly: options.queryOnly };
+        if (name.trim() === 'output-invoice') {
+          params = { ...params, startDate: options.startDate, endDate: options.endDate, companyCode: options.companyCode, sellerCode: options.sellerCode };
+        } else {
+          params = { ...params, startPeriod: options.startPeriod, endPeriod: options.endPeriod, companyCode: options.companyCode, taxCode: options.taxCode };
+        }
+        if (name.trim() === 'unbilled') params.voidStatus = options.voidStatus;
+        if (name.trim() === 'input-transfer') params.docStatus = options.docStatus;
+        if (name.trim() === 'vat-prepayment') params.docType = options.docType;
+        try {
+          const result = await fip[fnName](params);
+          results[name] = { success: true, ...result };
+        } catch (e) {
+          results[name] = { success: false, error: e.message };
+        }
+        await fip.sleep(2000);
+      }
+      success({ executed: ledgers.length, results });
+    } catch (e) {
+      error('export_all_error', e.message);
     }
   });
 
