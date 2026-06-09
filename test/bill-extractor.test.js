@@ -46,12 +46,12 @@ assertEqual(detectBillType(null), null, 'returns null for null');
 console.log('\n=== getBillConfig ===');
 const slbxConfig = getBillConfig('SLBX');
 assertEqual(typeof slbxConfig, 'object', 'returns an object for valid type');
-assertEqual(slbxConfig.name, '差旅报销单', 'has correct name');
+assertEqual(slbxConfig.name, '境内差旅报销单', 'has correct name');
 assertEqual(slbxConfig.codePrefix, 'SLBX', 'has correct codePrefix');
 assertTrue(typeof slbxConfig.basePatterns === 'object' && slbxConfig.basePatterns !== null, 'has basePatterns object');
 assertTrue(typeof slbxConfig.inputFields === 'object' && slbxConfig.inputFields !== null, 'has inputFields object');
 assertTrue('bill_no' in slbxConfig.basePatterns, 'basePatterns includes common bill_no');
-assertTrue('note' in slbxConfig.inputFields, 'inputFields includes common note');
+assertTrue('reimbursement_reason' in slbxConfig.inputFields, 'inputFields includes common reimbursement_reason');
 
 assertEqual(getBillConfig('UNKNOWN'), null, 'returns null for unknown type');
 assertEqual(getBillConfig(null), null, 'returns null for null type');
