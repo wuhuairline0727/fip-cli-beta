@@ -1,0 +1,141 @@
+{
+  "_meta": {
+    "bill_type": "TBX",
+    "bill_type_name": "通用报销单",
+    "extracted_at": "2026-06-09T09:07:36.446Z"
+  },
+  "attachment_count": null,
+  "attachments": [],
+  "bill_no": "TBX2004202604003918",
+  "currency": null,
+  "department": null,
+  "domestic_foreign": null,
+  "expense_allocation": [
+    {
+      "amount": 5910.72,
+      "budget_balance": 3477550.47,
+      "budget_item": "职工教育经费",
+      "department": "人力资源部/干部人事部/企业策划管理部",
+      "expense_item": "职工教育经费"
+    },
+    {
+      "amount": 5910.72,
+      "budget_balance": "",
+      "budget_item": "",
+      "department": "",
+      "expense_item": ""
+    },
+    {
+      "amount": "*付款金额(CNY)",
+      "budget_balance": null,
+      "budget_item": "*支付币种金额",
+      "department": "*收款账号",
+      "expense_item": "*开户银行支行（联行号）"
+    },
+    {
+      "amount": "游梓艺",
+      "budget_balance": "Y100060014864",
+      "budget_item": "1,990.00",
+      "department": "20426709",
+      "expense_item": "6217***********1563"
+    },
+    {
+      "amount": "甄强",
+      "budget_balance": "Y100110001114",
+      "budget_item": "4,146.00",
+      "department": "20119512",
+      "expense_item": "6214********4282"
+    },
+    {
+      "amount": "",
+      "budget_balance": "",
+      "budget_item": "6,136.00",
+      "department": "合计：",
+      "expense_item": ""
+    }
+  ],
+  "expense_items": [
+    {
+      "deduction_amount": 0,
+      "expense_amount": 4146,
+      "expense_item": "职工教育经费",
+      "name": "甄强",
+      "reason": "4月单据：设计研究院甄强、游梓艺报销集团培训费",
+      "reimburse_amount": 4146,
+      "reimbursement_type": "应付职工薪酬（工会经费、教育经费等)"
+    },
+    {
+      "deduction_amount": 0,
+      "expense_amount": 1990,
+      "expense_item": "职工教育经费",
+      "name": "游梓艺",
+      "reason": "4月单据：设计研究院甄强、游梓艺报销集团培训费",
+      "reimburse_amount": 1990,
+      "reimbursement_type": "应付职工薪酬（工会经费、教育经费等)"
+    },
+    {
+      "deduction_amount": 0,
+      "expense_amount": 6136,
+      "expense_item": "",
+      "name": "",
+      "reason": "",
+      "reimburse_amount": 6136,
+      "reimbursement_type": ""
+    },
+    {
+      "deduction_amount": "验真状态",
+      "expense_amount": "开票日期",
+      "expense_item": "发票状态",
+      "name": "发票代码",
+      "reason": "发票类型",
+      "reimburse_amount": "合规校验状态",
+      "reimbursement_type": "发票号码"
+    },
+    {
+      "deduction_amount": "已验真",
+      "expense_amount": 2026,
+      "expense_item": "正常",
+      "name": "261120000011",
+      "reason": "数电票（普通发票）",
+      "reimburse_amount": "预警",
+      "reimbursement_type": "91525391"
+    },
+    {
+      "deduction_amount": "已验真",
+      "expense_amount": 2026,
+      "expense_item": "正常",
+      "name": "261120000011",
+      "reason": "数电票（增值税专用发票）",
+      "reimburse_amount": "通过",
+      "reimbursement_type": "91658921"
+    },
+    {
+      "deduction_amount": "已验真",
+      "expense_amount": 2026,
+      "expense_item": "正常",
+      "name": "261120000011",
+      "reason": "数电票（增值税专用发票）",
+      "reimburse_amount": "通过",
+      "reimbursement_type": "91795136"
+    }
+  ],
+  "has_paper_attachment": null,
+  "organization": null,
+  "payment_reason": null,
+  "project_name": null,
+  "reimbursement_reason": null,
+  "reimbursement_type": null,
+  "status": null,
+  "submit_date": null,
+  "submitter": "游梓艺",
+  "tax_mode": "一般计税",
+  "ui_attachment_count": null,
+  "audit_hints": [
+    {
+      "name": "budget_expense_match",
+      "description": "检查预算项目与报销费用事项是否一致",
+      "level": "pass",
+      "message": "预算项目与报销费用事项一致"
+    }
+  ]
+}
