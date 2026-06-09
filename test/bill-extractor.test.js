@@ -5,6 +5,7 @@
 
 const { detectBillType, getBillConfig, BILL_TYPE_MAP } = require('../lib/bills/config');
 const { parseAmount, buildExtractionCode, extractBill } = require('../lib/bills/extractor');
+const { extractKeywords, generateAuditHints } = require('../lib/bills/audit-hints');
 
 let passed = 0;
 let failed = 0;
@@ -86,6 +87,85 @@ assertTrue(extractionCode.includes('ui_attachment_count'), 'includes ui_attachme
 assertTrue(extractionCode.includes('tr[class*="FD26IYC"]'), 'includes table row selector');
 assertTrue(extractionCode.includes('getElementById'), 'includes byId strategy');
 assertTrue(extractionCode.includes('querySelectorAll(\'label\')'), 'includes byLabel strategy');
+
+console.log('\n=== extractKeywords ===');
+assertEqual(extractKeywords('管理费用\\业务招待费'), ['管理费用', '业务招待费'], 'splits by backslash');
+assertEqual(extractKeywords('管理费用/业务招待费'), ['管理费用', '业务招待费'], 'splits by forward slash');
+assertEqual(extractKeywords('  管理费用  \\  业务招待费  '), ['管理费用', '业务招待费'], 'trims whitespace');
+assertEqual(extractKeywords(''), [], 'returns empty array for empty string');
+assertEqual(extractKeywords(null), [], 'returns empty array for null');
+assertEqual(extractKeywords(undefined), [], 'returns empty array for undefined');
+
+console.log('\n=== generateAuditHints ===');
+// 测试预算与费用事项一致的情况（应返回 pass）
+(function testBudgetExpenseMatchPass() {
+  const data = {
+    expense_allocation: [{ budget_item: '管理费用\\业务招待费', expense_item: '管理费用\\业务招待费' }],
+  };
+  const hints = generateAuditHints(data, 'SLBX');
+  const hint = hints.find(h => h.name === 'budget_expense_match');
+  assertTrue(!!hint, 'budget_expense_match hint exists for matching case');
+  assertEqual(hint.level, 'pass', 'budget_expense_match is pass when matching');
+})();
+
+// 测试预算与费用事项不一致的情况（应返回 warning）
+(function testBudgetExpenseMatchWarning() {
+  const data = {
+    expense_allocation: [{ budget_item: '管理费用\\办公费', expense_item: '管理费用\\业务招待费' }],
+  };
+  const hints = generateAuditHints(data, 'SLBX');
+  const hint = hints.find(h => h.name === 'budget_expense_match');
+  assertTrue(!!hint, 'budget_expense_match hint exists for mismatch case');
+  assertEqual(hint.level, 'warning', 'budget_expense_match is warning when mismatching');
+})();
+
+// 测试报销事由匹配的情况
+(function testReasonExpenseMatchPass() {
+  const data = {
+    expense_allocation: [{ expense_item: '管理费用\\业务招待费' }],
+    reimbursement_reason: '客户业务招待费',
+  };
+  const hints = generateAuditHints(data, 'SLBX');
+  const hint = hints.find(h => h.name === 'reason_expense_match');
+  assertTrue(!!hint, 'reason_expense_match hint exists for matching case');
+  assertEqual(hint.level, 'pass', 'reason_expense_match is pass when reason contains keyword');
+})();
+
+// 测试报销事由不匹配的情况
+(function testReasonExpenseMatchInfo() {
+  const data = {
+    expense_allocation: [{ expense_item: '管理费用\\业务招待费' }],
+    reimbursement_reason: '购买办公用品',
+  };
+  const hints = generateAuditHints(data, 'SLBX');
+  const hint = hints.find(h => h.name === 'reason_expense_match');
+  assertTrue(!!hint, 'reason_expense_match hint exists for mismatch case');
+  assertEqual(hint.level, 'info', 'reason_expense_match is info when reason does not contain keyword');
+})();
+
+// 测试预算余额充足的情况
+(function testBudgetBalanceSufficient() {
+  const data = {
+    expense_allocation: [{ budget_balance: 5000 }],
+    amount: 1000,
+  };
+  const hints = generateAuditHints(data, 'SLBX');
+  const hint = hints.find(h => h.name === 'budget_balance_check');
+  assertTrue(!!hint, 'budget_balance_check hint exists for sufficient case');
+  assertEqual(hint.level, 'pass', 'budget_balance_check is pass when balance is sufficient');
+})();
+
+// 测试预算余额不足的情况
+(function testBudgetBalanceInsufficient() {
+  const data = {
+    expense_allocation: [{ budget_balance: 500 }],
+    amount: 1000,
+  };
+  const hints = generateAuditHints(data, 'SLBX');
+  const hint = hints.find(h => h.name === 'budget_balance_check');
+  assertTrue(!!hint, 'budget_balance_check hint exists for insufficient case');
+  assertEqual(hint.level, 'warning', 'budget_balance_check is warning when balance is insufficient');
+})();
 
 console.log('\n========================');
 console.log(`Total: ${passed + failed}, Passed: ${passed}, Failed: ${failed}`);
