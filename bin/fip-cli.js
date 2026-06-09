@@ -746,6 +746,17 @@ program
         console.log(`结果已保存: ${options.output}`);
       }
 
+      // 如果之前打开了单据，提取完成后关闭
+      if (!options.currentPage && billId) {
+        console.log('关闭单据...');
+        try {
+          await fip.closeBill();
+        } catch (closeErr) {
+          // 关闭失败不影响提取结果
+          console.log(`关闭单据跳过: ${closeErr.message}`);
+        }
+      }
+
       success(data);
     } catch (e) {
       error('extract_bill_error', e.message);
