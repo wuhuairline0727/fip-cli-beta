@@ -36,6 +36,42 @@ function assertTrue(value, message) {
   }
 }
 
+console.log('\n=== testBillTypeConfigs ===');
+(function testBillTypeConfigs() {
+  const configs = {
+    SLBX: getBillConfig('SLBX'),
+    TBX: getBillConfig('TBX'),
+    CFK: getBillConfig('CFK'),
+    CBX: getBillConfig('CBX'),
+  };
+
+  for (const [type, config] of Object.entries(configs)) {
+    assertTrue(typeof config === 'object' && config !== null, `${type} config is an object`);
+    assertTrue('name' in config, `${type} config has name`);
+    assertTrue('codePrefix' in config, `${type} config has codePrefix`);
+    assertTrue('basePatterns' in config, `${type} config has basePatterns`);
+    assertTrue('inputFields' in config, `${type} config has inputFields`);
+    assertTrue('tables' in config, `${type} config has tables`);
+  }
+
+  function hasTable(config, tableName) {
+    return Array.isArray(config.tables) && config.tables.some(t => t.name === tableName);
+  }
+
+  assertTrue(hasTable(configs.SLBX, 'transport_expenses'), 'SLBX has transport_expenses table');
+  assertTrue(hasTable(configs.SLBX, 'accommodation_expenses'), 'SLBX has accommodation_expenses table');
+  assertTrue(hasTable(configs.SLBX, 'subsidy_expenses'), 'SLBX has subsidy_expenses table');
+  assertTrue(hasTable(configs.SLBX, 'expense_allocation'), 'SLBX has expense_allocation table');
+
+  assertTrue(hasTable(configs.TBX, 'expense_items'), 'TBX has expense_items table');
+  assertTrue(hasTable(configs.TBX, 'expense_allocation'), 'TBX has expense_allocation table');
+
+  assertTrue(hasTable(configs.CFK, 'expense_details'), 'CFK has expense_details table');
+  assertTrue(hasTable(configs.CFK, 'expense_allocation'), 'CFK has expense_allocation table');
+
+  assertTrue(hasTable(configs.CBX, 'expense_allocation'), 'CBX has expense_allocation table');
+})();
+
 console.log('\n=== detectBillType ===');
 assertEqual(detectBillType('SLBX2004202605003766'), 'SLBX', 'detects SLBX prefix');
 assertEqual(detectBillType('TBX1234567890'), 'TBX', 'detects TBX prefix');
