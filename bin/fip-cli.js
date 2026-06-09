@@ -717,6 +717,41 @@ program
     }
   });
 
+program
+  .command('extract-bill [billId]')
+  .description('提取单据字段并生成审核提示')
+  .option('--type <type>', '手动指定单据类型 (SLBX/TBX/CFK/CBX)')
+  .option('--output <path>', '输出到 JSON 文件')
+  .option('--current-page', '仅提取当前页面，不导航', false)
+  .action(async (billId, options) => {
+    try {
+      await fip.ensureConnection();
+
+      if (!options.currentPage && billId) {
+        console.log(`打开单据 ${billId}...`);
+        await fip.openBill(billId);
+        await fip.sleep(3000);
+      }
+
+      console.log('提取单据字段...');
+      const data = await fip.extractBill(billId, options.type || null);
+
+      console.log('生成审核提示...');
+      const hints = fip.generateBillAuditHints(data, data._meta.bill_type);
+      data.audit_hints = hints;
+
+      if (options.output) {
+        const fs = require('fs');
+        fs.writeFileSync(options.output, JSON.stringify(data, null, 2), 'utf8');
+        console.log(`结果已保存: ${options.output}`);
+      }
+
+      success(data);
+    } catch (e) {
+      error('extract_bill_error', e.message);
+    }
+  });
+
 program.parseAsync(process.argv).catch(async (err) => {
   if (err.isFipError) {
     process.exit(1);
