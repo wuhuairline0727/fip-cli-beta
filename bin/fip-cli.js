@@ -374,13 +374,28 @@ program
       const { screenshot } = require('../lib/browser');
       const fs = require('fs');
       const result = await screenshot('png');
-      if (result.ok && result.data?.data) {
-        const path = options.output || `D:/claude/fip-cli/screenshot_${Date.now()}.png`;
-        fs.writeFileSync(path, Buffer.from(result.data.data, 'base64'));
-        success({ saved: true, path, size: result.data.data.length });
-      } else {
-        error('screenshot_error', result.error?.message || 'Unknown error');
+      if (!result.ok || !result.data) {
+        error('screenshot_error', result.error?.message || 'Screenshot failed');
+        return;
       }
+
+      const outputPath = options.output || `D:/claude/fip-cli/screenshot_${Date.now()}.png`;
+
+      // WebBridge 返回文件路径
+      if (result.data.path && fs.existsSync(result.data.path)) {
+        fs.copyFileSync(result.data.path, outputPath);
+        success({ saved: true, path: outputPath, size: result.data.sizeBytes });
+        return;
+      }
+
+      // 兼容旧版 base64 返回格式
+      if (result.data.data) {
+        fs.writeFileSync(outputPath, Buffer.from(result.data.data, 'base64'));
+        success({ saved: true, path: outputPath, size: result.data.data.length });
+        return;
+      }
+
+      error('screenshot_error', 'Screenshot returned empty data');
     } catch (e) {
       error('screenshot_error', e.message);
     }
