@@ -4,6 +4,7 @@
  */
 
 const { detectBillType, getBillConfig, BILL_TYPE_MAP } = require('../lib/bills/config');
+const { parseAmount, buildExtractionCode, extractBill } = require('../lib/bills/extractor');
 
 let passed = 0;
 let failed = 0;
@@ -61,6 +62,30 @@ assertTrue('SLBX' in BILL_TYPE_MAP, 'contains SLBX');
 assertTrue('TBX' in BILL_TYPE_MAP, 'contains TBX');
 assertTrue('CFK' in BILL_TYPE_MAP, 'contains CFK');
 assertTrue('CBX' in BILL_TYPE_MAP, 'contains CBX');
+
+console.log('\n=== parseAmount ===');
+assertEqual(parseAmount('1,234.56'), 1234.56, 'parses comma-separated amount');
+assertEqual(parseAmount('¥1,234.56'), 1234.56, 'parses amount with ¥');
+assertEqual(parseAmount('￥1,234.56'), 1234.56, 'parses amount with ￥');
+assertEqual(parseAmount('100.00'), 100, 'parses plain amount');
+assertEqual(parseAmount('  1,000  '), 1000, 'parses amount with spaces');
+assertEqual(parseAmount(''), null, 'returns null for empty string');
+assertEqual(parseAmount(null), null, 'returns null for null');
+assertEqual(parseAmount('abc'), null, 'returns null for non-numeric');
+assertEqual(parseAmount('¥0.00'), 0, 'parses zero amount');
+
+console.log('\n=== buildExtractionCode ===');
+const testConfig = getBillConfig('SLBX');
+const extractionCode = buildExtractionCode(testConfig);
+assertTrue(typeof extractionCode === 'string', 'returns a string');
+assertTrue(extractionCode.includes('document.body.innerText'), 'includes pageText extraction');
+assertTrue(extractionCode.includes('basePatterns'), 'includes basePatterns');
+assertTrue(extractionCode.includes('inputFields'), 'includes inputFields');
+assertTrue(extractionCode.includes('attachments'), 'includes attachments');
+assertTrue(extractionCode.includes('ui_attachment_count'), 'includes ui_attachment_count');
+assertTrue(extractionCode.includes('tr[class*="FD26IYC"]'), 'includes table row selector');
+assertTrue(extractionCode.includes('getElementById'), 'includes byId strategy');
+assertTrue(extractionCode.includes('querySelectorAll(\'label\')'), 'includes byLabel strategy');
 
 console.log('\n========================');
 console.log(`Total: ${passed + failed}, Passed: ${passed}, Failed: ${failed}`);
