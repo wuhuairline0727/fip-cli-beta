@@ -699,7 +699,7 @@ program
       }
 
       // 7. 关闭单据（除非 --keep-open）
-      if (billId && !options.keepOpen) {
+      if (!options.keepOpen) {
         console.log('关闭单据...');
         await fip.closeBill();
       }
