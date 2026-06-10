@@ -217,6 +217,27 @@ fip-cli config sellerCode    91110000101638302P
 
 跨系统通用的基础操作命令。
 
+#### 环境诊断
+
+```bash
+# 一键诊断环境状态（检查 Node.js、依赖、WebBridge、CDP、FIP 登录等）
+fip-cli doctor
+
+# JSON 格式输出
+fip-cli doctor --json
+```
+
+诊断项说明：
+
+| 检查项 | 正常状态 | 失败时修复建议 |
+|--------|----------|----------------|
+| Node.js 版本 | >= v16 | 升级 Node.js |
+| 项目依赖 | node_modules 完整 | `npm install` |
+| Kimi WebBridge | 端口 10086 响应正常 | 启动守护进程 |
+| Chrome 远程调试 | 端口 9222 已开启 | 添加 `--remote-debugging-port=9222` |
+| FIP 登录状态 | 已登录 | 在浏览器中打开 FIP 并登录 |
+| GitHub CLI | 已安装（可选） | `winget install --id GitHub.cli` |
+
 #### 状态检查与导航
 
 ```bash
@@ -264,6 +285,7 @@ fip-cli/
 ├── bin/
 │   └── fip-cli.js              # CLI 命令入口（45+ 个命令）
 ├── lib/
+│   ├── doctor.js               # 环境诊断模块（检查 Node.js/依赖/WebBridge/CDP/FIP 登录）
 │   ├── browser.js                # WebBridge 客户端封装
 │   ├── fip.js                    # 主入口（聚合导出所有功能）
 │   ├── output.js                 # 输出格式化 + 自动截图
