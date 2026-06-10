@@ -11,7 +11,9 @@ program
   .description('FIP 一体化平台自动化 CLI')
   .version('1.0.0')
   .option('--no-screenshot', '命令失败时不自动截图')
-  .option('--screenshot-dir <path>', '错误截图保存目录', './screenshots');
+  .option('--screenshot-dir <path>', '错误截图保存目录', './screenshots')
+  .option('--debug', '输出详细调试信息')
+  .option('--verbose', '输出操作日志');
 
 program.on('option:no-screenshot', () =>
   setScreenshotOptions({ screenshotOnError: false })
@@ -19,6 +21,8 @@ program.on('option:no-screenshot', () =>
 program.on('option:screenshot-dir', (dir) =>
   setScreenshotOptions({ screenshotDir: dir })
 );
+program.on('option:debug', () => require('../lib/logger').setDebug(true));
+program.on('option:verbose', () => require('../lib/logger').setVerbose(true));
 
 program
   .command('config [key] [value]')
@@ -44,9 +48,12 @@ program
   .command('login-status')
   .description('检查登录状态')
   .action(async () => {
+    const { debug, verbose } = require('../lib/logger');
     try {
+      verbose('检查登录状态...');
       const info = await fip.getPageInfo();
       const isLoggedIn = info.url && info.url.includes('fip.cscec.com');
+      debug('login-status: url=', info.url, 'isLoggedIn=', isLoggedIn);
       success({ logged_in: isLoggedIn, url: info.url, title: info.title });
     } catch (e) {
       error('login_status_error', e.message);
@@ -760,21 +767,24 @@ program
   .option('--output <path>', '输出到 JSON 文件')
   .option('--current-page', '仅提取当前页面，不导航', false)
   .action(async (billId, options) => {
+    const { debug, verbose } = require('../lib/logger');
     try {
       await fip.ensureConnection();
+      verbose('extract-bill: billId=', billId, 'type=', options.type);
 
       if (!options.currentPage && billId) {
-        console.log(`打开单据 ${billId}...`);
+        verbose(`打开单据 ${billId}...`);
         await fip.openBill(billId);
         await fip.sleep(3000);
         // 打开单据后关闭可能出现的弹窗（如审批提醒）
         await fip.waitAndDismissDialogs(5000, { waitAfterClose: 1500 });
       }
 
-      console.log('提取单据字段...');
+      verbose('提取单据字段...');
       const data = await fip.extractBill(billId, options.type || null);
+      debug('extract-bill: extracted keys=', Object.keys(data).join(', '));
 
-      console.log('生成审核提示...');
+      verbose('生成审核提示...');
       const hints = fip.generateBillAuditHints(data, data._meta.bill_type);
       data.audit_hints = hints;
 
@@ -786,7 +796,7 @@ program
 
       // 如果之前打开了单据，提取完成后关闭
       if (!options.currentPage && billId) {
-        console.log('关闭单据...');
+        verbose('关闭单据...');
         try {
           await fip.closeBill();
         } catch (closeErr) {
@@ -809,8 +819,11 @@ program
   .option('--json', '输出 JSON 格式报告')
   .action(async (options) => {
     const doctor = require('../lib/doctor');
+    const { debug, verbose } = require('../lib/logger');
     try {
+      verbose('运行 doctor 诊断...');
       const checks = await doctor.runDiagnostics();
+      debug('doctor: checks count=', checks.length);
       if (options.json) {
         console.log(JSON.stringify(doctor.generateJsonReport(checks), null, 2));
       } else {
