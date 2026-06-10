@@ -13,12 +13,18 @@ program
   .option('--no-screenshot', '命令失败时不自动截图')
   .option('--screenshot-dir <path>', '错误截图保存目录', './screenshots');
 
-program.on('option:no-screenshot', () => setScreenshotOptions({ screenshotOnError: false }));
-program.on('option:screenshot-dir', (dir) => setScreenshotOptions({ screenshotDir: dir }));
+program.on('option:no-screenshot', () =>
+  setScreenshotOptions({ screenshotOnError: false })
+);
+program.on('option:screenshot-dir', (dir) =>
+  setScreenshotOptions({ screenshotDir: dir })
+);
 
 program
   .command('config [key] [value]')
-  .description('查看或设置配置（key: companyCode, taxCode, startDate, endDate 等）')
+  .description(
+    '查看或设置配置（key: companyCode, taxCode, startDate, endDate 等）'
+  )
   .action((key, value) => {
     try {
       if (!key) {
@@ -165,7 +171,7 @@ program
     try {
       const result = await fip.getTableData({
         maxRows: parseInt(options.maxRows),
-        includeHeaders: options.headers !== false
+        includeHeaders: options.headers !== false,
       });
       success(result);
     } catch (e) {
@@ -223,7 +229,7 @@ program
         leftMin: parseInt(options.leftMin),
         leftMax: parseInt(options.leftMax),
         topMin: parseInt(options.topMin),
-        topMax: parseInt(options.topMax)
+        topMax: parseInt(options.topMax),
       });
       success({ text, found: !!result, coordinates: result });
     } catch (e) {
@@ -314,7 +320,7 @@ program
     try {
       const result = await fip.downloadAttachments({
         downloadDir: options.dir,
-        chromeDownloadDir: options.chromeDir
+        chromeDownloadDir: options.chromeDir,
       });
       success(result);
     } catch (e) {
@@ -331,7 +337,7 @@ program
     try {
       const result = await fip.waitForElement(text, {
         timeout: parseInt(options.timeout),
-        interval: parseInt(options.interval)
+        interval: parseInt(options.interval),
       });
       success(result);
     } catch (e) {
@@ -379,7 +385,8 @@ program
         return;
       }
 
-      const outputPath = options.output || `D:/claude/fip-cli/screenshot_${Date.now()}.png`;
+      const outputPath =
+        options.output || `D:/claude/fip-cli/screenshot_${Date.now()}.png`;
 
       // WebBridge 返回文件路径
       if (result.data.path && fs.existsSync(result.data.path)) {
@@ -391,7 +398,11 @@ program
       // 兼容旧版 base64 返回格式
       if (result.data.data) {
         fs.writeFileSync(outputPath, Buffer.from(result.data.data, 'base64'));
-        success({ saved: true, path: outputPath, size: result.data.data.length });
+        success({
+          saved: true,
+          path: outputPath,
+          size: result.data.data.length,
+        });
         return;
       }
 
@@ -426,7 +437,7 @@ program
           companyCode: options.companyCode,
           taxCode: options.taxCode,
           voidStatus: options.voidStatus,
-          queryOnly: options.queryOnly
+          queryOnly: options.queryOnly,
         }).filter(([_, v]) => v !== undefined)
       );
       const result = await fip.exportUnbilledIncomeLedger(args);
@@ -443,7 +454,11 @@ program
   .option('--end-period <period>', '截止税期 (YYYY-MM)', cfg.endPeriod)
   .option('--company-code <code>', '转出单位编码', cfg.companyCode)
   .option('--tax-code <code>', '纳税主体税号', cfg.taxCode)
-  .option('--doc-status <status>', '单据状态 (全部/制单中/审批中/流程结束/已作废)', cfg.docStatus)
+  .option(
+    '--doc-status <status>',
+    '单据状态 (全部/制单中/审批中/流程结束/已作废)',
+    cfg.docStatus
+  )
   .option('--query-only', '仅查询不导出', false)
   .action(async (options) => {
     try {
@@ -453,7 +468,7 @@ program
         companyCode: options.companyCode,
         taxCode: options.taxCode,
         docStatus: options.docStatus,
-        queryOnly: options.queryOnly
+        queryOnly: options.queryOnly,
       });
       success(result);
     } catch (e) {
@@ -476,7 +491,7 @@ program
         endDate: options.endDate,
         companyCode: options.companyCode,
         sellerCode: options.sellerCode,
-        queryOnly: options.queryOnly
+        queryOnly: options.queryOnly,
       });
       success(result);
     } catch (e) {
@@ -501,7 +516,7 @@ program
         companyCode: options.companyCode,
         taxCode: options.taxCode,
         docType: options.docType,
-        queryOnly: options.queryOnly
+        queryOnly: options.queryOnly,
       });
       success(result);
     } catch (e) {
@@ -524,7 +539,7 @@ program
         endPeriod: options.endPeriod,
         companyCode: options.companyCode,
         taxCode: options.taxCode,
-        queryOnly: options.queryOnly
+        queryOnly: options.queryOnly,
       });
       success(result);
     } catch (e) {
@@ -545,18 +560,22 @@ program
   .option('--void-status <status>', '作废状态', cfg.voidStatus)
   .option('--doc-status <status>', '单据状态', cfg.docStatus)
   .option('--doc-type <type>', '单据类型', cfg.docType)
-  .option('--ledgers <list>', '指定台账（逗号分隔）', 'unbilled,input-transfer,output-invoice,vat-prepayment,passenger-transport')
+  .option(
+    '--ledgers <list>',
+    '指定台账（逗号分隔）',
+    'unbilled,input-transfer,output-invoice,vat-prepayment,passenger-transport'
+  )
   .option('--query-only', '仅查询不导出', false)
   .action(async (options) => {
     try {
       const ledgers = options.ledgers.split(',');
       const results = {};
       const ledgerMap = {
-        'unbilled': 'exportUnbilledIncomeLedger',
+        unbilled: 'exportUnbilledIncomeLedger',
         'input-transfer': 'exportInputTransferLedger',
         'output-invoice': 'exportOutputInvoiceLedger',
         'vat-prepayment': 'exportVatPrepaymentLedger',
-        'passenger-transport': 'exportPassengerTransportLedger'
+        'passenger-transport': 'exportPassengerTransportLedger',
       };
       for (const name of ledgers) {
         const fnName = ledgerMap[name.trim()];
@@ -566,12 +585,25 @@ program
         }
         let params = { queryOnly: options.queryOnly };
         if (name.trim() === 'output-invoice') {
-          params = { ...params, startDate: options.startDate, endDate: options.endDate, companyCode: options.companyCode, sellerCode: options.sellerCode };
+          params = {
+            ...params,
+            startDate: options.startDate,
+            endDate: options.endDate,
+            companyCode: options.companyCode,
+            sellerCode: options.sellerCode,
+          };
         } else {
-          params = { ...params, startPeriod: options.startPeriod, endPeriod: options.endPeriod, companyCode: options.companyCode, taxCode: options.taxCode };
+          params = {
+            ...params,
+            startPeriod: options.startPeriod,
+            endPeriod: options.endPeriod,
+            companyCode: options.companyCode,
+            taxCode: options.taxCode,
+          };
         }
         if (name.trim() === 'unbilled') params.voidStatus = options.voidStatus;
-        if (name.trim() === 'input-transfer') params.docStatus = options.docStatus;
+        if (name.trim() === 'input-transfer')
+          params.docStatus = options.docStatus;
         if (name.trim() === 'vat-prepayment') params.docType = options.docType;
         try {
           const result = await fip[fnName](params);
@@ -664,7 +696,9 @@ program
       const fields = await fip.extractInvoiceFields();
 
       if (!fields.invoice_no) {
-        throw new Error('未能从页面提取到单据编号，请确认当前页面是开票单详情页');
+        throw new Error(
+          '未能从页面提取到单据编号，请确认当前页面是开票单详情页'
+        );
       }
 
       console.log(`提取成功: 单据 ${fields.invoice_no}`);
@@ -674,7 +708,9 @@ program
         fields.confirmed_amount = parseFloat(options.confirmedAmount);
       }
       if (options.attachmentContract) {
-        fields.attachment_contract_amount = parseFloat(options.attachmentContract);
+        fields.attachment_contract_amount = parseFloat(
+          options.attachmentContract
+        );
       }
 
       // 4. 执行审核
@@ -710,7 +746,7 @@ program
         stats: result.stats,
         report: options.output ? null : report,
         output_file: options.output || null,
-        format: options.format
+        format: options.format,
       });
     } catch (e) {
       error('audit_invoice_error', e.message);
@@ -767,7 +803,9 @@ program
 
 program
   .command('doctor')
-  .description('诊断环境状态：检查 Node.js、依赖、WebBridge、Chrome CDP、FIP 登录等')
+  .description(
+    '诊断环境状态：检查 Node.js、依赖、WebBridge、Chrome CDP、FIP 登录等'
+  )
   .option('--json', '输出 JSON 格式报告')
   .action(async (options) => {
     const doctor = require('../lib/doctor');
@@ -779,7 +817,7 @@ program
         console.log(doctor.generateReport(checks));
       }
       // 如果有错误，退出码非零
-      const hasError = checks.some(c => c.status === 'error');
+      const hasError = checks.some((c) => c.status === 'error');
       if (hasError) {
         process.exit(1);
       }

@@ -7,7 +7,12 @@
     "fip-cli": "./bin/fip-cli.js"
   },
   "scripts": {
-    "test": "node test/basic.test.js"
+    "test": "mocha \"test/**/*.test.js\" --timeout 10000",
+    "test:unit": "mocha \"test/unit/**/*.test.js\"",
+    "lint": "eslint lib/ bin/",
+    "lint:fix": "eslint lib/ bin/ --fix",
+    "format": "prettier --write \"lib/**/*.js\" \"bin/**/*.js\"",
+    "format:check": "prettier --check \"lib/**/*.js\" \"bin/**/*.js\""
   },
   "keywords": [
     "fip",
@@ -21,5 +26,15 @@
   "dependencies": {
     "chrome-remote-interface": "^0.34.0",
     "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "chai": "^6.2.2",
+    "eslint": "^10.4.1",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.6.0",
+    "mocha": "^11.7.6",
+    "prettier": "^3.8.4",
+    "sinon": "^22.0.0"
   }
 }
