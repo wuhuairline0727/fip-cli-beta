@@ -9,9 +9,12 @@ test/
 *.test.js
 
 # Docs and guides
-docs/
 CONTRIBUTING.md
 CLAUDE.md
+
+# Local backup of AI memory files
+docs/backup/
+
 
 # Logs
 *.log
