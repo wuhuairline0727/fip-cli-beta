@@ -138,9 +138,8 @@ fip-cli config sellerCode    91110000101638302P
 2. **GWT 类名动态变化**: 每次页面刷新后 class 名可能变化，代码已兼容多种类名但仍需持续维护
 3. **下载路径**: 中文 Windows 系统 Chrome 下载目录为 `D:\下载`
 4. **文件重命名**: Chrome 自动重命名重复文件（加 `(1)` 等），代码已支持模糊匹配
-5. **YJK 提单日期**: innerText 中提单日期字段值为空，需通过其他方式获取
-6. **GWT ID 后缀不稳定**: 不同单据实例的 input ID 后缀数字不同，已使用 `byIdPrefix` 策略兼容
-7. **CDP 端口依赖**: CDP 真实点击需 Chrome 开启 `--remote-debugging-port=9222`
+5. **GWT ID 后缀不稳定**: 不同单据实例的 input ID 后缀数字不同，已使用 `byIdPrefix` 策略兼容
+6. **CDP 端口依赖**: CDP 真实点击需 Chrome 开启 `--remote-debugging-port=9222`
 
 ## Chrome 远程调试端口配置
 
@@ -155,6 +154,13 @@ curl http://127.0.0.1:9222/json/version
 > 若 Kimi WebBridge 已自动管理 Chrome 实例，通常无需手动配置。仅当 CDP 点击失败（如 Picker 弹窗无法打开）时检查。
 
 ## 关键修复记录
+
+### 2026-06-10 YJK 提单日期提取修复
+- **问题**: `bill_date`（提单日期）提取为 null
+  - 根因: 提单日期值不在 innerText 中，而是在 `FormDateField1-input` 的 value 属性中；该 ID 有多个实例，第一个对应涉税报告到期时间
+  - 解决: 使用 `byLabel: '提单日期'` 策略，通过 label 向上遍历父元素链定位正确的 input
+  - 文件: `lib/bills/config/yjk.js`
+- **验证**: `bill_date` = `2026-06-10` ✅
 
 ### 2026-06-10 弹窗检测与 closeBill 双重修复
 - **问题1**: `extract-bill` CLI 执行后弹窗未关闭
