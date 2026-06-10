@@ -78,12 +78,50 @@ node bin/fip-cli.js audit-invoice <单据编号>
 ## 项目结构
 
 ```
-lib/
-├── bills/          # 通用单据提取引擎
-├── audit/          # 开票单审核模块
-├── ledgers/        # 台账查询模块
-├── utils/          # 工具函数（浏览器操作、弹窗处理、表格读取）
-└── browser.js      # WebBridge 客户端封装
+fip-cli/
+├── bin/
+│   └── fip-cli.js              # CLI 命令入口
+├── lib/
+│   ├── browser.js                # WebBridge 客户端封装
+│   ├── fip.js                    # 主入口（聚合导出所有功能）
+│   ├── output.js                 # 输出格式化 + 自动截图
+│   ├── config.js                 # ~/.fiprc.json 配置管理
+│   ├── audit/
+│   │   ├── extractor.js          # 开票单字段提取器
+│   │   ├── engine.js             # 审核引擎
+│   │   ├── reporter.js           # 报告生成器（text/json/md）
+│   │   └── rules.json            # 审核规则配置
+│   ├── bills/
+│   │   ├── extractor.js          # 通用单据提取引擎
+│   │   ├── audit-hints.js        # 审核提示生成器
+│   │   └── config/
+│   │       ├── index.js          # 配置注册表（类型识别）
+│   │       ├── common.js         # 通用字段 + 过滤配置
+│   │       ├── domestic-travel.js # SLBX 配置
+│   │       ├── general-expense.js # TBX 配置
+│   │       ├── external-payment.js # CFK 配置
+│   │       ├── travel-expense.js  # CBX 配置
+│   │       └── yjk.js            # YJK 配置（预缴计算单）
+│   ├── ledgers/
+│   │   ├── unbilled-income.js    # 未开票收入台账
+│   │   ├── input-transfer.js     # 进项转出明细台账
+│   │   ├── output-invoice.js     # 销项发票明细台账
+│   │   ├── vat-prepayment.js    # 增值税预缴款台账
+│   │   └── passenger-transport.js # 旅客运输服务台账
+│   └── utils/
+│       ├── index.js              # utils 聚合导出
+│       ├── cdp.js                # CDP 抽象层（真实点击）
+│       ├── common.js             # 通用 DOM 操作（sleep/查找/页签切换）
+│       ├── dialog.js             # 弹窗检测与自动关闭
+│       ├── form.js               # 表单操作
+│       ├── picker.js             # Picker 弹窗操作
+│       ├── navigation.js         # 导航操作（侧边菜单/Drawer）
+│       ├── bill.js               # 单据操作（openBill/closeBill）
+│       ├── table.js              # 表格数据读取
+│       └── attachment.js         # 附件列表/下载
+├── package.json
+├── package-lock.json
+└── README.md
 ```
 
 ## 注意事项

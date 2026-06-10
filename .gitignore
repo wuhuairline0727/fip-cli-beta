@@ -1,8 +1,17 @@
 # Dependencies
 node_modules/
 
-# Screenshots archive
-screenshots/archive/
+# Screenshots
+screenshots/
+
+# Test files
+test/
+*.test.js
+
+# Docs and guides
+docs/
+CONTRIBUTING.md
+CLAUDE.md
 
 # Logs
 *.log
