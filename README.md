@@ -1,6 +1,6 @@
 # FIP CLI
 
-FIP一体化平台自动化CLI工具 - 支持中国建筑司库一体化平台(fip.cscec.com)的多系统模块自动化操作，包括报账系统单据处理、税务系统台账查询、司库系统开票单审核等。
+FIP一体化平台自动化CLI工具 - 支持中国建筑司库一体化平台(fip.cscec.com)的多系统模块自动化操作，包括报账系统单据处理、税务系统开票单审核与台账查询等。
 
 ## 适配平台
 
@@ -16,13 +16,13 @@ FIP一体化平台自动化CLI工具 - 支持中国建筑司库一体化平台(f
 | **Kimi WebBridge** | 浏览器自动化控制（导航、点击、提取、截图） | 浏览器扩展 + 本地守护进程 |
 | **Node.js** | CLI 运行时环境 | [nodejs.org](https://nodejs.org) |
 | **Git** | 版本控制 | [git-scm.com](https://git-scm.com) |
+| **Chrome 浏览器** | WebBridge 目标浏览器，需开启远程调试端口 | 见下方配置 |
 
 ### 可选
 
 | 工具 | 用途 |
 |------|------|
 | **GitHub CLI (gh)** | 仓库管理、Issue/PR 操作 |
-| **Chrome 浏览器** | WebBridge 目标浏览器 |
 
 ## Kimi WebBridge 配置
 
@@ -36,6 +36,25 @@ FIP一体化平台自动化CLI工具 - 支持中国建筑司库一体化平台(f
    C:\Users\<用户名>\.kimi-webbridge\bin\kimi-webbridge.exe status
    ```
 3. 确认连接端口: `http://127.0.0.1:10086`
+
+## Chrome 远程调试端口配置
+
+本工具通过 Chrome DevTools Protocol (CDP) 实现真实鼠标点击操作（如 Picker 弹窗、下拉选项等），需要 Chrome 开启远程调试端口：
+
+```bash
+# 方式一：命令行启动 Chrome（推荐）
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
+
+# 方式二：为 Chrome 创建快捷方式，在目标后追加参数
+# 右键 Chrome 快捷方式 → 属性 → 目标末尾添加: --remote-debugging-port=9222
+```
+
+验证端口是否开启：
+```bash
+curl http://127.0.0.1:9222/json/version
+```
+
+> **注意**: 若 Kimi WebBridge 已自动管理 Chrome 实例，通常无需手动配置。仅当 CDP 点击失败（如 Picker 弹窗无法打开）时，才需要检查远程调试端口是否开启。
 
 ## 快速开始
 
@@ -114,13 +133,14 @@ fip-cli close-bill
 
 ### 二、税务系统
 
-税务台账查询、导出，以及税务单据（预缴计算单）的字段提取。
+税务单据字段提取、台账查询与导出，以及建筑施工开票单审核。
 
 #### 支持的单据类型
 
 | 类型代码 | 单据名称 | 状态 | 备注 |
 |----------|----------|------|------|
 | YJK | 预缴计算单 | ✅ 已验收 | 增值税/所得税/附加税费预缴，含税率自动计算 |
+| KP | 建筑施工开票单 | ✅ 已验收 | 合同金额核对、累计确权额核对、附件完整性检查 |
 
 #### 税务台账查询
 
@@ -137,6 +157,15 @@ fip-cli close-bill
 ```bash
 # 预缴计算单字段提取
 fip-cli extract-bill YJK20042026061003638
+
+# 开票单字段提取
+fip-cli extract-invoice <单据编号>
+
+# 开票单审核（生成审核报告）
+fip-cli audit-invoice <单据编号>
+
+# 保持单据打开（不自动关闭）
+fip-cli audit-invoice <单据编号> --keep-open
 
 # 台账查询（返回 JSON）
 fip-cli export-input-transfer --start-period 2026-04 --end-period 2026-04 --query-only
@@ -173,31 +202,6 @@ fip-cli config sellerCode    91110000101638302P
 - **税率自动计算**: 城市维护建设税税率 = 城市维护建设税 / 预缴增值税⑥
 - **分包发票信息**: 发票代码、发票号码、开票日期、金额、税率、税额
 
----
-
-### 三、司库系统
-
-建筑施工开票单的字段提取与自动审核。
-
-#### 支持的单据类型
-
-| 类型代码 | 单据名称 | 状态 | 备注 |
-|----------|----------|------|------|
-| KP | 建筑施工开票单 | ✅ 已验收 | 合同金额核对、累计确权额核对、附件完整性检查 |
-
-#### 司库系统 CLI 命令
-
-```bash
-# 提取开票单字段
-fip-cli extract-invoice <单据编号>
-
-# 审核开票单（生成审核报告）
-fip-cli audit-invoice <单据编号>
-
-# 保持单据打开（不自动关闭）
-fip-cli audit-invoice <单据编号> --keep-open
-```
-
 #### 开票单审核规则
 
 | 审核项 | 说明 |
@@ -209,7 +213,7 @@ fip-cli audit-invoice <单据编号> --keep-open
 
 ---
 
-### 四、基础功能
+### 三、基础功能
 
 跨系统通用的基础操作命令。
 
@@ -264,7 +268,7 @@ fip-cli/
 │   ├── fip.js                    # 主入口（聚合导出所有功能）
 │   ├── output.js                 # 输出格式化 + 自动截图
 │   ├── config.js                 # ~/.fiprc.json 配置管理
-│   ├── audit/                    # 司库系统 - 开票单审核
+│   ├── audit/                    # 税务系统 - 开票单审核（KP）
 │   │   ├── extractor.js          # 开票单字段提取器
 │   │   ├── engine.js             # 审核引擎
 │   │   ├── reporter.js           # 报告生成器（text/json/md）
@@ -288,7 +292,7 @@ fip-cli/
 │   │   └── passenger-transport.js # 旅客运输服务台账
 │   └── utils/                    # 通用工具
 │       ├── index.js              # utils 聚合导出
-│       ├── cdp.js                # CDP 抽象层（真实点击）
+│       ├── cdp.js                # CDP 抽象层（真实点击，端口 9222）
 │       ├── common.js             # 通用 DOM 操作（sleep/查找/页签切换）
 │       ├── dialog.js             # 弹窗检测与自动关闭（支持 GWT 审批提醒弹窗）
 │       ├── form.js               # 表单操作
@@ -305,6 +309,14 @@ fip-cli/
 ---
 
 ## 技术特性
+
+### CDP 真实点击
+
+针对 GWT 框架中部分元素无法通过常规 DOM 点击触发的情况，本工具通过 Chrome DevTools Protocol (CDP) 实现真实鼠标点击：
+
+- **端口**: 默认连接 `127.0.0.1:9222`
+- **应用场景**: Picker 弹窗按钮、下拉选项、弹窗内元素等
+- **依赖**: Chrome 必须开启 `--remote-debugging-port=9222`
 
 ### 弹窗自动处理
 
