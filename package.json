@@ -22,7 +22,7 @@
     "format:check": "prettier --check \"lib/**/*.js\" \"bin/**/*.js\""
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=20.0.0"
   },
   "keywords": [
     "fip",
