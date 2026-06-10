@@ -181,6 +181,55 @@ description: Phase 2功能开发进度、测试结果、部署状态
 - `docs/DEVELOPMENT.md` — 开发文档（项目结构、测试、发布流程）
 - `docs/CHANGELOG.md` — 更新日志
 
+## 八、GitHub仓库标准化（2026-06-10）
+
+根据成熟仓库要素指南（cli/cli, sharkdp/bat, BurntSushi/ripgrep等），补齐缺失文件：
+
+**新增必备文件**:
+| 文件 | 说明 |
+|------|------|
+| `LICENSE` | MIT许可证（package.json已引用但文件缺失） |
+| `CONTRIBUTING.md` | 贡献指南：开发环境、代码规范、提交规范、分支策略 |
+| `SECURITY.md` | 安全政策：漏洞报告流程、安全最佳实践 |
+| `CODE_OF_CONDUCT.md` | 行为准则（改编自Contributor Covenant 2.1） |
+
+**新增.github/配置**:
+| 文件 | 说明 |
+|------|------|
+| `.github/CODEOWNERS` | 代码审查责任人分配 |
+| `.github/dependabot.yml` | 每周自动检查npm依赖更新 |
+| `.github/ISSUE_TEMPLATE/bug_report.md` | Bug报告模板（含doctor输出要求） |
+| `.github/ISSUE_TEMPLATE/feature_request.md` | 功能请求模板 |
+| `.github/PULL_REQUEST_TEMPLATE.md` | PR模板（含测试/lint检查清单） |
+
+**CLI特有要素检查**:
+| 要素 | 状态 | 说明 |
+|------|------|------|
+| `--version` | ✅ | commander `.version('1.0.0')` |
+| `--help` | ✅ | commander 自动生成 |
+| 退出码规范 | ✅ | 0=成功，1=错误（`process.exit(1)`） |
+| 子命令结构 | ✅ | `fip-cli <command>` 清晰分层 |
+
+**当前仓库完整度**: 必备文件 100% 覆盖，推荐文件 80%+ 覆盖
+
+
+**日期**: 2026-06-10
+**原因**: 原README过于冗长（439行），不符合成熟CLI仓库的简洁风格
+**调研对象**: sindresorhus/execa, netlify/cli, oclif, vercel, cli/cli (GitHub CLI)
+**重写要点**:
+- 顶部一句话tagline（blockquote突出）
+- 正文控制在~100行，500-1500字
+- Install章节前置，仅一行命令
+- Quick Start仅1-2个示例
+- Features用5-10个bullet points
+- Commands用表格，简短描述
+- 详细内容外链到docs/目录
+**拆分文档**:
+- `README.md` — 精简入口（~100行）
+- `docs/GUIDE.md` — 完整使用指南（原README详细内容）
+- `docs/DEVELOPMENT.md` — 开发文档（项目结构、测试、发布流程）
+- `docs/CHANGELOG.md` — 更新日志
+
 
 ```
 lib/
