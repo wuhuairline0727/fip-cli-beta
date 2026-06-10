@@ -4,10 +4,6 @@ node_modules/
 # Screenshots
 screenshots/
 
-# Test files
-test/
-*.test.js
-
 # Docs and guides
 CONTRIBUTING.md
 CLAUDE.md
