@@ -731,6 +731,8 @@ program
         console.log(`打开单据 ${billId}...`);
         await fip.openBill(billId);
         await fip.sleep(3000);
+        // 打开单据后关闭可能出现的弹窗（如审批提醒）
+        await fip.waitAndDismissDialogs(5000, { waitAfterClose: 1500 });
       }
 
       console.log('提取单据字段...');
@@ -764,9 +766,6 @@ program
   });
 
 program.parseAsync(process.argv).catch(async (err) => {
-  if (err.isFipError) {
-    process.exit(1);
-  }
   // 未捕获的异常
   await error('uncaught_error', err.message);
   process.exit(1);
