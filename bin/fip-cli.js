@@ -765,6 +765,30 @@ program
     }
   });
 
+program
+  .command('doctor')
+  .description('诊断环境状态：检查 Node.js、依赖、WebBridge、Chrome CDP、FIP 登录等')
+  .option('--json', '输出 JSON 格式报告')
+  .action(async (options) => {
+    const doctor = require('../lib/doctor');
+    try {
+      const checks = await doctor.runDiagnostics();
+      if (options.json) {
+        console.log(JSON.stringify(doctor.generateJsonReport(checks), null, 2));
+      } else {
+        console.log(doctor.generateReport(checks));
+      }
+      // 如果有错误，退出码非零
+      const hasError = checks.some(c => c.status === 'error');
+      if (hasError) {
+        process.exit(1);
+      }
+    } catch (e) {
+      console.error('诊断执行失败:', e.message);
+      process.exit(1);
+    }
+  });
+
 program.parseAsync(process.argv).catch(async (err) => {
   // 未捕获的异常
   await error('uncaught_error', err.message);
