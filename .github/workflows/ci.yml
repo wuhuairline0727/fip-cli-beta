@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter (if present)
+        run: |
+          if [ "$(npm pkg get scripts.lint 2>/dev/null)" != "undefined" ]; then
+            npm run lint
+          else
+            echo "No 'lint' script found in package.json, skipping."
+          fi
+        shell: bash
+
+      - name: Check formatting (if present)
+        run: |
+          if [ "$(npm pkg get scripts.format:check 2>/dev/null)" != "undefined" ]; then
+            npm run format:check
+          else
+            echo "No 'format:check' script found in package.json, skipping."
+          fi
+        shell: bash
+
+      - name: Run tests
+        run: npm test
