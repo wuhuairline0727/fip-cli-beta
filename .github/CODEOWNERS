@@ -1,0 +1,26 @@
+# 代码审查责任人
+# 格式: <pattern> <owner>
+
+# 全局默认
+* @wuhuairline0727
+
+# CLI 入口和核心库
+bin/ @wuhuairline0727
+lib/ @wuhuairline0727
+
+# 单据提取模块
+lib/bills/ @wuhuairline0727
+lib/audit/ @wuhuairline0727
+
+# 台账查询模块
+lib/ledgers/ @wuhuairline0727
+
+# 工具函数
+lib/utils/ @wuhuairline0727
+
+# 测试
+test/ @wuhuairline0727
+
+# CI/CD 和文档
+.github/ @wuhuairline0727
+docs/ @wuhuairline0727
