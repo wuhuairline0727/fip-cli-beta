@@ -76,6 +76,17 @@ node bin/fip-cli.js extract-bill <单据编号>
 node bin/fip-cli.js audit-invoice <单据编号>
 ```
 
+### 全局选项
+
+```bash
+# Debug 模式 — 输出详细调试日志到 stderr 和 fip-debug.log
+node bin/fip-cli.js --debug doctor
+node bin/fip-cli.js --debug extract-bill <单据编号>
+
+# Verbose 模式 — 输出操作日志
+node bin/fip-cli.js --verbose export-input-transfer --start-period 2026-04 --query-only
+```
+
 ---
 
 ## 功能模块
@@ -276,20 +287,40 @@ fip-cli config startDate     2026-04-01
 fip-cli config endDate       2026-04-30
 ```
 
+> **配置验证**: 设置配置时会自动验证格式（如 `companyCode` 必须为纯数字，`startDate` 必须为 `YYYY-MM-DD` 格式），验证失败会给出明确错误提示。
+
 ---
 
-## 项目结构
+## 开发
+
+### 开发命令
+
+```bash
+# 运行测试
+npm test                    # 全部测试（37 个）
+npm run test:unit           # 仅单元测试
+
+# 代码质量
+npm run lint                # ESLint 检查
+npm run lint:fix            # 自动修复
+npm run format              # Prettier 格式化
+npm run format:check        # 格式检查
+```
+
+### 项目结构
 
 ```
 fip-cli/
 ├── bin/
 │   └── fip-cli.js              # CLI 命令入口（45+ 个命令）
 ├── lib/
-│   ├── doctor.js               # 环境诊断模块（检查 Node.js/依赖/WebBridge/CDP/FIP 登录）
+│   ├── doctor.js               # 环境诊断模块
 │   ├── browser.js                # WebBridge 客户端封装
 │   ├── fip.js                    # 主入口（聚合导出所有功能）
 │   ├── output.js                 # 输出格式化 + 自动截图
 │   ├── config.js                 # ~/.fiprc.json 配置管理
+│   ├── config-schema.js          # 配置项格式验证
+│   ├── logger.js                 # Debug/Verbose 日志系统
 │   ├── audit/                    # 税务系统 - 开票单审核（KP）
 │   │   ├── extractor.js          # 开票单字段提取器
 │   │   ├── engine.js             # 审核引擎
@@ -301,11 +332,11 @@ fip-cli/
 │   │   └── config/
 │   │       ├── index.js          # 配置注册表（类型识别）
 │   │       ├── common.js         # 通用字段 + 过滤配置
-│   │       ├── domestic-travel.js # SLBX 配置（境内差旅报销单）
-│   │       ├── general-expense.js # TBX 配置（通用报销单）
-│   │       ├── external-payment.js # CFK 配置（对外成本费用付款申请）
-│   │       ├── travel-expense.js  # CBX 配置（差旅费报销）
-│   │       └── yjk.js            # YJK 配置（预缴计算单，税务模块）
+│   │       ├── domestic-travel.js # SLBX 配置
+│   │       ├── general-expense.js # TBX 配置
+│   │       ├── external-payment.js # CFK 配置
+│   │       ├── travel-expense.js  # CBX 配置
+│   │       └── yjk.js            # YJK 配置（预缴计算单）
 │   ├── ledgers/                  # 税务系统 - 台账查询
 │   │   ├── unbilled-income.js    # 未开票收入台账
 │   │   ├── input-transfer.js     # 进项转出明细台账
@@ -315,14 +346,28 @@ fip-cli/
 │   └── utils/                    # 通用工具
 │       ├── index.js              # utils 聚合导出
 │       ├── cdp.js                # CDP 抽象层（真实点击，端口 9222）
-│       ├── common.js             # 通用 DOM 操作（sleep/查找/页签切换）
-│       ├── dialog.js             # 弹窗检测与自动关闭（支持 GWT 审批提醒弹窗）
+│       ├── common.js             # 通用 DOM 操作
+│       ├── dialog.js             # 弹窗检测与自动关闭
 │       ├── form.js               # 表单操作
 │       ├── picker.js             # Picker 弹窗操作
-│       ├── navigation.js         # 导航操作（侧边菜单/Drawer）
+│       ├── navigation.js         # 导航操作
 │       ├── bill.js               # 单据操作（openBill/closeBill）
 │       ├── table.js              # 表格数据读取
 │       └── attachment.js         # 附件列表/下载
+├── test/                         # 单元测试（mocha + chai）
+│   ├── unit/
+│   │   ├── browser.test.js
+│   │   ├── doctor.test.js
+│   │   ├── bills/
+│   │   │   └── extractor.test.js
+│   │   └── config-schema.test.js
+│   └── basic.test.js
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                # GitHub Actions CI
+│       └── release.yml           # 自动发布工作流
+├── eslint.config.js              # ESLint v10 flat config
+├── .prettierrc                   # Prettier 配置
 ├── package.json
 ├── package-lock.json
 └── README.md
@@ -378,6 +423,8 @@ YJK 预缴计算单自动计算附加税费税率：
 - ✅ 修复 YJK 提单日期提取问题（使用 `byLabel` 策略定位日期 input）
 - ✅ 修复 `extract-bill` CLI 弹窗未关闭问题（`dialog.js` 策略4新增备选选择器）
 - ✅ 修复 `closeBill()` URL 验证误匹配问题（排除 `FLOW_` 前缀）
+- ✅ **P0 基础设施**: ESLint v10 + Prettier + GitHub Actions CI + mocha/chai 测试框架（37 个单元测试）
+- ✅ **P1 开发体验**: Debug/Verbose 日志模式（`--debug`/`--verbose`/`fip-debug.log`）+ npm 发布准备 + 配置 Schema 验证
 - ✅ 生产环境验证通过（22 个待办单据 + 1 个 YJK 已办结单据）
 
 ### 2026-06-09
