@@ -629,6 +629,23 @@ program
     try {
       const cfg = config.get();
       const ledgers = options.ledgers.split(',');
+      const validLedgers = [
+        'unbilled',
+        'input-transfer',
+        'output-invoice',
+        'vat-prepayment',
+        'passenger-transport',
+      ];
+      const invalid = ledgers
+        .map((n) => n.trim())
+        .filter((n) => !validLedgers.includes(n));
+      if (invalid.length > 0) {
+        error(
+          'export_all_error',
+          `未知台账类型: ${invalid.join(', ')}。合法值: ${validLedgers.join(', ')}`
+        );
+        return;
+      }
       const results = {};
       const ledgerMap = {
         unbilled: 'exportUnbilledIncomeLedger',
@@ -685,41 +702,52 @@ program
   .command('examples')
   .description('显示使用示例')
   .action(() => {
-    console.log(`
-FIP CLI 使用示例
-================
-
-1. 检查登录状态
-   fip-cli login-status
-
-2. 导航到指定页面
-   fip-cli navigate "https://fip.cscec.com/OSPPortal/CSCPortal.jsp#/gwt/00010004000400070001"
-
-3. 查询未开票收入台账（仅查询）
-   fip-cli export-unbilled --query-only
-
-4. 导出未开票收入台账（默认参数）
-   fip-cli export-unbilled
-
-5. 导出进项转出明细台账（指定税期）
-   fip-cli export-input-transfer --start-period 2026-04 --end-period 2026-04
-
-6. 导出销项发票明细台账
-   fip-cli export-output-invoice --start-date 2026-04-01 --end-date 2026-04-30
-
-7. 导出增值税预缴款台账
-   fip-cli export-vat-prepayment --start-period 2026-04 --end-period 2026-04
-
-8. 导出旅客运输服务台账
-   fip-cli export-passenger-transport --start-period 2026-04 --end-period 2026-04
-
-9. 选择申请单位
-   fip-cli pick-company 1000200020040011
-
-10. 选择纳税主体
-    fip-cli pick-tax-subject 91110000101107173B
-`);
-    process.exit(0);
+    success({
+      examples: [
+        { command: 'fip-cli login-status', description: '检查登录状态' },
+        {
+          command:
+            'fip-cli navigate "https://fip.cscec.com/OSPPortal/CSCPortal.jsp#/gwt/00010004000400070001"',
+          description: '导航到指定页面',
+        },
+        {
+          command: 'fip-cli export-unbilled --query-only',
+          description: '查询未开票收入台账（仅查询）',
+        },
+        {
+          command: 'fip-cli export-unbilled',
+          description: '导出未开票收入台账（默认参数）',
+        },
+        {
+          command:
+            'fip-cli export-input-transfer --start-period 2026-04 --end-period 2026-04',
+          description: '导出进项转出明细台账（指定税期）',
+        },
+        {
+          command:
+            'fip-cli export-output-invoice --start-date 2026-04-01 --end-date 2026-04-30',
+          description: '导出销项发票明细台账',
+        },
+        {
+          command:
+            'fip-cli export-vat-prepayment --start-period 2026-04 --end-period 2026-04',
+          description: '导出增值税预缴款台账',
+        },
+        {
+          command:
+            'fip-cli export-passenger-transport --start-period 2026-04 --end-period 2026-04',
+          description: '导出旅客运输服务台账',
+        },
+        {
+          command: 'fip-cli pick-company 1000200020040011',
+          description: '选择申请单位',
+        },
+        {
+          command: 'fip-cli pick-tax-subject 91110000101107173B',
+          description: '选择纳税主体',
+        },
+      ],
+    });
   });
 
 program
