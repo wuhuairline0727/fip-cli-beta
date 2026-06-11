@@ -1,11 +1,11 @@
-const { evaluate } = require('../browser');
+import { evaluate } from '../browser';
 
 /**
  * 从 FIP 开票单详情页提取所有字段
  * 包含：基本信息、合同信息、开票信息、开票明细、销方信息、收票信息、附件列表
- * @returns {Promise<Object>} 提取的完整字段字典
+ * @returns 提取的完整字段字典
  */
-async function extractInvoiceFields() {
+export async function extractInvoiceFields(): Promise<Record<string, unknown>> {
   // 注意：此代码字符串会被嵌入模板字符串，所有反斜杠需要双重转义
   // 例如要写 \\\\d 才能在浏览器中得到 \\d（有效的正则转义）
   const code = `
@@ -377,7 +377,7 @@ async function extractInvoiceFields() {
       if (statusMatch) result.flow_status = statusMatch[0];
 
       // === 方法9: 提取系统警告 ===
-      const warningMatch = pageText.match(/当前单据所选合同中[\\s\\S]*?！/);
+      const warningMatch = pageText.match(/当前单据所选合同中[\\s\\S]*？！/);
       if (warningMatch) result.system_warning = warningMatch[0].replace(/\\s+/g, ' ');
 
       // === 方法10: 提取所有 label 文本（用于发现遗漏字段）===
@@ -398,10 +398,10 @@ async function extractInvoiceFields() {
   `;
 
   const result = await evaluate(code);
-  return result.data?.value || {};
+  return (result.data as { value?: Record<string, unknown> } | undefined)?.value || {};
 }
 
-async function extractFromInputs() {
+export async function extractFromInputs(): Promise<Record<string, unknown>> {
   const code = `
     (function() {
       const result = {};
@@ -424,7 +424,5 @@ async function extractFromInputs() {
     })()
   `;
   const result = await evaluate(code);
-  return result.data?.value || {};
+  return (result.data as { value?: Record<string, unknown> } | undefined)?.value || {};
 }
-
-module.exports = { extractInvoiceFields, extractFromInputs };

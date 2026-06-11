@@ -1,43 +1,30 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+import * as http from 'http';
+import * as fs from 'fs';
+import * as path from 'path';
+import { execSync } from 'child_process';
 
 const WEBBRIDGE_PORT = 10086;
 const CDP_PORT = 9222;
 
-/**
- * 执行检查并返回结果
- * @returns {Promise<Array>} 检查结果数组
- */
-async function runDiagnostics() {
-  const checks = [];
+export interface DiagnosticCheck {
+  name: string;
+  status: 'ok' | 'warn' | 'error' | 'skip';
+  message: string;
+  fix?: string;
+}
 
-  // 1. Node.js 版本
+export async function runDiagnostics(): Promise<DiagnosticCheck[]> {
+  const checks: DiagnosticCheck[] = [];
   checks.push(checkNodeVersion());
-
-  // 2. 项目依赖
   checks.push(checkDependencies());
-
-  // 3. Kimi WebBridge 守护进程
   checks.push(await checkWebBridgeDaemon());
-
-  // 4. Chrome 远程调试端口
   checks.push(await checkCdpPort());
-
-  // 5. FIP 网站连接状态
   checks.push(await checkFipConnection());
-
-  // 6. GitHub CLI（可选）
   checks.push(checkGitHubCli());
-
   return checks;
 }
 
-/**
- * 检查 Node.js 版本
- */
-function checkNodeVersion() {
+export function checkNodeVersion(): DiagnosticCheck {
   const version = process.version;
   const major = parseInt(version.slice(1).split('.')[0], 10);
   const required = 20;
@@ -57,10 +44,7 @@ function checkNodeVersion() {
   };
 }
 
-/**
- * 检查项目依赖
- */
-function checkDependencies() {
+export function checkDependencies(): DiagnosticCheck {
   const projectRoot = path.resolve(__dirname, '..');
   const nodeModules = path.join(projectRoot, 'node_modules');
 
@@ -97,14 +81,10 @@ function checkDependencies() {
   };
 }
 
-/**
- * 检查 Kimi WebBridge 守护进程
- */
-async function checkWebBridgeDaemon() {
+export async function checkWebBridgeDaemon(): Promise<DiagnosticCheck> {
   const isRunning = await isPortOpen(WEBBRIDGE_PORT);
 
   if (isRunning) {
-    // 进一步检查是否能响应请求
     try {
       const result = await webBridgeRequest('list_tabs');
       if (result.ok) {
@@ -120,7 +100,7 @@ async function checkWebBridgeDaemon() {
         message: `端口 ${WEBBRIDGE_PORT} 可连接但响应异常`,
         fix: '尝试重启守护进程: C:\\Users\\<用户名>\\.kimi-webbridge\\bin\\kimi-webbridge.exe restart',
       };
-    } catch (e) {
+    } catch (e: any) {
       return {
         name: 'Kimi WebBridge',
         status: 'warn',
@@ -141,20 +121,16 @@ async function checkWebBridgeDaemon() {
   };
 }
 
-/**
- * 检查 Chrome 远程调试端口
- */
-async function checkCdpPort() {
+export async function checkCdpPort(): Promise<DiagnosticCheck> {
   const isOpen = await isPortOpen(CDP_PORT);
 
   if (isOpen) {
-    // 尝试获取版本信息验证
     try {
       const version = await cdpVersion();
       return {
         name: 'Chrome 远程调试',
         status: 'ok',
-        message: `端口 ${CDP_PORT} 已开启（Chrome ${version.Browser?.split('/')[1] || '未知版本'}）`,
+        message: `端口 ${CDP_PORT} 已开启（Chrome ${(version as any).Browser?.split('/')[1] || '未知版本'}）`,
       };
     } catch (e) {
       return {
@@ -176,11 +152,7 @@ async function checkCdpPort() {
   };
 }
 
-/**
- * 检查 FIP 网站连接状态
- */
-async function checkFipConnection() {
-  // 先检查 WebBridge 是否可用
+export async function checkFipConnection(): Promise<DiagnosticCheck> {
   const wbOk = await isPortOpen(WEBBRIDGE_PORT);
   if (!wbOk) {
     return {
@@ -201,8 +173,7 @@ async function checkFipConnection() {
       };
     }
 
-    // WebBridge 返回结构: { ok: true, data: { success: true, tabs: [...] } }
-    const tabs = result.data && result.data.tabs ? result.data.tabs : [];
+    const tabs = result.data && (result.data as any).tabs ? (result.data as any).tabs : [];
     if (!Array.isArray(tabs) || tabs.length === 0) {
       return {
         name: 'FIP 登录状态',
@@ -212,7 +183,7 @@ async function checkFipConnection() {
       };
     }
 
-    const fipTab = tabs.find((t) => t.url && t.url.includes('fip.cscec.com'));
+    const fipTab = tabs.find((t: any) => t.url && t.url.includes('fip.cscec.com'));
 
     if (!fipTab) {
       return {
@@ -237,7 +208,7 @@ async function checkFipConnection() {
       status: 'ok',
       message: `已登录（${fipTab.title || 'FIP'}）`,
     };
-  } catch (e) {
+  } catch (e: any) {
     return {
       name: 'FIP 登录状态',
       status: 'warn',
@@ -247,10 +218,7 @@ async function checkFipConnection() {
   }
 }
 
-/**
- * 检查 GitHub CLI（可选）
- */
-function checkGitHubCli() {
+export function checkGitHubCli(): DiagnosticCheck {
   try {
     const version = execSync('gh --version', {
       encoding: 'utf8',
@@ -272,12 +240,7 @@ function checkGitHubCli() {
   }
 }
 
-// ==================== 工具函数 ====================
-
-/**
- * 检查端口是否开放
- */
-function isPortOpen(port) {
+function isPortOpen(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const req = http.request(
       {
@@ -287,7 +250,7 @@ function isPortOpen(port) {
         method: 'GET',
         timeout: 2000,
       },
-      (res) => {
+      () => {
         resolve(true);
         req.destroy();
       }
@@ -303,10 +266,7 @@ function isPortOpen(port) {
   });
 }
 
-/**
- * 向 WebBridge 发送请求
- */
-function webBridgeRequest(action) {
+function webBridgeRequest(action: string): Promise<any> {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify({ action, args: {}, session: 'fip' });
     const req = http.request(
@@ -343,10 +303,7 @@ function webBridgeRequest(action) {
   });
 }
 
-/**
- * 获取 CDP 版本信息
- */
-function cdpVersion() {
+function cdpVersion(): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const req = http.get(
       {
@@ -375,24 +332,15 @@ function cdpVersion() {
   });
 }
 
-/**
- * 生成诊断报告文本
- */
-function generateReport(checks) {
-  const lines = [];
+export function generateReport(checks: DiagnosticCheck[]): string {
+  const lines: string[] = [];
   lines.push('');
-  lines.push(
-    '╔══════════════════════════════════════════════════════════════╗'
-  );
-  lines.push(
-    '║                    FIP CLI 诊断报告                          ║'
-  );
-  lines.push(
-    '╚══════════════════════════════════════════════════════════════╝'
-  );
+  lines.push('╔══════════════════════════════════════════════════════════════╗');
+  lines.push('║                    FIP CLI 诊断报告                          ║');
+  lines.push('╚══════════════════════════════════════════════════════════════╝');
   lines.push('');
 
-  const statusIcon = {
+  const statusIcon: Record<string, string> = {
     ok: '✅',
     warn: '⚠️ ',
     error: '❌',
@@ -401,7 +349,6 @@ function generateReport(checks) {
 
   let errorCount = 0;
   let warnCount = 0;
-  const fixes = [];
 
   for (const check of checks) {
     const icon = statusIcon[check.status] || '❓';
@@ -415,7 +362,6 @@ function generateReport(checks) {
     lines.push('');
   }
 
-  // 汇总
   lines.push('──────────────────────────────────────────────────────────────');
   if (errorCount === 0 && warnCount === 0) {
     lines.push('🎉 所有检查通过，环境就绪！');
@@ -439,10 +385,7 @@ function generateReport(checks) {
   return lines.join('\n');
 }
 
-/**
- * 生成 JSON 格式报告
- */
-function generateJsonReport(checks) {
+export function generateJsonReport(checks: DiagnosticCheck[]): { healthy: boolean; summary: Record<string, number>; checks: DiagnosticCheck[]; timestamp: string } {
   const summary = {
     ok: checks.filter((c) => c.status === 'ok').length,
     warn: checks.filter((c) => c.status === 'warn').length,
@@ -456,11 +399,3 @@ function generateJsonReport(checks) {
     timestamp: new Date().toISOString(),
   };
 }
-
-module.exports = {
-  runDiagnostics,
-  checkNodeVersion,
-  checkDependencies,
-  generateReport,
-  generateJsonReport,
-};

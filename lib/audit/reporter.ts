@@ -1,3 +1,5 @@
+import type { AuditResult, CheckResult, AuditStats } from './engine';
+
 const CHECK_ORDER = [
   'profit_center',
   'billing_unit',
@@ -8,7 +10,7 @@ const CHECK_ORDER = [
   'attachments',
 ];
 
-function formatFieldAmount(val) {
+function formatFieldAmount(val: unknown): unknown {
   let num = val;
   if (typeof val === 'string') {
     num = parseFloat(val.replace(/,/g, ''));
@@ -23,8 +25,8 @@ function formatFieldAmount(val) {
   return val;
 }
 
-function generateTextReport(result) {
-  const lines = [];
+export function generateTextReport(result: AuditResult): string {
+  const lines: string[] = [];
   const separator = '='.repeat(80);
 
   lines.push(separator);
@@ -38,9 +40,9 @@ function generateTextReport(result) {
   lines.push(`项目名称: ${result.project_name || '未提取'}`);
   lines.push(`利润中心: ${result.profit_center || '未提取'}`);
   if (result.fields?.buyer_name)
-    lines.push(`购买方: ${result.fields.buyer_name}`);
+    lines.push(`购买方: ${result.fields.buyer_name as string}`);
   if (result.fields?.seller_name)
-    lines.push(`销售方: ${result.fields.seller_name}`);
+    lines.push(`销售方: ${result.fields.seller_name as string}`);
   lines.push('');
 
   // 金额信息
@@ -80,7 +82,7 @@ function generateTextReport(result) {
   lines.push(separator);
   lines.push('');
 
-  const statusIcons = {
+  const statusIcons: Record<string, string> = {
     通过: '[OK]',
     警告: '[WARN]',
     失败: '[FAIL]',
@@ -131,12 +133,12 @@ function generateTextReport(result) {
   return lines.join('\n');
 }
 
-function generateJsonReport(result) {
+export function generateJsonReport(result: AuditResult): string {
   return JSON.stringify(result, null, 2);
 }
 
-function generateMarkdownReport(result) {
-  const lines = [];
+export function generateMarkdownReport(result: AuditResult): string {
+  const lines: string[] = [];
 
   lines.push('# 开票单智能审核报告');
   lines.push('');
@@ -150,9 +152,9 @@ function generateMarkdownReport(result) {
   lines.push(`| 项目名称 | ${result.project_name || '未提取'} |`);
   lines.push(`| 利润中心 | ${result.profit_center || '未提取'} |`);
   if (result.fields?.buyer_name)
-    lines.push(`| 购买方 | ${result.fields.buyer_name} |`);
+    lines.push(`| 购买方 | ${result.fields.buyer_name as string} |`);
   if (result.fields?.seller_name)
-    lines.push(`| 销售方 | ${result.fields.seller_name} |`);
+    lines.push(`| 销售方 | ${result.fields.seller_name as string} |`);
   lines.push('');
 
   // 金额信息
@@ -161,13 +163,13 @@ function generateMarkdownReport(result) {
   lines.push(`| 项目 | 金额 |`);
   lines.push(`|------|------|`);
   if (result.fields?.contract_amount !== undefined)
-    lines.push(`| 合同总金额 | ${result.fields.contract_amount} |`);
+    lines.push(`| 合同总金额 | ${result.fields.contract_amount as string | number} |`);
   if (result.fields?.invoiced_amount !== undefined)
-    lines.push(`| 已开票总金额 | ${result.fields.invoiced_amount} |`);
+    lines.push(`| 已开票总金额 | ${result.fields.invoiced_amount as string | number} |`);
   if (result.fields?.current_amount !== undefined)
-    lines.push(`| 本次开票金额 | ${result.fields.current_amount} |`);
+    lines.push(`| 本次开票金额 | ${result.fields.current_amount as string | number} |`);
   if (result.fields?.received_amount !== undefined)
-    lines.push(`| 已收款总金额 | ${result.fields.received_amount} |`);
+    lines.push(`| 已收款总金额 | ${result.fields.received_amount as string | number} |`);
   if (result.derived?.unpaid_formatted)
     lines.push(`| 已开票未收款 | ${result.derived.unpaid_formatted} |`);
   lines.push('');
@@ -176,7 +178,7 @@ function generateMarkdownReport(result) {
   lines.push('## 自动核对结果');
   lines.push('');
 
-  const statusEmojis = {
+  const statusEmojis: Record<string, string> = {
     通过: '✅',
     警告: '⚠️',
     失败: '❌',
@@ -223,9 +225,3 @@ function generateMarkdownReport(result) {
 
   return lines.join('\n');
 }
-
-module.exports = {
-  generateTextReport,
-  generateJsonReport,
-  generateMarkdownReport,
-};

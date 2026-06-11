@@ -3,38 +3,53 @@
  * 负责构建并执行浏览器端提取代码
  */
 
-const { detectBillType, getBillConfig } = require('./config');
-const { evaluate } = require('../browser');
-const { dismissDialogs } = require('../utils/dialog');
+import { evaluate } from '../browser';
+import { debug } from '../logger';
+import { dismissDialogs } from '../utils/dialog';
+import { detectBillType, getBillConfig } from './config';
+
+export interface BillConfig {
+  name?: string;
+  codePrefix?: string;
+  basePatterns?: Record<string, RegExp>;
+  inputFields?: Record<string, { byId?: string; byIdPrefix?: string; byLabel?: string }>;
+  tables?: Array<{
+    name: string;
+    identifyBy: { headerText: string };
+    columns: Array<{ label?: string; header?: string; key?: string; field?: string; type?: string }>;
+  }>;
+  auditHints?: unknown[];
+  filterConfig?: Record<string, unknown>;
+}
 
 /**
  * YJK 单据后处理：补充税率计算
  * 如果界面已标注税率则保留，否则自动计算
- * @param {Object} data - 提取的原始数据
- * @returns {Object} 处理后数据
+ * @param data - 提取的原始数据
+ * @returns 处理后数据
  */
-function postProcessYjk(data) {
+export function postProcessYjk(data: Record<string, unknown>): Record<string, unknown> {
   const result = { ...data };
 
   // 获取预缴增值税⑥作为分母
-  const vatPrepayment6 = parseAmount(data.vat_prepayment_6);
+  const vatPrepayment6 = parseAmount(data.vat_prepayment_6 as string | null | undefined);
   if (!vatPrepayment6 || vatPrepayment6 === 0) {
     return result;
   }
 
   // 安全的金额解析（支持字符串和数字）
-  function safeParseAmount(value) {
+  function safeParseAmount(value: unknown): number | null {
     if (typeof value === 'number') {
       return Number.isFinite(value) ? value : null;
     }
-    return parseAmount(value);
+    return parseAmount(value as string | null | undefined);
   }
 
   // 处理附加预缴表格
   const surchargeTable = result.surcharge_prepayment;
   if (Array.isArray(surchargeTable) && surchargeTable.length > 0) {
-    result.surcharge_prepayment = surchargeTable.map((row) => {
-      const rowCopy = { ...row };
+    result.surcharge_prepayment = surchargeTable.map((row: unknown) => {
+      const rowCopy = { ...(row as Record<string, unknown>) };
 
       // 计算各税费的税率（分母为预缴增值税⑥）
       const urbanTax = safeParseAmount(rowCopy.urban_maintenance_tax);
@@ -66,21 +81,21 @@ function postProcessYjk(data) {
 
     // 补充表格级税率汇总
     result.surcharge_tax_rates = {};
-    result.surcharge_prepayment.forEach((row) => {
+    (result.surcharge_prepayment as Array<Record<string, unknown>>).forEach((row) => {
       if (row.urban_maintenance_tax_rate) {
-        result.surcharge_tax_rates['城市维护建设税'] =
+        (result.surcharge_tax_rates as Record<string, unknown>)['城市维护建设税'] =
           row.urban_maintenance_tax_rate;
       }
       if (row.education_surcharge_rate) {
-        result.surcharge_tax_rates['教育费及附加'] =
+        (result.surcharge_tax_rates as Record<string, unknown>)['教育费及附加'] =
           row.education_surcharge_rate;
       }
       if (row.local_education_surcharge_rate) {
-        result.surcharge_tax_rates['地方教育费及附加'] =
+        (result.surcharge_tax_rates as Record<string, unknown>)['地方教育费及附加'] =
           row.local_education_surcharge_rate;
       }
       if (row.total_surcharge_rate) {
-        result.surcharge_tax_rates['合计'] = row.total_surcharge_rate;
+        (result.surcharge_tax_rates as Record<string, unknown>)['合计'] = row.total_surcharge_rate;
       }
     });
   }
@@ -108,15 +123,15 @@ function postProcessYjk(data) {
 
 /**
  * 解析金额字符串，返回数字或 null
- * @param {string} str - 金额字符串
- * @returns {number|null}
+ * @param str - 金额字符串
+ * @returns 解析后的数字或 null
  */
-function parseAmount(str) {
+export function parseAmount(str: string | null | undefined): number | null {
   if (typeof str !== 'string') {
     return null;
   }
   const cleaned = str.replace(/[¥￥,\s]/g, '').trim();
-  if (cleaned === '' || isNaN(cleaned)) {
+  if (cleaned === '' || isNaN(cleaned as unknown as number)) {
     return null;
   }
   const num = parseFloat(cleaned);
@@ -125,25 +140,19 @@ function parseAmount(str) {
 
 /**
  * 将正则对象序列化为可在代码字符串中使用的字面量字符串
- * @param {RegExp} regex
- * @returns {string}
+ * @param regex - 正则表达式
+ * @returns 序列化后的字符串
  */
-function regexToString(regex) {
+function regexToString(regex: RegExp): string {
   return regex.toString();
 }
 
 /**
  * 构建在浏览器中执行的提取代码字符串
- * @param {Object} config
- * @param {string} config.name
- * @param {string} config.codePrefix
- * @param {Object} config.basePatterns - { key: RegExp }
- * @param {Object} config.inputFields - { key: { byLabel: string } | { byId: string } }
- * @param {Array} config.tables - [{ name, identifyBy: { headerText }, columns: [{ header, field, type? }] }]
- * @param {Array} config.auditHints
- * @returns {string}
+ * @param config - 单据配置
+ * @returns 浏览器端执行代码字符串
  */
-function buildExtractionCode(config) {
+export function buildExtractionCode(config: BillConfig): string {
   const {
     basePatterns = {},
     inputFields = {},
@@ -470,6 +479,7 @@ ${inputFieldsEntries}
 
   // === 4. 附件信息 ===
   const attachments = [];
+  const seen = new Set();
   const links = Array.from(document.querySelectorAll('a'));
   for (const link of links) {
     const href = link.getAttribute('href') || '';
@@ -508,12 +518,14 @@ ${inputFieldsEntries}
 
 /**
  * 提取单据数据（主入口）
- * @param {string} billId - 单据编号
- * @param {string} [billType] - 单据类型（可选，自动识别）
- * @returns {Promise<Object>}
+ * @param billId - 单据编号
+ * @param billType - 单据类型（可选，自动识别）
+ * @returns 提取的单据数据
  */
-async function extractBill(billId, billType) {
-  const { debug } = require('../logger');
+export async function extractBill(
+  billId: string,
+  billType?: string | null
+): Promise<Record<string, unknown>> {
   if (!billType) {
     billType = detectBillType(billId);
   }
@@ -540,7 +552,7 @@ async function extractBill(billId, billType) {
 
   const code = buildExtractionCode(config);
   const evalResult = await evaluate(code);
-  let extractedData = evalResult.data?.value || {};
+  let extractedData = (evalResult.data as { value?: Record<string, unknown> } | undefined)?.value || {};
 
   debug('extractBill: extracted keys=', Object.keys(extractedData).join(', '));
 
@@ -561,10 +573,3 @@ async function extractBill(billId, billType) {
   debug('extractBill: result keys=', Object.keys(result).join(', '));
   return result;
 }
-
-module.exports = {
-  parseAmount,
-  buildExtractionCode,
-  postProcessYjk,
-  extractBill,
-};
