@@ -8,12 +8,23 @@ const fakeBrowser = {
   click: sinon.stub(),
 };
 
+const fakeCDP = {
+  cdpEvaluate: sinon.stub().resolves({ ok: true }),
+  cdpClick: sinon.stub().resolves({ ok: true }),
+  cdpEvaluateAndClick: sinon.stub().resolves({ ok: true, clicked: true }),
+  cdpFindPickerButtonByInputId: sinon.stub().resolves({ found: true, x: 100, y: 100 }),
+  cdpFindPopupElementByText: sinon.stub().resolves({ found: true, x: 100, y: 100 }),
+  cdpFindElementByText: sinon.stub().resolves({ found: true, x: 100, y: 100 }),
+  cdpFindDropdownOption: sinon.stub().resolves({ found: true, x: 100, y: 100 }),
+};
+
 const fakeLogger = {
   debug: sinon.stub(),
 };
 
 // 注入 fake 模块
 const browserPath = require.resolve('../../../lib/browser');
+const cdpPath = require.resolve('../../../lib/utils/cdp');
 const loggerPath = require.resolve('../../../lib/logger');
 
 require.cache[browserPath] = {
@@ -21,6 +32,13 @@ require.cache[browserPath] = {
   filename: browserPath,
   loaded: true,
   exports: fakeBrowser,
+};
+
+require.cache[cdpPath] = {
+  id: cdpPath,
+  filename: cdpPath,
+  loaded: true,
+  exports: fakeCDP,
 };
 
 require.cache[loggerPath] = {
@@ -45,6 +63,12 @@ describe('utils/organization', () => {
     fakeBrowser.evaluate.reset();
     fakeBrowser.click.reset();
     fakeLogger.debug.reset();
+    // 重置所有 fakeCDP stubs
+    Object.values(fakeCDP).forEach((stub) => {
+      if (typeof stub.reset === 'function') stub.reset();
+      if (typeof stub.resetBehavior === 'function') stub.resetBehavior();
+      if (typeof stub.resolves === 'function') stub.resolves({ ok: true });
+    });
   });
 
   describe('openSwitchOrgDialog()', () => {
