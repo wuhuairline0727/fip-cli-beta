@@ -2,19 +2,23 @@
  * 差旅费报销 (CBX) 特定配置
  */
 
-const basePatterns = {
+export const basePatterns: Record<string, RegExp> = {
   travel_category: /差旅类别[：:]\s*([^\n\r]+)/,
   budget_category: /预算类别[：:]\s*([^\n\r]+)/,
   pre_apply_amount: /事前申请金额[：:]\s*([0-9,]+\.?[0-9]*)/,
 };
 
-const inputFields = {
+export const inputFields: Record<string, { byLabel: string }> = {
   travel_category: { byLabel: '差旅类别' },
   budget_category: { byLabel: '预算类别' },
   pre_apply_amount: { byLabel: '事前申请金额' },
 };
 
-const tables = [
+export const tables: Array<{
+  name: string;
+  identifyBy: { headerText: string };
+  columns: Array<{ header: string; field: string; type?: string }>;
+}> = [
   {
     name: 'expense_summary',
     identifyBy: { headerText: '实际应支付金额' },
@@ -45,9 +49,3 @@ const tables = [
     ],
   },
 ];
-
-module.exports = {
-  basePatterns,
-  inputFields,
-  tables,
-};

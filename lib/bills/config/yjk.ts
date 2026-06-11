@@ -6,7 +6,7 @@
 // === innerText 正则模式（基础字段）===
 // 注意：YJK 页面中字段和值之间以换行分隔，格式为 "字段：\n值" 或 "字段：值"
 // 使用 [^\n\r]* 允许空值，使用 [^\n\r]+ 要求非空值
-const basePatterns = {
+export const basePatterns: Record<string, RegExp> = {
   // 基础信息通过 innerText 正则提取
   apply_reason: /申请事由[：:]([^\n\r]*)/,
   prepayment_type: /预缴类型[：:]([^\n\r]*)/,
@@ -20,7 +20,7 @@ const basePatterns = {
 };
 
 // === input 字段映射（通过 ID 前缀提取，GWT 框架下 ID 后缀不稳定）===
-const inputFields = {
+export const inputFields: Record<string, { byIdPrefix?: string; byLabel?: string }> = {
   // 基础信息
   apply_reason_input: { byIdPrefix: 'SW_STO_YJKF_NOTE' },
   prepayment_type_input: { byIdPrefix: 'SW_STO_YJKF_YJLX' },
@@ -52,7 +52,11 @@ const inputFields = {
 };
 
 // === 子表配置 ===
-const tables = [
+export const tables: Array<{
+  name: string;
+  identifyBy: { headerText: string };
+  columns: Array<{ header: string; field: string; type?: string }>;
+}> = [
   {
     name: 'surcharge_prepayment',
     // 表头行包含这些文本（GWT 框架下表头和数据可能分离）
@@ -105,9 +109,3 @@ const tables = [
     ],
   },
 ];
-
-module.exports = {
-  basePatterns,
-  inputFields,
-  tables,
-};

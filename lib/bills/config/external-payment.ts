@@ -2,21 +2,25 @@
  * 对外成本费用付款申请 (CFK) 特定配置
  */
 
-const basePatterns = {
+export const basePatterns: Record<string, RegExp> = {
   bill_no: /单据编码[：:]\s*([A-Z0-9]+)/,
   has_contract: /是否有合同[：:]\s*([^\n\r]+)/,
   counterparty: /客商名称[：:]\s*([^\n\r]+)/,
   payment_amount: /付款金额[：:]\s*([0-9,]+\.?[0-9]*)/,
 };
 
-const inputFields = {
+export const inputFields: Record<string, { byLabel: string }> = {
   payment_reason: { byLabel: '事由' },
   has_contract: { byLabel: '是否有合同' },
   counterparty: { byLabel: '客商名称' },
   payment_amount: { byLabel: '付款金额' },
 };
 
-const tables = [
+export const tables: Array<{
+  name: string;
+  identifyBy: { headerText: string };
+  columns: Array<{ header: string; field: string; type?: string }>;
+}> = [
   {
     name: 'expense_details',
     identifyBy: { headerText: '成本费用事项' },
@@ -78,9 +82,3 @@ const tables = [
     ],
   },
 ];
-
-module.exports = {
-  basePatterns,
-  inputFields,
-  tables,
-};

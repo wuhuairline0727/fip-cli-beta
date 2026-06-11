@@ -2,15 +2,19 @@
  * 通用报销单 (TBX) 特定配置
  */
 
-const basePatterns = {
+export const basePatterns: Record<string, RegExp> = {
   domestic_foreign: /境内境外[：:]\s*([^\n\r]+)/,
 };
 
-const inputFields = {
+export const inputFields: Record<string, { byLabel: string }> = {
   domestic_foreign: { byLabel: '境内境外' },
 };
 
-const tables = [
+export const tables: Array<{
+  name: string;
+  identifyBy: { headerText: string };
+  columns: Array<{ header: string; field: string; type?: string }>;
+}> = [
   {
     name: 'expense_items',
     identifyBy: { headerText: '报销费用事项' },
@@ -36,9 +40,3 @@ const tables = [
     ],
   },
 ];
-
-module.exports = {
-  basePatterns,
-  inputFields,
-  tables,
-};

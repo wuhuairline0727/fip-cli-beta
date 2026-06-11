@@ -3,15 +3,21 @@
  * 负责类型识别、配置加载和合并
  */
 
-const path = require('path');
-const {
+import * as path from 'path';
+import {
   COMMON_BASE_PATTERNS,
   COMMON_INPUT_FIELDS,
   FILTER_CONFIG,
-} = require('./common');
+} from './common';
+
+interface BillTypeMeta {
+  name: string;
+  codePrefix: string;
+  configFile: string;
+}
 
 // === 类型元数据映射 ===
-const BILL_TYPE_MAP = {
+export const BILL_TYPE_MAP: Record<string, BillTypeMeta> = {
   SLBX: {
     name: '境内差旅报销单',
     codePrefix: 'SLBX',
@@ -40,14 +46,16 @@ const BILL_TYPE_MAP = {
 };
 
 // 支持的单据编号前缀列表（按长度降序，避免短前缀误匹配）
-const PREFIXES = Object.keys(BILL_TYPE_MAP).sort((a, b) => b.length - a.length);
+const PREFIXES: string[] = Object.keys(BILL_TYPE_MAP).sort(
+  (a, b) => b.length - a.length
+);
 
 /**
  * 通过单据编号前缀识别类型
- * @param {string} billId - 单据编号
- * @returns {string|null} 单据类型代码或 null
+ * @param billId - 单据编号
+ * @returns 单据类型代码或 null
  */
-function detectBillType(billId) {
+export function detectBillType(billId: string | null | undefined): string | null {
   if (!billId || typeof billId !== 'string') {
     return null;
   }
@@ -59,13 +67,25 @@ function detectBillType(billId) {
   return null;
 }
 
+interface SpecificConfig {
+  basePatterns?: Record<string, RegExp>;
+  inputFields?: Record<string, { byLabel?: string; byId?: string; byIdPrefix?: string }>;
+  tables?: Array<{
+    name: string;
+    identifyBy: { headerText: string };
+    columns: Array<{ header: string; field: string; type?: string }>;
+  }>;
+}
+
 /**
  * 加载指定类型的完整配置
  * 合并通用配置和特定类型配置
- * @param {string} type - 单据类型代码
- * @returns {Object|null} 完整配置对象或 null
+ * @param type - 单据类型代码
+ * @returns 完整配置对象或 null
  */
-function getBillConfig(type) {
+export function getBillConfig(
+  type: string | null | undefined
+): Record<string, unknown> | null {
   if (!type || typeof type !== 'string') {
     return null;
   }
@@ -77,12 +97,13 @@ function getBillConfig(type) {
   }
 
   // 尝试加载特定类型配置（如果存在）
-  let specificConfig = {};
+  let specificConfig: SpecificConfig = {};
 
   try {
-    const specificPath = path.join(__dirname, `${meta.configFile}.js`);
-    specificConfig = require(specificPath);
-  } catch (e) {
+    const specificPath = path.join(__dirname, meta.configFile);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    specificConfig = require(specificPath) as SpecificConfig;
+  } catch {
     // 特定类型配置不存在，仅使用通用配置
   }
 
@@ -101,9 +122,3 @@ function getBillConfig(type) {
     filterConfig: FILTER_CONFIG,
   };
 }
-
-module.exports = {
-  detectBillType,
-  getBillConfig,
-  BILL_TYPE_MAP,
-};
