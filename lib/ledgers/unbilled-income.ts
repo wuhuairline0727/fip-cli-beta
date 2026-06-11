@@ -1,35 +1,38 @@
-const {
-  sleep,
-  getTableRowCount,
-  openSideMenu,
-  clickDrawerItem,
-  clickShowQuery,
-  setDateRange,
-  setTaxPeriod,
-  clickPickerButton,
-  pickFromDict,
-  pickTaxSubject,
-  closeBill,
-  cdpEvaluateAndClick,
-  cdpEvaluate,
-} = require('../utils/index');
-const config = require('../config');
+import * as utils from '../utils/index';
+import * as config from '../config';
 
-function periodToDateRange(period) {
-  // period format: YYYY-MM
+export function periodToDateRange(period: string | null | undefined): { startDate: string; endDate: string } | null {
   if (!period || typeof period !== 'string') return null;
   const [year, month] = period.split('-');
   if (!year || !month || year.length !== 4 || month.length !== 2) return null;
   const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
   return {
-    // 起始日期固定为当年1月1日
     startDate: `${year}-01-01`,
     endDate: `${year}-${month}-${String(lastDay).padStart(2, '0')}`,
   };
 }
 
-async function exportUnbilledIncomeLedger(options = {}) {
-  const cfg = config.get();
+export interface UnbilledIncomeOptions {
+  startDate?: string;
+  endDate?: string;
+  startPeriod?: string;
+  endPeriod?: string;
+  companyCode?: string;
+  taxCode?: string;
+  voidStatus?: string;
+  queryOnly?: boolean;
+  [key: string]: unknown;
+}
+
+export interface UnbilledIncomeResult {
+  exported?: boolean;
+  queried?: boolean;
+  rows?: { total: number; visible: number };
+  options?: Record<string, unknown>;
+}
+
+export async function exportUnbilledIncomeLedger(options: UnbilledIncomeOptions = {}): Promise<UnbilledIncomeResult> {
+  const cfg = config.get() as Record<string, unknown>;
   const defaults = {
     startDate: cfg.startDate || '2026-01-01',
     endDate: cfg.endDate || '2026-12-31',
@@ -42,16 +45,15 @@ async function exportUnbilledIncomeLedger(options = {}) {
   };
   let opts = { ...defaults, ...options };
 
-  // 如果未提供日期但提供了税期，从税期自动推导日期
   const hasStartDate = 'startDate' in options;
   const hasEndDate = 'endDate' in options;
 
   if (!hasStartDate && opts.startPeriod) {
-    const derived = periodToDateRange(opts.startPeriod);
+    const derived = periodToDateRange(opts.startPeriod as string);
     if (derived) opts.startDate = derived.startDate;
   }
   if (!hasEndDate && opts.endPeriod) {
-    const derived = periodToDateRange(opts.endPeriod);
+    const derived = periodToDateRange(opts.endPeriod as string);
     if (derived) opts.endDate = derived.endDate;
   }
 
@@ -61,51 +63,43 @@ async function exportUnbilledIncomeLedger(options = {}) {
     console.log('开始未开票收入台账查询导出...');
   }
 
-  // 1. 导航
   console.log('1. 打开税务系统菜单...');
-  await openSideMenu('税务系统');
-  await sleep(1000);
+  await utils.openSideMenu('税务系统');
+  await utils.sleep(1000);
 
   console.log('2. 点击税务台账...');
-  await clickDrawerItem('税务台账');
-  await sleep(1000);
+  await utils.clickDrawerItem('税务台账');
+  await utils.sleep(1000);
 
   console.log('3. 点击未开票收入台账...');
-  await clickDrawerItem('未开票收入台账');
-  await sleep(2000);
+  await utils.clickDrawerItem('未开票收入台账');
+  await utils.sleep(2000);
 
-  // 2. 展开查询
   console.log('4. 展开查询表单...');
-  await clickShowQuery();
-  await sleep(1000);
+  await utils.clickShowQuery();
+  await utils.sleep(1000);
 
-  // 3. 设置单据日期
   console.log('5. 设置单据日期:', opts.startDate, '至', opts.endDate);
-  await setDateRange(opts.startDate, opts.endDate);
-  await sleep(500);
+  await utils.setDateRange(opts.startDate as string, opts.endDate as string);
+  await utils.sleep(500);
 
-  // 4. 设置所属税期
   console.log('6. 设置所属税期:', opts.startPeriod, '至', opts.endPeriod);
-  await setTaxPeriod(opts.startPeriod, opts.endPeriod);
-  await sleep(500);
+  await utils.setTaxPeriod(opts.startPeriod as string, opts.endPeriod as string);
+  await utils.sleep(500);
 
-  // 5. 选择申请单位
   console.log('7. 选择申请单位:', opts.companyCode);
-  await clickPickerButton('申请单位');
-  await sleep(2000);
-  await pickFromDict(opts.companyCode);
-  await sleep(1000);
+  await utils.clickPickerButton('申请单位');
+  await utils.sleep(2000);
+  await utils.pickFromDict(opts.companyCode as string);
+  await utils.sleep(1000);
 
-  // 6. 选择纳税主体
   console.log('8. 选择纳税主体:', opts.taxCode);
-  await pickTaxSubject(opts.taxCode);
-  await sleep(1000);
+  await utils.pickTaxSubject(opts.taxCode as string);
+  await utils.sleep(1000);
 
-  // 7. 设置作废状态 + 查询/导出（CDP 区域）
   console.log('9. 设置作废状态:', opts.voidStatus);
 
-  // 点击作废状态下拉箭头
-  await cdpEvaluateAndClick(
+  await utils.cdpEvaluateAndClick(
     `
     (function() {
       var all = document.querySelectorAll('*');
@@ -140,8 +134,7 @@ async function exportUnbilledIncomeLedger(options = {}) {
     { sleepMs: 1000 }
   );
 
-  // 选择指定状态
-  await cdpEvaluateAndClick(
+  await utils.cdpEvaluateAndClick(
     `
     (function() {
       var allDivs = document.querySelectorAll('div');
@@ -160,9 +153,8 @@ async function exportUnbilledIncomeLedger(options = {}) {
     { sleepMs: 500 }
   );
 
-  // 8. 点击查询按钮
   console.log('10. 点击查询按钮...');
-  await cdpEvaluateAndClick(
+  await utils.cdpEvaluateAndClick(
     `
     (function() {
       var allDivs = document.querySelectorAll('div');
@@ -188,16 +180,14 @@ async function exportUnbilledIncomeLedger(options = {}) {
     { sleepMs: 3000, log: '查询已执行，等待结果加载...' }
   );
 
-  // 如果仅查询模式，返回结果
   if (opts.queryOnly) {
-    const rows = await getTableRowCount();
+    const rows = await utils.getTableRowCount();
     console.log('查询完成，表格行数:', rows.visible);
     return { queried: true, rows, options: opts };
   }
 
-  // 9. 点击导出按钮
   console.log('11. 点击导出按钮...');
-  await cdpEvaluateAndClick(
+  await utils.cdpEvaluateAndClick(
     `
     (function() {
       var allDivs = document.querySelectorAll('div');
@@ -223,9 +213,8 @@ async function exportUnbilledIncomeLedger(options = {}) {
     { sleepMs: 2000 }
   );
 
-  // 10. 点击弹窗中的导出按钮
   console.log('12. 点击弹窗确认导出...');
-  await cdpEvaluateAndClick(
+  await utils.cdpEvaluateAndClick(
     `
     (function() {
       var popup = document.querySelector('.FD26IYC-a-g');
@@ -252,18 +241,15 @@ async function exportUnbilledIncomeLedger(options = {}) {
     { sleepMs: 2000 }
   );
 
-  // 检查弹窗是否关闭（纯 evaluate，不点击）
-  const popupCheck = await cdpEvaluate(
+  const popupCheck = await utils.cdpEvaluate(
     `document.querySelector('.FD26IYC-a-g') ? 'exists' : 'closed'`
   );
 
   if (popupCheck === 'closed') {
     console.log('导出完成！');
-    await closeBill();
+    await utils.closeBill();
     return { exported: true, options: opts };
   }
 
   throw new Error('导出流程未完成');
 }
-
-module.exports = { exportUnbilledIncomeLedger, periodToDateRange };

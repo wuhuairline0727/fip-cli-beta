@@ -1,33 +1,33 @@
-const {
-  sleep,
-  getTableRowCount,
-  openSideMenu,
-  clickDrawerItem,
-  clickShowQuery,
-  setDateRange,
-  setTaxPeriod,
-  clickPickerButton,
-  pickFromDict,
-  pickTaxSubject,
-  closeBill,
-  cdpEvaluateAndClick,
-  cdpEvaluate,
-  cdpClick,
-  cdpFindElementByText,
-  cdpFindPickerButtonByInputId,
-} = require('../utils/index');
-const config = require('../config');
+import * as utils from '../utils/index';
+import * as config from '../config';
 
-async function exportPassengerTransportLedger(options = {}) {
-  const cfg = config.get();
+interface LedgerOptions {
+  startPeriod?: string;
+  endPeriod?: string;
+  startDate?: string;
+  endDate?: string;
+  companyCode?: string;
+  taxCode?: string;
+  queryOnly?: boolean;
+}
+
+interface LedgerResult {
+  exported?: boolean;
+  queried?: boolean;
+  rows?: { total: number; visible: number };
+  options?: Record<string, unknown>;
+}
+
+export async function exportPassengerTransportLedger(options: LedgerOptions = {}): Promise<LedgerResult> {
+  const cfg = config.get() as Record<string, unknown>;
   const defaults = {
-    startPeriod: cfg.startPeriod || '2026-04',
-    endPeriod: cfg.endPeriod || '2026-04',
-    companyCode: cfg.companyCode || '1000200020040011',
-    taxCode: cfg.taxCode || '91110000101638302P',
+    startPeriod: (cfg.startPeriod as string) || '2026-04',
+    endPeriod: (cfg.endPeriod as string) || '2026-04',
+    companyCode: (cfg.companyCode as string) || '1000200020040011',
+    taxCode: (cfg.taxCode as string) || '91110000101638302P',
     queryOnly: false,
   };
-  const opts = { ...defaults, ...options };
+  const opts: Record<string, unknown> = { ...defaults, ...options };
 
   if (opts.queryOnly) {
     console.log('开始旅客运输服务台账查询...');
@@ -37,27 +37,27 @@ async function exportPassengerTransportLedger(options = {}) {
 
   // 1. 导航至旅客运输服务台账
   console.log('1. 打开税务系统菜单...');
-  await openSideMenu('税务系统');
-  await sleep(1000);
+  await utils.openSideMenu('税务系统');
+  await utils.sleep(1000);
 
   console.log('2. 点击税务台账...');
-  await clickDrawerItem('税务台账');
-  await sleep(1000);
+  await utils.clickDrawerItem('税务台账');
+  await utils.sleep(1000);
 
   console.log('3. 点击旅客运输服务台账...');
-  await clickDrawerItem('旅客运输服务台账');
-  await sleep(2000);
+  await utils.clickDrawerItem('旅客运输服务台账');
+  await utils.sleep(2000);
 
   // 2. 点击显示查询按钮
   console.log('4. 展开查询条件...');
-  const showQueryBtn = await cdpFindElementByText('显示查询');
+  const showQueryBtn = await utils.cdpFindElementByText('显示查询');
   if (showQueryBtn?.found) {
-    await cdpClick(showQueryBtn.x, showQueryBtn.y, 1500);
+    await utils.cdpClick(showQueryBtn.x, showQueryBtn.y, 1500);
   }
 
   // 3. 设置所属税期
   console.log('5. 设置所属税期:', opts.startPeriod, '至', opts.endPeriod);
-  await cdpEvaluate(`
+  await utils.cdpEvaluate(`
     (function() {
       // GWT 多 tabpanel 共存导致多个同名输入框，必须找到可见的
       var allInputs = document.querySelectorAll('input');
@@ -84,29 +84,29 @@ async function exportPassengerTransportLedger(options = {}) {
       }
     })()
   `);
-  await sleep(500);
+  await utils.sleep(500);
 
   // 4. 选择申请单位
   console.log('6. 选择申请单位:', opts.companyCode);
-  const companyBtn = await cdpFindPickerButtonByInputId(
+  const companyBtn = await utils.cdpFindPickerButtonByInputId(
     'DataSetFieldComboBox1-input'
   );
   if (companyBtn?.found) {
-    await cdpClick(companyBtn.x, companyBtn.y, 2000);
-    await pickFromDict(opts.companyCode);
-    await sleep(1000);
+    await utils.cdpClick(companyBtn.x, companyBtn.y, 2000);
+    await utils.pickFromDict(opts.companyCode as string);
+    await utils.sleep(1000);
   }
 
   // 5. 选择纳税主体
   console.log('7. 选择纳税主体:', opts.taxCode);
-  const taxBtn = await cdpFindPickerButtonByInputId(
+  const taxBtn = await utils.cdpFindPickerButtonByInputId(
     'DataSetFieldComboBox2-input'
   );
   if (taxBtn?.found) {
-    await cdpClick(taxBtn.x, taxBtn.y, 2000);
+    await utils.cdpClick(taxBtn.x, taxBtn.y, 2000);
 
     // 在弹窗中输入税号
-    await cdpEvaluate(`
+    await utils.cdpEvaluate(`
       (function() {
         var popup = document.querySelector('.FD26IYC-a-g');
         if (!popup) return { found: false };
@@ -121,10 +121,10 @@ async function exportPassengerTransportLedger(options = {}) {
         return { found: false };
       })()
     `);
-    await sleep(500);
+    await utils.sleep(500);
 
     // 点击弹窗查询按钮
-    await cdpEvaluateAndClick(
+    await utils.cdpEvaluateAndClick(
       `
       (function() {
         var popup = document.querySelector('.FD26IYC-a-g');
@@ -145,7 +145,7 @@ async function exportPassengerTransportLedger(options = {}) {
     );
 
     // 选择包含税号的行
-    await cdpEvaluateAndClick(
+    await utils.cdpEvaluateAndClick(
       `
       (function() {
         var popup = document.querySelector('.FD26IYC-a-g');
@@ -166,7 +166,7 @@ async function exportPassengerTransportLedger(options = {}) {
     );
 
     // 点击确定按钮
-    await cdpEvaluateAndClick(
+    await utils.cdpEvaluateAndClick(
       `
       (function() {
         var popup = document.querySelector('.FD26IYC-a-g');
@@ -189,7 +189,7 @@ async function exportPassengerTransportLedger(options = {}) {
 
   // 6. 点击查询按钮
   console.log('8. 点击查询按钮...');
-  const queryClickResult = await cdpEvaluateAndClick(
+  const queryClickResult = await utils.cdpEvaluateAndClick(
     `
     (function() {
       var all = document.querySelectorAll('*');
@@ -216,14 +216,14 @@ async function exportPassengerTransportLedger(options = {}) {
 
   // 如果仅查询模式，返回结果
   if (opts.queryOnly) {
-    const rows = await getTableRowCount();
+    const rows = await utils.getTableRowCount();
     console.log('查询完成，表格行数:', rows.visible);
     return { queried: true, rows, options: opts };
   }
 
   // 7. 点击导出按钮
   console.log('9. 点击导出按钮...');
-  const exportBtnResult = await cdpEvaluate(`
+  const exportBtnResult = await utils.cdpEvaluate(`
     (function() {
       var all = document.querySelectorAll('*');
       for (var i = 0; i < all.length; i++) {
@@ -241,11 +241,11 @@ async function exportPassengerTransportLedger(options = {}) {
     throw new Error('未找到导出按钮');
   }
   console.log('  导出按钮坐标:', exportBtnResult.x, exportBtnResult.y);
-  await cdpClick(exportBtnResult.x, exportBtnResult.y, 2000);
+  await utils.cdpClick(exportBtnResult.x, exportBtnResult.y, 2000);
 
   // 8. 点击弹窗中的导出按钮
   console.log('10. 点击弹窗确认导出...');
-  await cdpEvaluateAndClick(
+  await utils.cdpEvaluateAndClick(
     `
     (function() {
       var popups = document.querySelectorAll('.FD26IYC-a-g, .gwt-DialogBox, [class*=DialogBox]');
@@ -274,7 +274,7 @@ async function exportPassengerTransportLedger(options = {}) {
   );
 
   // 检查弹窗是否关闭
-  const popupCheck = await cdpEvaluate(`
+  const popupCheck = await utils.cdpEvaluate(`
     (function() {
       var popups = document.querySelectorAll('.FD26IYC-a-g, .gwt-DialogBox, [class*=DialogBox]');
       for (var i = 0; i < popups.length; i++) {
@@ -287,10 +287,8 @@ async function exportPassengerTransportLedger(options = {}) {
 
   if (popupCheck === 'closed') {
     console.log('导出完成！');
-    await closeBill();
+    await utils.closeBill();
     return { exported: true, options: opts };
   }
   throw new Error('导出弹窗未关闭，导出可能未完成');
 }
-
-module.exports = { exportPassengerTransportLedger };

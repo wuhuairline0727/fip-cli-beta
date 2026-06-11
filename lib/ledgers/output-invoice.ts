@@ -1,31 +1,33 @@
-const {
-  sleep,
-  getTableRowCount,
-  openSideMenu,
-  clickDrawerItem,
-  clickShowQuery,
-  setDateRange,
-  setTaxPeriod,
-  clickPickerButton,
-  pickFromDict,
-  pickTaxSubject,
-  closeBill,
-  cdpEvaluateAndClick,
-  cdpEvaluate,
-  cdpClick,
-} = require('../utils/index');
-const config = require('../config');
+import * as utils from '../utils/index';
+import * as config from '../config';
 
-async function exportOutputInvoiceLedger(options = {}) {
-  const cfg = config.get();
+interface LedgerOptions {
+  startPeriod?: string;
+  endPeriod?: string;
+  startDate?: string;
+  endDate?: string;
+  companyCode?: string;
+  sellerCode?: string;
+  queryOnly?: boolean;
+}
+
+interface LedgerResult {
+  exported?: boolean;
+  queried?: boolean;
+  rows?: { total: number; visible: number };
+  options?: Record<string, unknown>;
+}
+
+export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Promise<LedgerResult> {
+  const cfg = config.get() as Record<string, unknown>;
   const defaults = {
-    startDate: cfg.startDate || '2026-04-01',
-    endDate: cfg.endDate || '2026-04-30',
-    companyCode: cfg.companyCode || '1000200020040011',
-    sellerCode: cfg.sellerCode || '91110000101638302P',
+    startDate: (cfg.startDate as string) || '2026-04-01',
+    endDate: (cfg.endDate as string) || '2026-04-30',
+    companyCode: (cfg.companyCode as string) || '1000200020040011',
+    sellerCode: (cfg.sellerCode as string) || '91110000101638302P',
     queryOnly: false,
   };
-  const opts = { ...defaults, ...options };
+  const opts: Record<string, unknown> = { ...defaults, ...options };
 
   if (opts.queryOnly) {
     console.log('开始销项发票明细台账查询...');
@@ -35,19 +37,19 @@ async function exportOutputInvoiceLedger(options = {}) {
 
   // 1. 导航至销项发票台账
   console.log('1. 打开税务系统菜单...');
-  await openSideMenu('税务系统');
-  await sleep(1000);
+  await utils.openSideMenu('税务系统');
+  await utils.sleep(1000);
 
   console.log('2. 点击税务台账...');
-  await clickDrawerItem('税务台账');
-  await sleep(1000);
+  await utils.clickDrawerItem('税务台账');
+  await utils.sleep(1000);
 
   console.log('3. 点击销项发票台账...');
-  await clickDrawerItem('销项发票台账');
-  await sleep(2000);
+  await utils.clickDrawerItem('销项发票台账');
+  await utils.sleep(2000);
 
   // 2. 检查页面是否已有查询表单（避免重复选择单选按钮）
-  const hasQueryForm = await cdpEvaluate(`
+  const hasQueryForm = await utils.cdpEvaluate(`
     (function() {
       return !!document.getElementById('JINX_IPT_START-input');
     })()
@@ -56,7 +58,7 @@ async function exportOutputInvoiceLedger(options = {}) {
   if (!hasQueryForm) {
     // 页面没有查询表单，需要选择单选按钮
     console.log('4. 选择销项发票明细台账...');
-    const radioResult = await cdpEvaluate(`
+    const radioResult = await utils.cdpEvaluate(`
       (function() {
         var all = document.querySelectorAll('*');
         var target = null;
@@ -84,14 +86,14 @@ async function exportOutputInvoiceLedger(options = {}) {
       );
     }
 
-    await cdpClick(radioResult.x, radioResult.y, 1500);
+    await utils.cdpClick(radioResult.x, radioResult.y, 1500);
     console.log('已点击销项发票明细台账:', radioResult.tag);
 
     // 等待弹窗出现并点击查询按钮
     console.log('等待弹窗出现...');
     let popupClicked = false;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const result = await cdpEvaluateAndClick(
+      const result = await utils.cdpEvaluateAndClick(
         `
         (function() {
           var popups = document.querySelectorAll('.FD26IYC-a-g, .gwt-DialogBox, [class*=DialogBox]');
@@ -123,7 +125,7 @@ async function exportOutputInvoiceLedger(options = {}) {
         popupClicked = true;
         break;
       }
-      await sleep(500);
+      await utils.sleep(500);
     }
 
     if (!popupClicked) {
@@ -135,7 +137,7 @@ async function exportOutputInvoiceLedger(options = {}) {
 
   // 3. 展开查询条件
   console.log('5. 展开查询条件...');
-  await cdpEvaluateAndClick(
+  await utils.cdpEvaluateAndClick(
     `
     (function() {
       var all = document.querySelectorAll('*');
@@ -155,7 +157,7 @@ async function exportOutputInvoiceLedger(options = {}) {
 
   // 4. 选择"开票日期"单选按钮（使用 CDP 真实点击）
   console.log('6. 选择开票日期...');
-  const dateRadioResult = await cdpEvaluate(`
+  const dateRadioResult = await utils.cdpEvaluate(`
     (function() {
       var radios = document.querySelectorAll('input[type="radio"]');
       for (var i = 0; i < radios.length; i++) {
@@ -169,14 +171,14 @@ async function exportOutputInvoiceLedger(options = {}) {
   `);
 
   if (dateRadioResult?.found) {
-    await cdpClick(dateRadioResult.x, dateRadioResult.y, 1000);
+    await utils.cdpClick(dateRadioResult.x, dateRadioResult.y, 1000);
     console.log('已点击开票日期单选按钮:', dateRadioResult.id);
   }
-  await sleep(1000);
+  await utils.sleep(1000);
 
   // 5. 设置开票日期范围
   console.log('7. 设置开票日期:', opts.startDate, '至', opts.endDate);
-  await cdpEvaluate(`
+  await utils.cdpEvaluate(`
     (function() {
       var start = document.getElementById('JINX_IPT_START-input');
       var end = document.getElementById('JINX_IPT_END-input');
@@ -194,11 +196,11 @@ async function exportOutputInvoiceLedger(options = {}) {
       }
     })()
   `);
-  await sleep(500);
+  await utils.sleep(500);
 
   // 6. 选择申请单位（左上角蓝色按钮）
   console.log('8. 选择申请单位:', opts.companyCode);
-  const companyBtnResult = await cdpEvaluate(`
+  const companyBtnResult = await utils.cdpEvaluate(`
     (function() {
       var btns = document.querySelectorAll('.FD26IYC-w-l');
       for (var i = 0; i < btns.length; i++) {
@@ -212,14 +214,14 @@ async function exportOutputInvoiceLedger(options = {}) {
   `);
 
   if (companyBtnResult?.found) {
-    await cdpClick(companyBtnResult.x, companyBtnResult.y, 2000);
-    await pickFromDict(opts.companyCode);
-    await sleep(1000);
+    await utils.cdpClick(companyBtnResult.x, companyBtnResult.y, 2000);
+    await utils.pickFromDict(opts.companyCode as string);
+    await utils.sleep(1000);
   }
 
   // 7. 选择销方（右侧蓝色按钮）
   console.log('9. 选择销方:', opts.sellerCode);
-  const sellerBtnResult = await cdpEvaluate(`
+  const sellerBtnResult = await utils.cdpEvaluate(`
     (function() {
       var input = document.getElementById('DataSetFieldComboBox6-input');
       if (!input) return { notFound: true };
@@ -236,14 +238,14 @@ async function exportOutputInvoiceLedger(options = {}) {
   `);
 
   if (sellerBtnResult?.found) {
-    await cdpClick(sellerBtnResult.x, sellerBtnResult.y, 2000);
-    await pickFromDict(opts.sellerCode);
-    await sleep(1000);
+    await utils.cdpClick(sellerBtnResult.x, sellerBtnResult.y, 2000);
+    await utils.pickFromDict(opts.sellerCode as string);
+    await utils.sleep(1000);
   }
 
   // 8. 点击查询按钮
   console.log('10. 点击查询按钮...');
-  const queryClickResult = await cdpEvaluateAndClick(
+  const queryClickResult = await utils.cdpEvaluateAndClick(
     `
     (function() {
       var all = document.querySelectorAll('*');
@@ -270,14 +272,14 @@ async function exportOutputInvoiceLedger(options = {}) {
 
   // 如果仅查询模式，返回结果
   if (opts.queryOnly) {
-    const rows = await getTableRowCount();
+    const rows = await utils.getTableRowCount();
     console.log('查询完成，表格行数:', rows.visible);
     return { queried: true, rows, options: opts };
   }
 
   // 9. 点击导出按钮
   console.log('11. 点击导出按钮...');
-  await cdpEvaluateAndClick(
+  await utils.cdpEvaluateAndClick(
     `
     (function() {
       var activePane = document.querySelector('.ant-tabs-tabpane-active');
@@ -299,7 +301,7 @@ async function exportOutputInvoiceLedger(options = {}) {
 
   // 10. 点击弹窗中的导出按钮
   console.log('12. 点击弹窗确认导出...');
-  await cdpEvaluateAndClick(
+  await utils.cdpEvaluateAndClick(
     `
     (function() {
       var popups = document.querySelectorAll('.FD26IYC-a-g, .gwt-DialogBox, [class*=DialogBox]');
@@ -328,7 +330,7 @@ async function exportOutputInvoiceLedger(options = {}) {
   );
 
   // 检查弹窗是否关闭
-  const popupCheck = await cdpEvaluate(`
+  const popupCheck = await utils.cdpEvaluate(`
     (function() {
       var popups = document.querySelectorAll('.FD26IYC-a-g, .gwt-DialogBox, [class*=DialogBox]');
       for (var i = 0; i < popups.length; i++) {
@@ -341,11 +343,9 @@ async function exportOutputInvoiceLedger(options = {}) {
 
   if (popupCheck === 'closed') {
     console.log('导出完成！');
-    await closeBill();
+    await utils.closeBill();
     return { exported: true, options: opts };
   }
 
   throw new Error('导出流程未完成');
 }
-
-module.exports = { exportOutputInvoiceLedger };
