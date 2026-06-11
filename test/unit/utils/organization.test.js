@@ -49,13 +49,23 @@ describe('utils/organization', () => {
 
   describe('openSwitchOrgDialog()', () => {
     it('should click switch org button and return dialog info', async () => {
-      // 模拟点击成功
+      // closeAllOrgDialogs 第一次调用（关闭对话框）
       fakeBrowser.evaluate
         .onFirstCall()
+        .resolves({ data: { value: { closed: false } } });
+
+      // closeAllOrgDialogs 第二次调用（关闭弹窗）
+      fakeBrowser.evaluate
+        .onSecondCall()
+        .resolves({ data: { value: { closed: 0 } } });
+
+      // 模拟点击成功
+      fakeBrowser.evaluate
+        .onThirdCall()
         .resolves({ data: { value: { ok: true } } });
 
       // 模拟对话框内容
-      fakeBrowser.evaluate.onSecondCall().resolves({
+      fakeBrowser.evaluate.onCall(3).resolves({
         data: {
           value: {
             ok: true,
@@ -75,7 +85,7 @@ describe('utils/organization', () => {
 
       const result = await openSwitchOrgDialog();
 
-      expect(fakeBrowser.evaluate.calledTwice).to.be.true;
+      expect(fakeBrowser.evaluate.callCount).to.equal(4);
       expect(result.ok).to.be.true;
       expect(result.title).to.equal('切换组织机构');
       expect(result.fields['组织机构'].value).to.equal('测试公司');
@@ -88,8 +98,17 @@ describe('utils/organization', () => {
     });
 
     it('should throw error when switch org button not found', async () => {
+      // closeAllOrgDialogs 调用
       fakeBrowser.evaluate
         .onFirstCall()
+        .resolves({ data: { value: { closed: false } } });
+      fakeBrowser.evaluate
+        .onSecondCall()
+        .resolves({ data: { value: { closed: 0 } } });
+
+      // 模拟点击失败
+      fakeBrowser.evaluate
+        .onThirdCall()
         .resolves({ data: { value: { ok: false, error: '切换组织机构按钮未找到' } } });
 
       try {
@@ -101,11 +120,21 @@ describe('utils/organization', () => {
     });
 
     it('should throw error when dialog does not appear', async () => {
+      // closeAllOrgDialogs 调用
       fakeBrowser.evaluate
         .onFirstCall()
+        .resolves({ data: { value: { closed: false } } });
+      fakeBrowser.evaluate
+        .onSecondCall()
+        .resolves({ data: { value: { closed: 0 } } });
+
+      // 模拟点击成功
+      fakeBrowser.evaluate
+        .onThirdCall()
         .resolves({ data: { value: { ok: true } } });
 
-      fakeBrowser.evaluate.onSecondCall().resolves({
+      // 模拟对话框未弹出
+      fakeBrowser.evaluate.onCall(3).resolves({
         data: { value: { ok: false, error: '切换组织机构对话框未弹出' } },
       });
 
@@ -168,13 +197,17 @@ describe('utils/organization', () => {
     });
 
     it('should open dialog and return organization when header not found', async () => {
-      // 需要4次 evaluate：header检查 + openDialog(2次) + closeDialog(1次)
+      // 需要6次 evaluate：header检查 + closeAllOrgDialogs(2次) + openDialog点击 + readDialog + closeDialog
       fakeBrowser.evaluate
         .onCall(0)
         .resolves({ data: { value: { found: false } } })
         .onCall(1)
-        .resolves({ data: { value: { ok: true } } })
+        .resolves({ data: { value: { closed: false } } })
         .onCall(2)
+        .resolves({ data: { value: { closed: 0 } } })
+        .onCall(3)
+        .resolves({ data: { value: { ok: true } } })
+        .onCall(4)
         .resolves({
           data: {
             value: {
@@ -186,7 +219,7 @@ describe('utils/organization', () => {
             },
           },
         })
-        .onCall(3)
+        .onCall(5)
         .resolves({
           data: { value: { ok: true, closed: true } },
         });
@@ -197,13 +230,17 @@ describe('utils/organization', () => {
     });
 
     it('should throw error when cannot get organization info', async () => {
-      // 需要3次 evaluate：header检查 + openDialog(2次)
+      // 需要5次 evaluate：header检查 + closeAllOrgDialogs(2次) + openDialog点击 + readDialog
       fakeBrowser.evaluate
         .onCall(0)
         .resolves({ data: { value: { found: false } } })
         .onCall(1)
-        .resolves({ data: { value: { ok: true } } })
+        .resolves({ data: { value: { closed: false } } })
         .onCall(2)
+        .resolves({ data: { value: { closed: 0 } } })
+        .onCall(3)
+        .resolves({ data: { value: { ok: true } } })
+        .onCall(4)
         .resolves({
           data: { value: { ok: false, error: '切换组织机构对话框未弹出' } },
         });
@@ -219,11 +256,15 @@ describe('utils/organization', () => {
 
   describe('switchOrganization()', () => {
     it('should query current org info in query mode', async () => {
-      // 打开对话框
+      // 需要5次 evaluate：closeAllOrgDialogs(2次) + openDialog点击 + readDialog + closeDialog
       fakeBrowser.evaluate
         .onCall(0)
-        .resolves({ data: { value: { ok: true } } })
+        .resolves({ data: { value: { closed: false } } })
         .onCall(1)
+        .resolves({ data: { value: { closed: 0 } } })
+        .onCall(2)
+        .resolves({ data: { value: { ok: true } } })
+        .onCall(3)
         .resolves({
           data: {
             value: {
@@ -237,7 +278,7 @@ describe('utils/organization', () => {
             },
           },
         })
-        .onCall(2)
+        .onCall(4)
         .resolves({
           data: { value: { ok: true, closed: true } },
         });
@@ -273,8 +314,13 @@ describe('utils/organization', () => {
     });
 
     it('should throw error when dialog fails to open', async () => {
+      // closeAllOrgDialogs(2次) + openDialog点击失败
       fakeBrowser.evaluate
         .onCall(0)
+        .resolves({ data: { value: { closed: false } } })
+        .onCall(1)
+        .resolves({ data: { value: { closed: 0 } } })
+        .onCall(2)
         .resolves({ data: { value: { ok: false, error: '按钮未找到' } } });
 
       try {

@@ -276,9 +276,18 @@ foreach ($f in $findings) {
   # IMPORTANT: use a UTF-8 encoding instance without BOM — gh POSTs the file as the
   # request body verbatim, and a leading BOM breaks the Markdown rendering on GitHub.
   $safeTs = $ts -replace '[: ]', '-'
-  $bodyFile = Join-Path $WorkDir ("scripts/.bugscan-body-$PID-$safeTs-$($f.source).md")
+  # Sanitize $f.source for Windows filenames — replace ':' and '/' which are illegal
+  $safeSource = $f.source -replace '[:/\\ ]', '-'
+  $bodyFile = Join-Path $WorkDir ("scripts/.bugscan-body-$PID-$safeTs-$safeSource.md")
   $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-  [System.IO.File]::WriteAllText($bodyFile, $body, $utf8NoBom)
+  try {
+    [System.IO.File]::WriteAllText($bodyFile, $body, $utf8NoBom)
+  } catch {
+    $line = "[$ts] FAIL (write-body): $($_.Exception.Message)"
+    Add-Content -Path $LogFile -Value $line -Encoding UTF8
+    Write-Output $line
+    continue
+  }
   $ghArgs = @('issue','create','--repo',$Repo,'--title',$title,'--body-file',$bodyFile,'--label','bug')
   $output = & gh @ghArgs 2>&1 | Out-String
   Remove-Item $bodyFile -ErrorAction SilentlyContinue
