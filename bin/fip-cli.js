@@ -471,8 +471,6 @@ program
     }
   });
 
-const cfg = config.get();
-
 program
   .command('export-unbilled')
   .description('未开票收入台账查询导出（完整流程）')
@@ -487,18 +485,17 @@ program
   .action(async (options) => {
     try {
       await fip.ensureConnection();
-      const args = Object.fromEntries(
-        Object.entries({
-          startDate: options.startDate,
-          endDate: options.endDate,
-          startPeriod: options.startPeriod,
-          endPeriod: options.endPeriod,
-          companyCode: options.companyCode,
-          taxCode: options.taxCode,
-          voidStatus: options.voidStatus,
-          queryOnly: options.queryOnly,
-        }).filter(([_, v]) => v !== undefined)
-      );
+      const cfg = config.get();
+      const args = {
+        startDate: options.startDate || cfg.startDate,
+        endDate: options.endDate || cfg.endDate,
+        startPeriod: options.startPeriod || cfg.startPeriod,
+        endPeriod: options.endPeriod || cfg.endPeriod,
+        companyCode: options.companyCode || cfg.companyCode,
+        taxCode: options.taxCode || cfg.taxCode,
+        voidStatus: options.voidStatus || cfg.voidStatus,
+        queryOnly: options.queryOnly,
+      };
       const result = await fip.exportUnbilledIncomeLedger(args);
       success(result);
     } catch (e) {
@@ -509,24 +506,24 @@ program
 program
   .command('export-input-transfer')
   .description('进项转出明细台账查询导出（完整流程）')
-  .option('--start-period <period>', '起始税期 (YYYY-MM)', cfg.startPeriod)
-  .option('--end-period <period>', '截止税期 (YYYY-MM)', cfg.endPeriod)
-  .option('--company-code <code>', '转出单位编码', cfg.companyCode)
-  .option('--tax-code <code>', '纳税主体税号', cfg.taxCode)
+  .option('--start-period <period>', '起始税期 (YYYY-MM)')
+  .option('--end-period <period>', '截止税期 (YYYY-MM)')
+  .option('--company-code <code>', '转出单位编码')
+  .option('--tax-code <code>', '纳税主体税号')
   .option(
     '--doc-status <status>',
-    '单据状态 (全部/制单中/审批中/流程结束/已作废)',
-    cfg.docStatus
+    '单据状态 (全部/制单中/审批中/流程结束/已作废)'
   )
   .option('--query-only', '仅查询不导出', false)
   .action(async (options) => {
     try {
+      const cfg = config.get();
       const result = await fip.exportInputTransferLedger({
-        startPeriod: options.startPeriod,
-        endPeriod: options.endPeriod,
-        companyCode: options.companyCode,
-        taxCode: options.taxCode,
-        docStatus: options.docStatus,
+        startPeriod: options.startPeriod || cfg.startPeriod,
+        endPeriod: options.endPeriod || cfg.endPeriod,
+        companyCode: options.companyCode || cfg.companyCode,
+        taxCode: options.taxCode || cfg.taxCode,
+        docStatus: options.docStatus || cfg.docStatus,
         queryOnly: options.queryOnly,
       });
       success(result);
@@ -538,18 +535,19 @@ program
 program
   .command('export-output-invoice')
   .description('销项发票明细台账查询导出（完整流程）')
-  .option('--start-date <date>', '起始日期 (YYYY-MM-DD)', cfg.startDate)
-  .option('--end-date <date>', '截止日期 (YYYY-MM-DD)', cfg.endDate)
-  .option('--company-code <code>', '申请单位编码', cfg.companyCode)
-  .option('--seller-code <code>', '销方税号', cfg.sellerCode)
+  .option('--start-date <date>', '起始日期 (YYYY-MM-DD)')
+  .option('--end-date <date>', '截止日期 (YYYY-MM-DD)')
+  .option('--company-code <code>', '申请单位编码')
+  .option('--seller-code <code>', '销方税号')
   .option('--query-only', '仅查询不导出', false)
   .action(async (options) => {
     try {
+      const cfg = config.get();
       const result = await fip.exportOutputInvoiceLedger({
-        startDate: options.startDate,
-        endDate: options.endDate,
-        companyCode: options.companyCode,
-        sellerCode: options.sellerCode,
+        startDate: options.startDate || cfg.startDate,
+        endDate: options.endDate || cfg.endDate,
+        companyCode: options.companyCode || cfg.companyCode,
+        sellerCode: options.sellerCode || cfg.sellerCode,
         queryOnly: options.queryOnly,
       });
       success(result);
@@ -561,20 +559,21 @@ program
 program
   .command('export-vat-prepayment')
   .description('增值税预缴款台账查询导出（完整流程）')
-  .option('--start-period <period>', '起始税期 (YYYY-MM)', cfg.startPeriod)
-  .option('--end-period <period>', '截止税期 (YYYY-MM)', cfg.endPeriod)
-  .option('--company-code <code>', '申请单位编码', cfg.companyCode)
-  .option('--tax-code <code>', '纳税主体税号', cfg.taxCode)
-  .option('--doc-type <type>', '单据类型 (完税预缴单/预缴计算单)', cfg.docType)
+  .option('--start-period <period>', '起始税期 (YYYY-MM)')
+  .option('--end-period <period>', '截止税期 (YYYY-MM)')
+  .option('--company-code <code>', '申请单位编码')
+  .option('--tax-code <code>', '纳税主体税号')
+  .option('--doc-type <type>', '单据类型 (完税预缴单/预缴计算单)')
   .option('--query-only', '仅查询不导出', false)
   .action(async (options) => {
     try {
+      const cfg = config.get();
       const result = await fip.exportVatPrepaymentLedger({
-        startPeriod: options.startPeriod,
-        endPeriod: options.endPeriod,
-        companyCode: options.companyCode,
-        taxCode: options.taxCode,
-        docType: options.docType,
+        startPeriod: options.startPeriod || cfg.startPeriod,
+        endPeriod: options.endPeriod || cfg.endPeriod,
+        companyCode: options.companyCode || cfg.companyCode,
+        taxCode: options.taxCode || cfg.taxCode,
+        docType: options.docType || cfg.docType,
         queryOnly: options.queryOnly,
       });
       success(result);
@@ -586,18 +585,19 @@ program
 program
   .command('export-passenger-transport')
   .description('旅客运输服务台账查询导出（完整流程）')
-  .option('--start-period <period>', '起始税期 (YYYY-MM)', cfg.startPeriod)
-  .option('--end-period <period>', '截止税期 (YYYY-MM)', cfg.endPeriod)
-  .option('--company-code <code>', '申请单位编码', cfg.companyCode)
-  .option('--tax-code <code>', '纳税主体税号', cfg.taxCode)
+  .option('--start-period <period>', '起始税期 (YYYY-MM)')
+  .option('--end-period <period>', '截止税期 (YYYY-MM)')
+  .option('--company-code <code>', '申请单位编码')
+  .option('--tax-code <code>', '纳税主体税号')
   .option('--query-only', '仅查询不导出', false)
   .action(async (options) => {
     try {
+      const cfg = config.get();
       const result = await fip.exportPassengerTransportLedger({
-        startPeriod: options.startPeriod,
-        endPeriod: options.endPeriod,
-        companyCode: options.companyCode,
-        taxCode: options.taxCode,
+        startPeriod: options.startPeriod || cfg.startPeriod,
+        endPeriod: options.endPeriod || cfg.endPeriod,
+        companyCode: options.companyCode || cfg.companyCode,
+        taxCode: options.taxCode || cfg.taxCode,
         queryOnly: options.queryOnly,
       });
       success(result);
@@ -609,16 +609,16 @@ program
 program
   .command('export-all')
   .description('批量导出多个台账')
-  .option('--start-period <period>', '起始税期 (YYYY-MM)', cfg.startPeriod)
-  .option('--end-period <period>', '截止税期 (YYYY-MM)', cfg.endPeriod)
-  .option('--start-date <date>', '起始日期 (YYYY-MM-DD)', cfg.startDate)
-  .option('--end-date <date>', '截止日期 (YYYY-MM-DD)', cfg.endDate)
-  .option('--company-code <code>', '申请单位编码', cfg.companyCode)
-  .option('--tax-code <code>', '纳税主体税号', cfg.taxCode)
-  .option('--seller-code <code>', '销方税号', cfg.sellerCode)
-  .option('--void-status <status>', '作废状态', cfg.voidStatus)
-  .option('--doc-status <status>', '单据状态', cfg.docStatus)
-  .option('--doc-type <type>', '单据类型', cfg.docType)
+  .option('--start-period <period>', '起始税期 (YYYY-MM)')
+  .option('--end-period <period>', '截止税期 (YYYY-MM)')
+  .option('--start-date <date>', '起始日期 (YYYY-MM-DD)')
+  .option('--end-date <date>', '截止日期 (YYYY-MM-DD)')
+  .option('--company-code <code>', '申请单位编码')
+  .option('--tax-code <code>', '纳税主体税号')
+  .option('--seller-code <code>', '销方税号')
+  .option('--void-status <status>', '作废状态')
+  .option('--doc-status <status>', '单据状态')
+  .option('--doc-type <type>', '单据类型')
   .option(
     '--ledgers <list>',
     '指定台账（逗号分隔）',
@@ -627,6 +627,7 @@ program
   .option('--query-only', '仅查询不导出', false)
   .action(async (options) => {
     try {
+      const cfg = config.get();
       const ledgers = options.ledgers.split(',');
       const results = {};
       const ledgerMap = {
@@ -646,24 +647,26 @@ program
         if (name.trim() === 'output-invoice') {
           params = {
             ...params,
-            startDate: options.startDate,
-            endDate: options.endDate,
-            companyCode: options.companyCode,
-            sellerCode: options.sellerCode,
+            startDate: options.startDate || cfg.startDate,
+            endDate: options.endDate || cfg.endDate,
+            companyCode: options.companyCode || cfg.companyCode,
+            sellerCode: options.sellerCode || cfg.sellerCode,
           };
         } else {
           params = {
             ...params,
-            startPeriod: options.startPeriod,
-            endPeriod: options.endPeriod,
-            companyCode: options.companyCode,
-            taxCode: options.taxCode,
+            startPeriod: options.startPeriod || cfg.startPeriod,
+            endPeriod: options.endPeriod || cfg.endPeriod,
+            companyCode: options.companyCode || cfg.companyCode,
+            taxCode: options.taxCode || cfg.taxCode,
           };
         }
-        if (name.trim() === 'unbilled') params.voidStatus = options.voidStatus;
+        if (name.trim() === 'unbilled')
+          params.voidStatus = options.voidStatus || cfg.voidStatus;
         if (name.trim() === 'input-transfer')
-          params.docStatus = options.docStatus;
-        if (name.trim() === 'vat-prepayment') params.docType = options.docType;
+          params.docStatus = options.docStatus || cfg.docStatus;
+        if (name.trim() === 'vat-prepayment')
+          params.docType = options.docType || cfg.docType;
         try {
           const result = await fip[fnName](params);
           results[name] = { success: true, ...result };
