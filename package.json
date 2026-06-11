@@ -14,8 +14,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "mocha \"test/**/*.test.js\" --timeout 10000",
-    "test:unit": "mocha \"test/unit/**/*.test.js\"",
+    "test": "mocha \"test/unit/**/*.test.js\" --timeout 10000",
+    "test:unit": "mocha \"test/unit/**/*.test.js\" --timeout 10000",
+    "test:integration": "mocha \"test/integration/**/*.test.js\" --timeout 300000",
     "lint": "eslint lib/ bin/",
     "lint:fix": "eslint lib/ bin/ --fix",
     "format": "prettier --write \"lib/**/*.js\" \"bin/**/*.js\"",

@@ -49,6 +49,7 @@ describe('output', () => {
 
   describe('error()', () => {
     it('should output JSON with ok: false and error details', async () => {
+      output.setScreenshotOptions({ screenshotOnError: false });
       try {
         await output.error('TEST_ERROR', 'something went wrong');
       } catch (e) {
@@ -62,6 +63,7 @@ describe('output', () => {
     });
 
     it('should throw an error with code and isFipError flag', async () => {
+      output.setScreenshotOptions({ screenshotOnError: false });
       let thrown = null;
       try {
         await output.error('MY_CODE', 'my message');
