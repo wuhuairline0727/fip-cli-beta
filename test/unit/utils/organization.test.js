@@ -146,13 +146,13 @@ describe('utils/organization', () => {
       expect(result).to.be.true;
     });
 
-    it('should return false when close button not found', async () => {
+    it('should fallback to remove when close button not found', async () => {
       fakeBrowser.evaluate.resolves({
-        data: { value: { ok: false, error: '未找到关闭按钮' } },
+        data: { value: { ok: true, closed: true, method: 'remove' } },
       });
 
       const result = await closeSwitchOrgDialog('cancel');
-      expect(result).to.be.false;
+      expect(result).to.be.true;
     });
   });
 
@@ -257,7 +257,7 @@ describe('utils/organization', () => {
       expect(result.cache).to.be.an('object');
       expect(result.cache.isNewRecord).to.be.a('boolean');
       expect(result.cache.totalRecords).to.be.a('number');
-      expect(result.cache.matches).to.be.an('array');
+      expect(result.cache.uniqueOrganizations).to.be.an('array');
     });
 
     it('should query from cache only when fromCache is true', async () => {
