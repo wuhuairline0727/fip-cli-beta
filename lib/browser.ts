@@ -1,14 +1,23 @@
-const http = require('http');
-const { debug } = require('./logger');
+import * as http from 'http';
+import { debug } from './logger';
+import type { WebBridgeRequest, WebBridgeResponse, TabInfo } from './types/webbridge';
 
 const BASE_URL = 'http://127.0.0.1:10086/command';
 const SESSION = 'fip';
 
-let connectionCheckPromise = null;
+let connectionCheckPromise: Promise<boolean> | null = null;
 
-function rawRequest(action, args, session = SESSION) {
+export interface WebBridgeError extends Error {
+  code: string;
+}
+
+function rawRequest(
+  action: string,
+  args?: Record<string, unknown>,
+  session: string = SESSION
+): Promise<WebBridgeResponse> {
   return new Promise((resolve, reject) => {
-    const data = JSON.stringify({ action, args, session });
+    const data = JSON.stringify({ action, args, session } as WebBridgeRequest);
     debug('rawRequest: action=', action, 'args=', JSON.stringify(args));
     const req = http.request(
       BASE_URL,
@@ -25,7 +34,7 @@ function rawRequest(action, args, session = SESSION) {
         res.on('data', (chunk) => (body += chunk));
         res.on('end', () => {
           try {
-            const result = JSON.parse(body);
+            const result = JSON.parse(body) as WebBridgeResponse;
             debug('rawRequest: action=', action, 'ok=', result.ok);
             resolve(result);
           } catch (e) {
@@ -51,9 +60,8 @@ function rawRequest(action, args, session = SESSION) {
 
 /**
  * 检查 WebBridge 连接状态
- * @returns {Promise<boolean>}
  */
-async function checkConnection() {
+export async function checkConnection(): Promise<boolean> {
   try {
     const result = await rawRequest('list_tabs');
     return result.ok === true;
@@ -65,7 +73,7 @@ async function checkConnection() {
 /**
  * 确保 WebBridge 已连接，未连接时抛出明确错误
  */
-async function ensureConnection() {
+export async function ensureConnection(): Promise<void> {
   const connected = await checkConnection();
   if (!connected) {
     const error = new Error(
@@ -74,13 +82,17 @@ async function ensureConnection() {
         '2. 执行: C:/Users/40427/.kimi-webbridge/bin/kimi-webbridge.exe status\n' +
         '3. 如果未运行，执行: C:/Users/40427/.kimi-webbridge/bin/kimi-webbridge.exe start\n' +
         '4. 如果启动失败，执行: rm -f C:/Users/40427/.kimi-webbridge/*.pid && C:/Users/40427/.kimi-webbridge/bin/kimi-webbridge.exe start'
-    );
+    ) as WebBridgeError;
     error.code = 'WEBBRIDGE_NOT_CONNECTED';
     throw error;
   }
 }
 
-async function request(action, args, session = SESSION) {
+export async function request(
+  action: string,
+  args?: Record<string, unknown>,
+  session: string = SESSION
+): Promise<WebBridgeResponse> {
   debug('request: action=', action);
   // 首次请求时检查连接，使用 Promise 锁避免竞态
   if (!connectionCheckPromise) {
@@ -97,32 +109,26 @@ async function request(action, args, session = SESSION) {
   return result;
 }
 
-async function navigate(url, newTab = true) {
+export async function navigate(
+  url: string,
+  newTab: boolean = true
+): Promise<WebBridgeResponse> {
   debug('navigate: url=', url, 'newTab=', newTab);
   const tabResult = await request('find_tab', {
     url: 'fip.cscec.com',
     active: false,
   });
-  if (tabResult.ok && tabResult.data && tabResult.data.tabId) {
+  if (tabResult.ok && tabResult.data && (tabResult.data as TabInfo).tabId) {
     return request('find_tab', { url: 'fip.cscec.com', active: true });
   }
   return request('navigate', { url, newTab, group_title: 'fip' });
 }
 
-async function evaluate(code) {
+export async function evaluate(code: string): Promise<WebBridgeResponse> {
   debug('evaluate: code length=', code.length);
   return request('evaluate', { code });
 }
 
-async function screenshot(format = 'png') {
+export async function screenshot(format: string = 'png'): Promise<WebBridgeResponse> {
   return request('screenshot', { format });
 }
-
-module.exports = {
-  request,
-  navigate,
-  evaluate,
-  screenshot,
-  checkConnection,
-  ensureConnection,
-};
