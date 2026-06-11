@@ -4,8 +4,9 @@
 
 ```bash
 # 运行测试
-npm test                    # 全部测试（37 个）
+npm test                    # 全部测试（200 个：168 单元测试 + 32 真实浏览器测试）
 npm run test:unit           # 仅单元测试
+npm run test:integration    # 仅真实浏览器集成测试（需要 WebBridge + Chrome）
 
 # 代码质量
 npm run lint                # ESLint 检查
@@ -61,14 +62,22 @@ fip-cli/
 │       ├── bill.js               # 单据操作（openBill/closeBill）
 │       ├── table.js              # 表格数据读取
 │       └── attachment.js         # 附件列表/下载
-├── test/                         # 单元测试（mocha + chai）
-│   ├── unit/
-│   │   ├── browser.test.js
-│   │   ├── doctor.test.js
-│   │   ├── bills/
-│   │   │   └── extractor.test.js
-│   │   └── config-schema.test.js
-│   └── basic.test.js
+├── test/                         # 测试（mocha + chai + sinon）
+│   ├── basic.test.js             # 基础测试
+│   ├── integration/              # 真实浏览器集成测试
+│   │   └── browser-real.test.js  # 32 个真实浏览器测试（需 WebBridge + Chrome）
+│   └── unit/                     # 单元测试（纯 Node.js，无需浏览器）
+│       ├── audit/
+│       ├── bills/
+│       ├── browser.test.js
+│       ├── config.test.js
+│       ├── config-schema.test.js
+│       ├── doctor.test.js
+│       ├── fip.test.js
+│       ├── ledgers/
+│       ├── logger.test.js
+│       ├── output.test.js
+│       └── utils/
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml                # GitHub Actions CI
@@ -82,11 +91,39 @@ fip-cli/
 
 ## 技术栈
 
-- **运行时**: Node.js ≥ v16
-- **测试**: mocha + chai
+- **运行时**: Node.js ≥ v20
+- **测试**: mocha + chai + sinon
 - **代码质量**: ESLint v10 (flat config) + Prettier
 - **CI/CD**: GitHub Actions
 - **浏览器自动化**: Kimi WebBridge + Chrome DevTools Protocol (CDP)
+
+## 测试说明
+
+### 单元测试
+
+纯 Node.js 测试，无需浏览器连接，覆盖所有模块的导出验证、配置合并、数据解析等逻辑：
+
+```bash
+npm run test:unit
+```
+
+### 集成测试（真实浏览器）
+
+需要 WebBridge 连接 + Chrome（`--remote-debugging-port=9222`），自动操作真实 FIP 页面验证功能：
+
+```bash
+npm run test:integration
+```
+
+**注意**: 集成测试会真实点击页面元素、查询台账数据，请在非生产高峰期运行。
+
+### 测试统计
+
+| 类型 | 数量 | 说明 |
+|------|------|------|
+| 单元测试 | 168 | 24 个测试文件，覆盖 32 个 lib/ 模块 |
+| 集成测试 | 32 | 1 个测试文件，真实浏览器验证 |
+| **总计** | **200** | **25 个测试文件** |
 
 ## 添加新的单据类型
 

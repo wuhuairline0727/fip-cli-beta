@@ -1,5 +1,14 @@
 # 更新日志
 
+## 2026-06-11
+
+- ✅ **测试覆盖率达到 100%** — 200 个测试（168 单元测试 + 32 真实浏览器集成测试），覆盖全部 32 个 lib/ 模块
+- ✅ **真实浏览器集成测试** — `test/integration/browser-real.test.js` 验证 browser.js、cdp.js、navigation.js、form.js、picker.js、table.js、dialog.js、bill.js 及 5 个 ledger 模块在真实 FIP 页面上的行为
+- ✅ **修复 navigation.js `openSideMenu()`** — 第二次调用时检查抽屉是否已打开，避免重复点击关闭抽屉
+- ✅ **修复 form.js `clickShowQuery()`** — 当"显示查询"/"隐藏查询"按钮不可见时，通过检测 `FormDateField` 输入框判定查询面板已展开
+- ✅ **修复 audit/reporter.js** — `result.fields?.xxx` / `result.stats?.xxx ?? 0` 可选链防止 undefined 崩溃
+- ✅ **修复 unbilled-income.js** — `periodToDateRange(null)` 空值守卫 + 补充导出
+
 ## 2026-06-10
 
 - ✅ YJK（预缴计算单）字段提取器开发完成并验收
