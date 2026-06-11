@@ -6,6 +6,8 @@ describe('browser', () => {
   let httpRequestStub;
 
   beforeEach(() => {
+    // 清除可能由其他测试注入的模块缓存
+    delete require.cache[require.resolve('../../lib/browser')];
     // 模拟 http.request 在未连接时抛出错误
     httpRequestStub = sinon.stub(http, 'request').callsFake((options, callback) => {
       const req = {

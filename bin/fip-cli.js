@@ -212,6 +212,58 @@ program
   });
 
 program
+  .command('switch-org')
+  .description('打开切换组织机构对话框，显示当前组织机构信息')
+  .option('--set <org>', '设置组织机构（开发中，需手动选择）')
+  .option('--project <project>', '设置项目名称')
+  .option('--department <dept>', '设置部门名称')
+  .option('--list', '查看本地缓存的组织机构记录')
+  .option('--from-cache', '仅从缓存查找，不打开浏览器')
+  .action(async (options) => {
+    try {
+      // 查看缓存模式
+      if (options.list) {
+        const {
+          listAllRecords,
+          getCacheStats,
+        } = require('../lib/utils/organization-cache');
+        const records = listAllRecords();
+        const stats = getCacheStats();
+        success({
+          cache_file: require('../lib/utils/organization-cache').CACHE_FILE,
+          total_records: stats.totalRecords,
+          last_updated: stats.lastUpdated,
+          unique_organizations: stats.uniqueOrganizations,
+          records: records,
+        });
+        return;
+      }
+
+      if (
+        options.set ||
+        options.project ||
+        options.department ||
+        options.fromCache
+      ) {
+        // 切换/查询模式（支持缓存）
+        const result = await fip.switchOrganization({
+          organization: options.set,
+          project: options.project,
+          department: options.department,
+          fromCache: options.fromCache,
+        });
+        success(result);
+      } else {
+        // 查询模式：打开对话框读取信息，自动记录缓存
+        const result = await fip.switchOrganization({});
+        success(result);
+      }
+    } catch (e) {
+      error('switch_org_error', e.message);
+    }
+  });
+
+program
   .command('page-info')
   .description('获取当前页面信息（URL、标题）')
   .action(async () => {
