@@ -6,7 +6,7 @@
 [![npm version](https://img.shields.io/npm/v/@wuhuairline0727/fip-cli)](https://www.npmjs.com/package/@wuhuairline0727/fip-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-FIP CLI 通过 [Kimi WebBridge](https://kimi-webbridge.moonshot.cn) 控制浏览器，自动完成中国建筑司库一体化平台的单据处理、税务台账查询和开票单审核，无需手动复制粘贴。
+FIP CLI 通过 [Kimi WebBridge](https://www.kimi.com/zh-cn/features/webbridge) 控制浏览器，自动完成中国建筑司库一体化平台的单据处理、税务台账查询和开票单审核，无需手动复制粘贴。
 
 ## Install
 
