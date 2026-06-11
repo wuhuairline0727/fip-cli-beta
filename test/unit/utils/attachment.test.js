@@ -1,0 +1,37 @@
+const { expect } = require('chai');
+const sinon = require('sinon');
+const http = require('http');
+
+describe('utils/attachment', () => {
+  let httpRequestStub;
+  let attachment;
+
+  beforeEach(() => {
+    httpRequestStub = sinon.stub(http, 'request').callsFake((options, callback) => {
+      const req = {
+        write: sinon.stub(),
+        end: sinon.stub(),
+        destroy: sinon.stub(),
+        on: sinon.stub().callsFake((event, handler) => {
+          if (event === 'error') {
+            setImmediate(() => handler(new Error('connect ECONNREFUSED 127.0.0.1:10086')));
+          }
+          return req;
+        }),
+      };
+      return req;
+    });
+    delete require.cache[require.resolve('../../../lib/browser')];
+    delete require.cache[require.resolve('../../../lib/utils/attachment')];
+    attachment = require('../../../lib/utils/attachment');
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it('should export attachment functions', () => {
+    expect(attachment.listAttachments).to.be.a('function');
+    expect(attachment.downloadAttachments).to.be.a('function');
+  });
+});
