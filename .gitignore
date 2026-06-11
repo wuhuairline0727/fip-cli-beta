@@ -4,6 +4,9 @@ node_modules/
 # Screenshots
 screenshots/
 
+# Runtime data / user cache
+data/
+
 # Docs and guides
 CONTRIBUTING.md
 CLAUDE.md
