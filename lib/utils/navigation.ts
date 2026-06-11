@@ -1,11 +1,7 @@
-const { evaluate } = require('../browser');
-const { sleep } = require('./common');
+import { evaluate } from '../browser';
+import { sleep } from './common';
 
-/**
- * 打开侧边菜单
- */
-async function openSideMenu(menuName) {
-  // 先检查抽屉是否已经在打开状态
+export async function openSideMenu(menuName: string): Promise<boolean> {
   const preCheck = await evaluate(
     "document.querySelector('.ant-drawer-open') ? 'exists' : 'not_found'"
   );
@@ -48,10 +44,7 @@ async function openSideMenu(menuName) {
   throw new Error(`Menu "${menuName}" drawer did not open after ${timeout}ms`);
 }
 
-/**
- * 点击 Drawer 子菜单项
- */
-async function clickDrawerItem(itemName) {
+export async function clickDrawerItem(itemName: string): Promise<boolean> {
   const code = `
     (function() {
       var drawer = document.querySelector('.ant-drawer-open');
@@ -82,5 +75,3 @@ async function clickDrawerItem(itemName) {
   await sleep(1500);
   return true;
 }
-
-module.exports = { openSideMenu, clickDrawerItem };

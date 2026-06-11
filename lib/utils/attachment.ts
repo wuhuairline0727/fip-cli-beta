@@ -1,24 +1,34 @@
-const fs = require('fs');
-const path = require('path');
-const { evaluate } = require('../browser');
-const { sleep } = require('./common');
-const { cdpClick, cdpEvaluate } = require('./cdp');
+import * as fs from 'fs';
+import * as path from 'path';
+import { evaluate } from '../browser';
+import { sleep } from './common';
+import { cdpClick } from './cdp';
 
-function escapeJsString(str) {
-  return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+export interface AttachmentOptions {
+  downloadDir?: string;
 }
 
-/**
- * 列出当前单据的所有附件（不下载）
- */
-async function listAttachments(options = {}) {
+export interface AttachmentInfo {
+  name: string;
+  size: string;
+  uploader: string;
+  uploadTime: string;
+  rowIndex: number;
+}
+
+export interface ListAttachmentsResult {
+  attachmentCount: number;
+  attachments: AttachmentInfo[];
+  downloadDir: string;
+}
+
+export async function listAttachments(options: AttachmentOptions = {}): Promise<ListAttachmentsResult> {
   const { downloadDir = './downloads' } = options;
 
   if (!fs.existsSync(downloadDir)) {
     fs.mkdirSync(downloadDir, { recursive: true });
   }
 
-  // Step 1: Find and click attachment button
   const attachBtn = await evaluate(`
     (function() {
       var all = document.querySelectorAll('*');
@@ -27,11 +37,7 @@ async function listAttachments(options = {}) {
         if (text === '附件' || text.startsWith('附件')) {
           var rect = all[i].getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0) {
-            return {
-              found: true,
-              x: rect.left + rect.width/2,
-              y: rect.top + rect.height/2
-            };
+            return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
           }
         }
       }
@@ -44,12 +50,9 @@ async function listAttachments(options = {}) {
     throw new Error('Attachment button not found');
   }
 
-  // Click via CDP
   await cdpClick(btnVal.x, btnVal.y);
   await sleep(2000);
 
-  // Step 2: Find attachment list in popup
-  // Attachment rows have 7 cells (序号,名称,文件大小,上传人,上传时间,下载次数,最后下载时间)
   const attachments = await evaluate(`
     (function() {
       var result = [];
@@ -67,13 +70,11 @@ async function listAttachments(options = {}) {
       var rows = visiblePopup.querySelectorAll('tr');
       for (var i = 0; i < rows.length; i++) {
         var cells = rows[i].querySelectorAll('td');
-        // Attachment rows have exactly 7 cells, skip header row
         if (cells.length === 7) {
           var rect = rows[i].getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0) {
             var name = cells[1] ? cells[1].textContent.trim() : '';
             var size = cells[2] ? cells[2].textContent.trim() : '';
-            // Skip header row (name is '名称' or size is '文件大小')
             if (name === '名称' || size === '文件大小') continue;
             result.push({
               name: name,
@@ -98,23 +99,34 @@ async function listAttachments(options = {}) {
   };
 }
 
-/**
- * 下载当前单据的所有附件
- * 流程：选中附件行 → 点击下载 → 检测文件写入 → 下一个
- */
-async function downloadAttachments(options = {}) {
-  // Windows Chinese systems often use D:\下载 instead of homedir/Downloads
+export interface DownloadOptions extends AttachmentOptions {
+  chromeDownloadDir?: string;
+}
+
+export interface DownloadedFile {
+  name: string;
+  moved: boolean;
+  path?: string;
+  error?: string;
+}
+
+export interface DownloadResult {
+  downloaded: number;
+  total: number;
+  files: DownloadedFile[];
+  downloadDir: string;
+}
+
+export async function downloadAttachments(options: DownloadOptions = {}): Promise<DownloadResult> {
   const defaultChromeDir = fs.existsSync('D:/下载')
     ? 'D:/下载'
     : path.join(require('os').homedir(), 'Downloads');
-  const { downloadDir = './downloads', chromeDownloadDir = defaultChromeDir } =
-    options;
+  const { downloadDir = './downloads', chromeDownloadDir = defaultChromeDir } = options;
 
   if (!fs.existsSync(downloadDir)) {
     fs.mkdirSync(downloadDir, { recursive: true });
   }
 
-  // Step 1: Click attachment button
   const attachBtn = await evaluate(`
     (function() {
       var all = document.querySelectorAll('*');
@@ -123,11 +135,7 @@ async function downloadAttachments(options = {}) {
         if (text === '附件' || text.startsWith('附件')) {
           var rect = all[i].getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0) {
-            return {
-              found: true,
-              x: rect.left + rect.width/2,
-              y: rect.top + rect.height/2
-            };
+            return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
           }
         }
       }
@@ -143,7 +151,6 @@ async function downloadAttachments(options = {}) {
   await cdpClick(btnVal.x, btnVal.y);
   await sleep(2000);
 
-  // Step 2: Get attachment rows from popup
   const attachmentRows = await evaluate(`
     (function() {
       var popups = document.querySelectorAll('.FD26IYC-a-g, .gwt-DialogBox, [class*=DialogBox]');
@@ -166,14 +173,9 @@ async function downloadAttachments(options = {}) {
           if (rect.width > 0 && rect.height > 0) {
             var name = cells[1] ? cells[1].textContent.trim() : '';
             var size = cells[2] ? cells[2].textContent.trim() : '';
-            // Skip header row
-            if (name === '名称' || size === '文件大小') continue;
-            result.push({
-              name: name,
-              rowIndex: i,
-              x: rect.left + rect.width/2,
-              y: rect.top + rect.height/2
-            });
+            if (name !== '名称' && size !== '文件大小') {
+              result.push({ name: name, rowIndex: i, x: rect.left + rect.width/2, y: rect.top + rect.height/2 });
+            }
           }
         }
       }
@@ -187,13 +189,11 @@ async function downloadAttachments(options = {}) {
     return { downloaded: 0, files: [], downloadDir };
   }
 
-  // Step 3: Download each attachment one by one
-  const downloadedFiles = [];
+  const downloadedFiles: DownloadedFile[] = [];
   for (let idx = 0; idx < rows.length; idx++) {
     const row = rows[idx];
     if (!row.name) continue;
 
-    // Click the row to select it using dispatchEvent (GWT requires this)
     const selectResult = await evaluate(`
       (function() {
         var popups = document.querySelectorAll('.FD26IYC-a-g, .gwt-DialogBox, [class*=DialogBox]');
@@ -234,7 +234,6 @@ async function downloadAttachments(options = {}) {
     `);
     await sleep(500);
 
-    // Click download button using CDP real click
     const downloadBtn = await evaluate(`
       (function() {
         var popups = document.querySelectorAll('.FD26IYC-a-g, .gwt-DialogBox, [class*=DialogBox]');
@@ -266,36 +265,22 @@ async function downloadAttachments(options = {}) {
       await cdpClick(btn.x, btn.y);
       await sleep(1000);
 
-      // Wait for file to appear in Downloads (up to 60s)
-      const fileName = await waitForDownload(
-        chromeDownloadDir,
-        row.name,
-        60000
-      );
+      const fileName = await waitForDownload(chromeDownloadDir, row.name, 60000);
       if (fileName) {
         const srcPath = path.join(chromeDownloadDir, fileName);
         const destPath = path.join(downloadDir, fileName);
         try {
           fs.renameSync(srcPath, destPath);
           downloadedFiles.push({ name: fileName, moved: true, path: destPath });
-        } catch (e) {
-          downloadedFiles.push({
-            name: fileName,
-            moved: false,
-            error: e.message,
-          });
+        } catch (e: any) {
+          downloadedFiles.push({ name: fileName, moved: false, error: e.message });
         }
       } else {
-        downloadedFiles.push({
-          name: row.name,
-          moved: false,
-          error: 'timeout',
-        });
+        downloadedFiles.push({ name: row.name, moved: false, error: 'timeout' });
       }
     }
   }
 
-  // Step 4: Close attachment popup
   await closeAttachmentPopup();
 
   return {
@@ -306,10 +291,7 @@ async function downloadAttachments(options = {}) {
   };
 }
 
-/**
- * 关闭附件弹窗
- */
-async function closeAttachmentPopup() {
+export async function closeAttachmentPopup(): Promise<{ closed: boolean; reason?: string; method?: string }> {
   const result = await evaluate(`
     (function() {
       var popups = document.querySelectorAll('.FD26IYC-a-g, .gwt-DialogBox, [class*=DialogBox]');
@@ -323,14 +305,12 @@ async function closeAttachmentPopup() {
       }
       if (!visiblePopup) return { closed: true, reason: 'no_popup' };
 
-      // Try close button: .FD26IYC-jb-a.FD26IYC-I-a
       var closeBtn = visiblePopup.querySelector('.FD26IYC-jb-a.FD26IYC-I-a');
       if (closeBtn) {
         closeBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
         return { closed: true, method: 'close_button' };
       }
 
-      // Fallback: find any element in top-right corner
       var all = visiblePopup.querySelectorAll('*');
       for (var i = 0; i < all.length; i++) {
         var rect = all[i].getBoundingClientRect();
@@ -348,34 +328,23 @@ async function closeAttachmentPopup() {
   return result?.data?.value || { closed: false };
 }
 
-/**
- * 等待文件下载完成
- * 检测 Chrome 下载目录，直到文件出现且大小稳定
- */
-async function waitForDownload(downloadDir, expectedName, timeoutMs = 60000) {
+export async function waitForDownload(downloadDir: string, expectedName: string, timeoutMs = 60000): Promise<string | null> {
   const startTime = Date.now();
   const ext = path.extname(expectedName) || '.pdf';
-  // Chrome may replace spaces with + in filenames
   const baseName = path.basename(expectedName, ext).replace(/\+/g, ' ');
 
   let lastSize = -1;
   let stableCount = 0;
-  let candidateFile = null;
+  let candidateFile: string | null = null;
 
   while (Date.now() - startTime < timeoutMs) {
     try {
       const files = fs.readdirSync(downloadDir);
-      // Look for recently modified files with matching extension
-      // Don't strictly match filename since Chrome may rename files
       const matchingFiles = files
         .filter((f) => {
           if (f.endsWith('.crdownload')) return false;
           if (!f.endsWith(ext)) return false;
-          // Check if filename contains key parts of expected name
-          const normalizedExpected = baseName.replace(
-            /[^\u4e00-\u9fa5a-zA-Z0-9]/g,
-            ''
-          );
+          const normalizedExpected = baseName.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
           const normalizedActual = f.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
           return normalizedActual.includes(normalizedExpected.substring(0, 10));
         })
@@ -385,7 +354,7 @@ async function waitForDownload(downloadDir, expectedName, timeoutMs = 60000) {
           stat: fs.statSync(path.join(downloadDir, f)),
           mtime: fs.statSync(path.join(downloadDir, f)).mtimeMs,
         }))
-        .sort((a, b) => b.mtime - a.mtime); // Most recent first
+        .sort((a, b) => b.mtime - a.mtime);
 
       if (matchingFiles.length > 0) {
         const newest = matchingFiles[0];
@@ -408,8 +377,5 @@ async function waitForDownload(downloadDir, expectedName, timeoutMs = 60000) {
     await sleep(300);
   }
 
-  // 超时：文件未稳定，返回 null
   return null;
 }
-
-module.exports = { listAttachments, downloadAttachments, closeAttachmentPopup };

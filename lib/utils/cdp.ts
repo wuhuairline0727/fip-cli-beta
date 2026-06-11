@@ -1,11 +1,13 @@
-const CDP = require('chrome-remote-interface');
+import CDP from 'chrome-remote-interface';
 
-/**
- * CDP 会话管理：自动创建和关闭客户端
- * @param {Function} callback - 接收 (Runtime, Input) 的异步函数
- */
-async function withCDP(callback) {
-  const client = await CDP({ port: 9222 });
+export interface CDPClient {
+  Runtime: any;
+  Input: any;
+  close(): Promise<void>;
+}
+
+export async function withCDP<T>(callback: (Runtime: any, Input: any) => Promise<T>): Promise<T> {
+  const client = await CDP({ port: 9222 }) as CDPClient;
   try {
     return await callback(client.Runtime, client.Input);
   } finally {
@@ -13,29 +15,16 @@ async function withCDP(callback) {
   }
 }
 
-/**
- * CDP 真实鼠标点击（已封装 mousePressed + mouseReleased）
- * @param {number} x - 屏幕 X 坐标
- * @param {number} y - 屏幕 Y 坐标
- * @param {number} sleepMs - 点击后等待毫秒数
- */
-async function cdpClick(x, y, sleepMs = 1000) {
+export interface ClickResult {
+  clicked: boolean;
+  x: number;
+  y: number;
+}
+
+export async function cdpClick(x: number, y: number, sleepMs = 1000): Promise<ClickResult> {
   return withCDP(async (Runtime, Input) => {
-    await Input.dispatchMouseEvent({
-      type: 'mousePressed',
-      x,
-      y,
-      button: 'left',
-      clickCount: 1,
-    });
-    await Input.dispatchMouseEvent({
-      type: 'mouseReleased',
-      x,
-      y,
-      button: 'left',
-      clickCount: 1,
-    });
-    // 发送 click 事件（GWT 需要）
+    await Input.dispatchMouseEvent({ type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
+    await Input.dispatchMouseEvent({ type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
     await Runtime.evaluate({
       expression: `
         (function() {
@@ -54,19 +43,20 @@ async function cdpClick(x, y, sleepMs = 1000) {
   });
 }
 
-/**
- * CDP evaluate 后点击：先执行 JS 查找坐标，再点击
- * @param {string} expression - 返回 {found, x, y} 的 JS 表达式
- * @param {Object} options - { sleepMs, returnKey, log }
- */
-async function cdpEvaluateAndClick(expression, options = {}) {
+export interface EvaluateAndClickOptions {
+  sleepMs?: number;
+  returnKey?: string;
+  log?: string;
+}
+
+export async function cdpEvaluateAndClick(
+  expression: string,
+  options: EvaluateAndClickOptions = {}
+): Promise<ClickResult | { clicked: false; reason: string }> {
   const { sleepMs = 1000, returnKey = 'found', log } = options;
 
   return withCDP(async (Runtime, Input) => {
-    const evalResult = await Runtime.evaluate({
-      expression,
-      returnByValue: true,
-    });
+    const evalResult = await Runtime.evaluate({ expression, returnByValue: true });
     const value = evalResult?.result?.value;
 
     if (!value || value[returnKey] !== true) {
@@ -78,20 +68,8 @@ async function cdpEvaluateAndClick(expression, options = {}) {
     }
 
     const { x, y } = value;
-    await Input.dispatchMouseEvent({
-      type: 'mousePressed',
-      x,
-      y,
-      button: 'left',
-      clickCount: 1,
-    });
-    await Input.dispatchMouseEvent({
-      type: 'mouseReleased',
-      x,
-      y,
-      button: 'left',
-      clickCount: 1,
-    });
+    await Input.dispatchMouseEvent({ type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
+    await Input.dispatchMouseEvent({ type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
 
     if (sleepMs > 0) {
       await new Promise((resolve) => setTimeout(resolve, sleepMs));
@@ -101,30 +79,21 @@ async function cdpEvaluateAndClick(expression, options = {}) {
   });
 }
 
-/**
- * 纯 CDP evaluate，不点击
- * @param {string} expression - JS 表达式
- * @returns {Promise<any>} - result.value
- */
-async function cdpEvaluate(expression) {
+export async function cdpEvaluate(expression: string): Promise<unknown> {
   return withCDP(async (Runtime) => {
     const result = await Runtime.evaluate({ expression, returnByValue: true });
     return result?.result?.value;
   });
 }
 
-/**
- * 通用辅助：通过文本动态查找元素坐标
- * @param {string} text - 目标文本
- * @param {Object} constraints - { leftMin, leftMax, topMin, topMax }
- */
-async function cdpFindElementByText(text, constraints = {}) {
-  const {
-    leftMin = 0,
-    leftMax = 9999,
-    topMin = 0,
-    topMax = 9999,
-  } = constraints;
+export interface FindElementResult {
+  found: boolean;
+  x?: number;
+  y?: number;
+}
+
+export async function cdpFindElementByText(text: string, constraints: { leftMin?: number; leftMax?: number; topMin?: number; topMax?: number } = {}): Promise<FindElementResult> {
+  const { leftMin = 0, leftMax = 9999, topMin = 0, topMax = 9999 } = constraints;
   return cdpEvaluate(`
     (function() {
       var all = document.querySelectorAll('*');
@@ -140,17 +109,12 @@ async function cdpFindElementByText(text, constraints = {}) {
       }
       return { found: false };
     })()
-  `);
+  `) as Promise<FindElementResult>;
 }
 
-/**
- * 通用辅助：通过输入框ID查找旁边Picker按钮坐标
- * @param {string} inputId - 输入框ID
- */
-async function cdpFindPickerButtonByInputId(inputId) {
+export async function cdpFindPickerButtonByInputId(inputId: string): Promise<FindElementResult & { reason?: string }> {
   return cdpEvaluate(`
     (function() {
-      // GWT 多 tabpanel 共存导致多个同名输入框，必须找到可见的
       var allInputs = document.querySelectorAll('input');
       var input = null;
       for (var i = 0; i < allInputs.length; i++) {
@@ -173,14 +137,10 @@ async function cdpFindPickerButtonByInputId(inputId) {
       }
       return { found: false, reason: 'button_not_found' };
     })()
-  `);
+  `) as Promise<FindElementResult & { reason?: string }>;
 }
 
-/**
- * 通用辅助：查找下拉选项坐标
- * @param {string} text - 选项文本
- */
-async function cdpFindDropdownOption(text) {
+export async function cdpFindDropdownOption(text: string): Promise<FindElementResult> {
   return cdpEvaluate(`
     (function() {
       var items = document.querySelectorAll('.FD26IYC-S-a');
@@ -204,15 +164,10 @@ async function cdpFindDropdownOption(text) {
       }
       return { found: false };
     })()
-  `);
+  `) as Promise<FindElementResult>;
 }
 
-/**
- * 通用辅助：查找弹窗中的元素坐标
- * @param {string} text - 目标文本
- * @param {Object} constraints - { leftMin, leftMax }
- */
-async function cdpFindPopupElementByText(text, constraints = {}) {
+export async function cdpFindPopupElementByText(text: string, constraints: { leftMin?: number; leftMax?: number } = {}): Promise<FindElementResult & { reason?: string }> {
   const { leftMin = 0, leftMax = 9999 } = constraints;
   return cdpEvaluate(`
     (function() {
@@ -237,16 +192,5 @@ async function cdpFindPopupElementByText(text, constraints = {}) {
       }
       return { found: false, reason: 'element_not_found' };
     })()
-  `);
+  `) as Promise<FindElementResult & { reason?: string }>;
 }
-
-module.exports = {
-  withCDP,
-  cdpClick,
-  cdpEvaluateAndClick,
-  cdpEvaluate,
-  cdpFindElementByText,
-  cdpFindPickerButtonByInputId,
-  cdpFindDropdownOption,
-  cdpFindPopupElementByText,
-};

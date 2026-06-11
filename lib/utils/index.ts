@@ -1,13 +1,13 @@
-const common = require('./common');
-const navigation = require('./navigation');
-const form = require('./form');
-const picker = require('./picker');
-const bill = require('./bill');
-const cdp = require('./cdp');
-const table = require('./table');
-const attachment = require('./attachment');
-const dialog = require('./dialog');
-const organization = require('./organization');
+import * as common from './common';
+import * as navigation from './navigation';
+import * as form from './form';
+import * as picker from './picker';
+import * as bill from './bill';
+import * as cdp from './cdp';
+import * as table from './table';
+import * as attachment from './attachment';
+import * as dialog from './dialog';
+import * as organization from './organization';
 
 const modules = [
   common,
@@ -33,7 +33,7 @@ const moduleNames = [
   'dialog',
   'organization',
 ];
-const exported = {};
+const exported: Record<string, any> = {};
 
 for (let i = 0; i < modules.length; i++) {
   const mod = modules[i];
@@ -44,9 +44,9 @@ for (let i = 0; i < modules.length; i++) {
         `[fip-cli] 命名空间冲突: "${key}" 已存在于 ${exported[key]._source}，被 ${name} 覆盖`
       );
     }
-    exported[key] = mod[key];
+    exported[key] = (mod as any)[key];
     exported[key]._source = name;
   }
 }
 
-module.exports = exported;
+export = exported;

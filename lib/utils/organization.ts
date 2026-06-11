@@ -16,18 +16,37 @@
  * 10. 点击系统提示"切换成功"的确定按钮
  */
 
-const { evaluate } = require('../browser');
-const { debug } = require('../logger');
-const {
+import { evaluate } from '../browser';
+import { debug } from '../logger';
+import {
   addOrganizationRecord,
   findOrganization,
   getCacheStats,
-} = require('./organization-cache');
+  type OrganizationRecord,
+  type CacheStats,
+} from './organization-cache';
+import type {
+  ClickResult,
+  EvaluateAndClickOptions,
+  FindElementResult,
+} from './cdp';
 
 // CDP 工具（用于真实鼠标点击）
-let cdpUtils;
+interface CDPUtils {
+  cdpEvaluate(expression: string): Promise<unknown>;
+  cdpClick(x: number, y: number, sleepMs?: number): Promise<ClickResult>;
+  cdpFindPickerButtonByInputId(inputId: string): Promise<FindElementResult & { reason?: string }>;
+  cdpFindPopupElementByText(text: string, constraints?: { leftMin?: number; leftMax?: number }): Promise<FindElementResult & { reason?: string }>;
+  cdpEvaluateAndClick(
+    expression: string,
+    options?: EvaluateAndClickOptions
+  ): Promise<ClickResult | { clicked: false; reason: string }>;
+}
+
+let cdpUtils: CDPUtils | null = null;
 try {
-  cdpUtils = require('./cdp');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  cdpUtils = require('./cdp') as CDPUtils;
 } catch (e) {
   cdpUtils = null;
 }
@@ -45,10 +64,131 @@ const PICKER_POPUP_SELECTOR = '.FD26IYC-a-g';
 const PICKER_BTN_SELECTOR = 'div.FD26IYC-w-l';
 const BUTTON_CLASS = 'FD26IYC-D-d FD26IYC-D-o';
 
+interface DialogField {
+  id: string;
+  value: string;
+  placeholder: string;
+}
+
+interface DialogValue {
+  ok: boolean;
+  error?: string;
+  title?: string;
+  fields?: Record<string, DialogField>;
+  buttons?: string[];
+}
+
+interface EvaluateResult {
+  data?: {
+    value?: DialogValue & Record<string, unknown>;
+  };
+}
+
+interface PopupItemsResult {
+  ok: boolean;
+  error?: string;
+  title?: string;
+  itemCount?: number;
+  items?: Array<{ code: string; name: string; level: string }>;
+  buttons?: string[];
+}
+
+interface SwitchOrganizationOptions {
+  organization?: string;
+  project?: string;
+  department?: string;
+  fromCache?: boolean;
+  autoSelect?: boolean;
+}
+
+interface SwitchOrganizationResult {
+  success: boolean;
+  mode: string;
+  current?: OrganizationRecord;
+  selection?: AutoSelectResult | { error: string; partial: AutoSelectResult } | null;
+  cache?: {
+    isNewRecord: boolean;
+    totalRecords: number;
+    uniqueOrganizations: string[];
+  };
+  matches?: OrganizationRecord[];
+  matchCount?: number;
+}
+
+interface AutoSelectResult {
+  organization: { selected: boolean; name: string } | null;
+  project: { selected: boolean; name: string } | null;
+  department: { selected: boolean; name: string } | null;
+}
+
+interface CloseResult {
+  data?: {
+    value?: {
+      closed?: boolean;
+    };
+  };
+}
+
+interface PopupCloseResult {
+  data?: {
+    value?: {
+      closed?: number;
+    };
+  };
+}
+
+interface QueryFillResult {
+  data?: {
+    value?: {
+      found?: boolean;
+      reason?: string;
+      filled?: boolean;
+    };
+  };
+}
+
+interface CheckResult {
+  data?: {
+    value?: {
+      found?: boolean;
+      reason?: string;
+    };
+  };
+}
+
+interface PopupInfoResult {
+  data?: {
+    value?: {
+      found?: boolean;
+      reason?: string;
+      departments?: string[];
+      rowCount?: number;
+    };
+  };
+}
+
+interface HeaderResult {
+  data?: {
+    value?: {
+      found?: boolean;
+      source?: string;
+      organization?: string;
+    };
+  };
+}
+
+interface CDPBtnResult {
+  found?: boolean;
+  reason?: string;
+  x?: number;
+  y?: number;
+  candidate?: Record<string, unknown>;
+}
+
 /**
  * 获取可见的选择弹窗
  */
-function getVisiblePopupCode() {
+function getVisiblePopupCode(): string {
   return `
     (function() {
       var popups = document.querySelectorAll('${PICKER_POPUP_SELECTOR}');
@@ -66,11 +206,11 @@ function getVisiblePopupCode() {
 /**
  * 关闭所有切换组织机构对话框和弹窗
  */
-async function closeAllOrgDialogs() {
+async function closeAllOrgDialogs(): Promise<boolean> {
   debug('closeAllOrgDialogs');
 
   // 1. 关闭切换组织机构主对话框
-  let result;
+  let result: CloseResult;
   try {
     result = await evaluate(`
       (function() {
@@ -93,12 +233,12 @@ async function closeAllOrgDialogs() {
       })()
     `);
   } catch (e) {
-    debug('closeAllOrgDialogs: error closing dialogs:', e.message);
+    debug('closeAllOrgDialogs: error closing dialogs:', (e as Error).message);
     result = { data: { value: { closed: false } } };
   }
 
   // 2. 关闭所有选择弹窗
-  let popupResult;
+  let popupResult: PopupCloseResult;
   try {
     popupResult = await evaluate(`
       (function() {
@@ -129,18 +269,18 @@ async function closeAllOrgDialogs() {
       })()
     `);
   } catch (e) {
-    debug('closeAllOrgDialogs: error closing popups:', e.message);
+    debug('closeAllOrgDialogs: error closing popups:', (e as Error).message);
     popupResult = { data: { value: { closed: 0 } } };
   }
 
   await new Promise((r) => setTimeout(r, 1000));
-  return result?.data?.value?.closed || popupResult?.data?.value?.closed > 0;
+  return result?.data?.value?.closed || (popupResult?.data?.value?.closed ?? 0) > 0;
 }
 
 /**
  * 打开切换组织机构对话框
  */
-async function openSwitchOrgDialog() {
+async function openSwitchOrgDialog(): Promise<DialogValue> {
   debug('openSwitchOrgDialog: clicking switch org button');
 
   // 先关闭所有已打开的对话框和弹窗
@@ -160,9 +300,10 @@ async function openSwitchOrgDialog() {
     })()
   `);
 
-  if (!clickResult.data?.value?.ok) {
+  const clickValue = (clickResult as EvaluateResult).data?.value;
+  if (!clickValue?.ok) {
     throw new Error(
-      clickResult.data?.value?.error || '点击切换组织机构按钮失败'
+      clickValue?.error || '点击切换组织机构按钮失败'
     );
   }
 
@@ -173,7 +314,7 @@ async function openSwitchOrgDialog() {
 /**
  * 读取对话框字段
  */
-async function readDialogFields() {
+async function readDialogFields(): Promise<DialogValue> {
   const dialogInfo = await evaluate(`
     (function() {
       var modal = document.querySelector('${DIALOG_SELECTOR}');
@@ -246,7 +387,7 @@ async function readDialogFields() {
     })()
   `);
 
-  const dialogValue = dialogInfo.data?.value || dialogInfo;
+  const dialogValue = (dialogInfo as EvaluateResult).data?.value || (dialogInfo as DialogValue);
   if (!dialogValue.ok) {
     throw new Error(dialogValue.error || '读取对话框失败');
   }
@@ -255,9 +396,9 @@ async function readDialogFields() {
 
 /**
  * 关闭切换组织机构对话框
- * @param {string} [action='cancel'] - 'cancel' 取消, 'confirm' 确定
+ * @param action - 'cancel' 取消, 'confirm' 确定
  */
-async function closeSwitchOrgDialog(action = 'cancel') {
+async function closeSwitchOrgDialog(action: 'cancel' | 'confirm' = 'cancel'): Promise<boolean> {
   debug('closeSwitchOrgDialog: action=', action);
 
   if (!cdpUtils) {
@@ -268,7 +409,7 @@ async function closeSwitchOrgDialog(action = 'cancel') {
 
   // 使用 CDP 查找对话框中的按钮并真实点击
   // 策略：在对话框区域内查找包含目标文本的元素，选择 y 坐标最大的（最下面的）
-  const btnResult = await cdpUtils.cdpEvaluate(`
+  const btnResult = (await cdpUtils.cdpEvaluate(`
     (function() {
       var modal = document.querySelector('${DIALOG_WRAP_SELECTOR}');
       if (!modal) return { found: false, reason: 'dialog_not_found' };
@@ -290,11 +431,11 @@ async function closeSwitchOrgDialog(action = 'cancel') {
       candidates.sort(function(a, b) { return b.top - a.top; });
       return { found: true, x: candidates[0].x, y: candidates[0].y, candidate: candidates[0] };
     })()
-  `);
+  `)) as CDPBtnResult;
 
   debug('closeSwitchOrgDialog: btnResult=', JSON.stringify(btnResult));
 
-  if (btnResult?.found) {
+  if (btnResult?.found && btnResult.x !== undefined && btnResult.y !== undefined) {
     await cdpUtils.cdpClick(btnResult.x, btnResult.y, 3000);
     debug(
       'closeSwitchOrgDialog: clicked',
@@ -343,17 +484,21 @@ async function closeSwitchOrgDialog(action = 'cancel') {
   `);
 
   await new Promise((r) => setTimeout(r, 1500));
-  return result.data?.value?.closed || false;
+  return (result as EvaluateResult).data?.value?.closed || false;
 }
 
 /**
  * 在弹窗中查询并选择项目
  * 参考台账查询的 pickFromDict 模式
- * @param {string} fieldLabel - 字段标签，如 '组织机构'、'项目名称'、'部门名称'
- * @param {string} queryText - 查询文本
- * @param {string} [inputId] - 输入框ID（可选，用于精确定位按钮）
+ * @param fieldLabel - 字段标签，如 '组织机构'、'项目名称'、'部门名称'
+ * @param queryText - 查询文本
+ * @param inputId - 输入框ID（可选，用于精确定位按钮）
  */
-async function queryAndSelectInPopup(fieldLabel, queryText, inputId) {
+async function queryAndSelectInPopup(
+  fieldLabel: string,
+  queryText: string,
+  inputId?: string
+): Promise<{ selected: boolean; field: string; value: string }> {
   debug(`queryAndSelectInPopup: field=${fieldLabel}, query=${queryText}`);
 
   if (!cdpUtils) {
@@ -361,12 +506,12 @@ async function queryAndSelectInPopup(fieldLabel, queryText, inputId) {
   }
 
   // 1. 点击字段旁边的蓝色按钮打开弹窗
-  let btnResult;
+  let btnResult: CDPBtnResult;
   if (inputId) {
     btnResult = await cdpUtils.cdpFindPickerButtonByInputId(inputId);
   } else {
     // 通过标签文本查找按钮
-    btnResult = await cdpUtils.cdpEvaluate(`
+    btnResult = (await cdpUtils.cdpEvaluate(`
       (function() {
         var modal = document.querySelector('${DIALOG_WRAP_SELECTOR}');
         if (!modal) modal = document.body;
@@ -404,13 +549,17 @@ async function queryAndSelectInPopup(fieldLabel, queryText, inputId) {
         var rect = target.getBoundingClientRect();
         return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
       })()
-    `);
+    `)) as CDPBtnResult;
   }
 
   if (!btnResult?.found) {
     throw new Error(
       `未找到 ${fieldLabel} 的按钮: ${btnResult?.reason || 'unknown'}`
     );
+  }
+
+  if (btnResult.x === undefined || btnResult.y === undefined) {
+    throw new Error(`未找到 ${fieldLabel} 的按钮坐标`);
   }
 
   await cdpUtils.cdpClick(btnResult.x, btnResult.y, 2000);
@@ -446,9 +595,10 @@ async function queryAndSelectInPopup(fieldLabel, queryText, inputId) {
     })()
   `);
 
-  if (!fillResult.data?.value?.found) {
+  const fillValue = (fillResult as QueryFillResult).data?.value;
+  if (!fillValue?.found) {
     throw new Error(
-      `弹窗查询框填充失败: ${fillResult.data?.value?.reason || 'unknown'}`
+      `弹窗查询框填充失败: ${fillValue?.reason || 'unknown'}`
     );
   }
 
@@ -456,7 +606,7 @@ async function queryAndSelectInPopup(fieldLabel, queryText, inputId) {
 
   // 3. 点击弹窗中的查询按钮
   const queryBtn = await cdpUtils.cdpFindPopupElementByText('查询');
-  if (queryBtn?.found) {
+  if (queryBtn?.found && queryBtn.x !== undefined && queryBtn.y !== undefined) {
     await cdpUtils.cdpClick(queryBtn.x, queryBtn.y, 2000);
     debug('已点击弹窗查询按钮');
   }
@@ -479,7 +629,7 @@ async function queryAndSelectInPopup(fieldLabel, queryText, inputId) {
         return { found: false };
       })()
     `);
-    if (checkResult.data?.value?.found) {
+    if ((checkResult as CheckResult).data?.value?.found) {
       rowFound = true;
     }
     attempts++;
@@ -511,7 +661,7 @@ async function queryAndSelectInPopup(fieldLabel, queryText, inputId) {
     { sleepMs: 500 }
   );
 
-  if (!selectResult?.clicked) {
+  if (!selectResult || !('clicked' in selectResult) || !selectResult.clicked) {
     throw new Error(`点击目标行失败: ${queryText}`);
   }
 
@@ -519,7 +669,7 @@ async function queryAndSelectInPopup(fieldLabel, queryText, inputId) {
 
   // 6. 点击确定按钮关闭弹窗
   const confirmBtn = await cdpUtils.cdpFindPopupElementByText('确定');
-  if (confirmBtn?.found) {
+  if (confirmBtn?.found && confirmBtn.x !== undefined && confirmBtn.y !== undefined) {
     await cdpUtils.cdpClick(confirmBtn.x, confirmBtn.y, 1500);
     debug('已点击弹窗确定按钮');
   }
@@ -531,14 +681,14 @@ async function queryAndSelectInPopup(fieldLabel, queryText, inputId) {
 /**
  * 点击刷新按钮（在项目选择后刷新部门列表）
  */
-async function clickRefreshButton() {
+async function clickRefreshButton(): Promise<boolean> {
   debug('clickRefreshButton');
 
   if (!cdpUtils) {
     throw new Error('CDP 工具不可用');
   }
 
-  const btnResult = await cdpUtils.cdpEvaluate(`
+  const btnResult = (await cdpUtils.cdpEvaluate(`
     (function() {
       var modal = document.querySelector('${DIALOG_WRAP_SELECTOR}');
       if (!modal) return { found: false, reason: 'dialog_not_found' };
@@ -560,9 +710,9 @@ async function clickRefreshButton() {
       candidates.sort(function(a, b) { return b.top - a.top; });
       return { found: true, x: candidates[0].x, y: candidates[0].y };
     })()
-  `);
+  `)) as CDPBtnResult;
 
-  if (btnResult?.found) {
+  if (btnResult?.found && btnResult.x !== undefined && btnResult.y !== undefined) {
     await cdpUtils.cdpClick(btnResult.x, btnResult.y, 2000);
     debug('已点击刷新按钮');
     return true;
@@ -574,7 +724,7 @@ async function clickRefreshButton() {
 /**
  * 点击系统提示弹窗的确定按钮
  */
-async function clickSystemConfirm() {
+async function clickSystemConfirm(): Promise<boolean> {
   debug('clickSystemConfirm');
 
   if (!cdpUtils) {
@@ -583,12 +733,12 @@ async function clickSystemConfirm() {
 
   // 等待系统提示弹窗出现
   let attempts = 0;
-  let confirmBtn = null;
+  let confirmBtn: CDPBtnResult | null = null;
   while (attempts < 10 && !confirmBtn) {
     await new Promise((r) => setTimeout(r, 500));
 
     // 查找所有包含"确定"文本的可见元素，选择 y 坐标最小的（最上面的，通常是系统提示的）
-    const result = await cdpUtils.cdpEvaluate(`
+    const result = (await cdpUtils.cdpEvaluate(`
       (function() {
         var all = document.querySelectorAll('*');
         var candidates = [];
@@ -604,7 +754,7 @@ async function clickSystemConfirm() {
         candidates.sort(function(a, b) { return a.top - b.top; });
         return { found: true, x: candidates[0].x, y: candidates[0].y, candidate: candidates[0] };
       })()
-    `);
+    `)) as CDPBtnResult;
 
     debug(
       'clickSystemConfirm: attempt',
@@ -620,7 +770,7 @@ async function clickSystemConfirm() {
     attempts++;
   }
 
-  if (confirmBtn) {
+  if (confirmBtn && confirmBtn.x !== undefined && confirmBtn.y !== undefined) {
     await cdpUtils.cdpClick(confirmBtn.x, confirmBtn.y, 2000);
     debug('clickSystemConfirm: clicked at', confirmBtn.x, confirmBtn.y);
     return true;
@@ -632,7 +782,7 @@ async function clickSystemConfirm() {
 /**
  * 获取当前组织机构信息
  */
-async function getCurrentOrganization() {
+async function getCurrentOrganization(): Promise<{ organization: string; fromDialog?: boolean }> {
   debug('getCurrentOrganization');
 
   const fromHeader = await evaluate(`
@@ -648,15 +798,16 @@ async function getCurrentOrganization() {
     })()
   `);
 
-  if (fromHeader.data?.value?.found) {
-    return { organization: fromHeader.data.value.organization };
+  const headerValue = (fromHeader as HeaderResult).data?.value;
+  if (headerValue?.found) {
+    return { organization: headerValue.organization || '' };
   }
 
-  let dialog;
+  let dialog: DialogValue;
   try {
     dialog = await openSwitchOrgDialog();
   } catch (e) {
-    throw new Error('无法获取当前组织机构信息：' + e.message, { cause: e });
+    throw new Error('无法获取当前组织机构信息：' + (e as Error).message, { cause: e });
   }
   if (dialog.ok && dialog.fields && dialog.fields['组织机构']) {
     const org = dialog.fields['组织机构'].value;
@@ -669,15 +820,14 @@ async function getCurrentOrganization() {
 
 /**
  * 切换组织机构（完整流程）
- * @param {Object} options
- * @param {string} [options.organization] - 目标组织机构名称
- * @param {string} [options.project] - 目标项目名称
- * @param {string} [options.department] - 目标部门名称
- * @param {boolean} [options.fromCache=false] - 是否仅从缓存查找
- * @param {boolean} [options.autoSelect=false] - 是否尝试自动选择（需要 CDP）
- * @returns {Promise<Object>}
+ * @param options - 配置选项
+ * @param options.organization - 目标组织机构名称
+ * @param options.project - 目标项目名称
+ * @param options.department - 目标部门名称
+ * @param options.fromCache - 是否仅从缓存查找
+ * @param options.autoSelect - 是否尝试自动选择（需要 CDP）
  */
-async function switchOrganization(options = {}) {
+async function switchOrganization(options: SwitchOrganizationOptions = {}): Promise<SwitchOrganizationResult> {
   debug('switchOrganization: options=', JSON.stringify(options));
 
   if (options.fromCache) {
@@ -702,13 +852,13 @@ async function switchOrganization(options = {}) {
 
   try {
     // 读取当前信息
-    const currentInfo = {
-      organization: dialog.fields['组织机构']?.value,
-      project: dialog.fields['项目名称']?.value,
-      department: dialog.fields['部门名称']?.value,
-      plateCode: dialog.fields['板块编号']?.value,
-      plateName: dialog.fields['板块名称']?.value,
-      profitCenter: dialog.fields['利润中心']?.value,
+    const currentInfo: OrganizationRecord = {
+      organization: dialog.fields?.['组织机构']?.value || '',
+      project: dialog.fields?.['项目名称']?.value || '',
+      department: dialog.fields?.['部门名称']?.value || '',
+      plateCode: dialog.fields?.['板块编号']?.value,
+      plateName: dialog.fields?.['板块名称']?.value,
+      profitCenter: dialog.fields?.['利润中心']?.value,
     };
 
     // 自动记录到缓存
@@ -716,12 +866,12 @@ async function switchOrganization(options = {}) {
     debug('switchOrganization: cache record added, isNew=', isNewRecord);
 
     // 如果提供了目标值且启用了自动选择，尝试使用 CDP 选择
-    let selectionResult = null;
+    let selectionResult: AutoSelectResult | { error: string; partial: AutoSelectResult } | null = null;
     if (options.autoSelect && cdpUtils) {
-      selectionResult = await tryAutoSelect(dialog.fields, options);
+      selectionResult = await tryAutoSelect(dialog.fields || {}, options);
 
       // 自动选择完成后，点击对话框"确定"完成切换
-      if (selectionResult && !selectionResult.error) {
+      if (selectionResult && !('error' in selectionResult)) {
         await closeSwitchOrgDialog('confirm');
 
         // 点击系统提示"切换成功"的确定按钮
@@ -756,9 +906,9 @@ async function switchOrganization(options = {}) {
 
 /**
  * 选择部门弹窗中的第一个可用部门
- * @returns {Promise<string|null>} 选中的部门名称
+ * @returns 选中的部门名称
  */
-async function selectFirstDepartment() {
+async function selectFirstDepartment(): Promise<string | null> {
   debug('selectFirstDepartment');
 
   if (!cdpUtils) {
@@ -771,6 +921,10 @@ async function selectFirstDepartment() {
   );
   if (!btnResult?.found) {
     throw new Error('未找到部门按钮');
+  }
+
+  if (btnResult.x === undefined || btnResult.y === undefined) {
+    throw new Error('未找到部门按钮坐标');
   }
 
   await cdpUtils.cdpClick(btnResult.x, btnResult.y, 2000);
@@ -797,17 +951,18 @@ async function selectFirstDepartment() {
     })()
   `);
 
-  const depts = popupInfo.data?.value || popupInfo;
+  const depts = (popupInfo as PopupInfoResult).data?.value || (popupInfo as { found?: boolean; reason?: string; departments?: string[]; rowCount?: number });
   debug('部门列表:', JSON.stringify(depts));
 
-  if (!depts.found || !depts.departments || depts.departments.length === 0) {
+  const popupData = (popupInfo as PopupInfoResult).data?.value;
+  if (!popupData?.found || !popupData.departments || popupData.departments.length === 0) {
     // 关闭弹窗
     await closePickerPopup();
     throw new Error('部门列表为空');
   }
 
   // 3. 选择第一个部门（使用 CDP 点击第一行）
-  const firstDeptName = depts.departments[0];
+  const firstDeptName = popupData.departments[0];
   debug('选择第一个部门:', firstDeptName);
 
   const selectResult = await cdpUtils.cdpEvaluateAndClick(
@@ -832,14 +987,14 @@ async function selectFirstDepartment() {
     { sleepMs: 500 }
   );
 
-  if (!selectResult?.clicked) {
+  if (!selectResult || !('clicked' in selectResult) || !selectResult.clicked) {
     await closePickerPopup();
     throw new Error('点击部门行失败');
   }
 
   // 4. 点击确定按钮
   const confirmBtn = await cdpUtils.cdpFindPopupElementByText('确定');
-  if (confirmBtn?.found) {
+  if (confirmBtn?.found && confirmBtn.x !== undefined && confirmBtn.y !== undefined) {
     await cdpUtils.cdpClick(confirmBtn.x, confirmBtn.y, 1500);
     debug('已点击部门弹窗确定');
   }
@@ -850,14 +1005,16 @@ async function selectFirstDepartment() {
 
 /**
  * 尝试自动选择组织机构/项目/部门
- * @param {Object} fields - 当前对话框字段
- * @param {Object} options - 目标值
- * @returns {Promise<Object|null>}
+ * @param fields - 当前对话框字段
+ * @param options - 目标值
  */
-async function tryAutoSelect(fields, options) {
+async function tryAutoSelect(
+  fields: Record<string, DialogField> | undefined,
+  options: SwitchOrganizationOptions
+): Promise<AutoSelectResult | { error: string; partial: AutoSelectResult }> {
   debug('tryAutoSelect');
 
-  const result = {
+  const result: AutoSelectResult = {
     organization: null,
     project: null,
     department: null,
@@ -906,21 +1063,21 @@ async function tryAutoSelect(fields, options) {
           result.department = { selected: true, name: firstDept };
         }
       } catch (e) {
-        debug('tryAutoSelect: failed to auto-select department:', e.message);
+        debug('tryAutoSelect: failed to auto-select department:', (e as Error).message);
       }
     }
 
     return result;
   } catch (e) {
-    debug('tryAutoSelect failed:', e.message);
-    return { error: e.message, partial: result };
+    debug('tryAutoSelect failed:', (e as Error).message);
+    return { error: (e as Error).message, partial: result };
   }
 }
 
 /**
  * 读取选择弹窗中的列表项
  */
-async function readPickerPopupItems() {
+async function readPickerPopupItems(): Promise<PopupItemsResult> {
   debug('readPickerPopupItems');
 
   const result = await evaluate(`
@@ -974,13 +1131,13 @@ async function readPickerPopupItems() {
     })()
   `);
 
-  return result.data?.value || result;
+  return (result as EvaluateResult).data?.value || (result as PopupItemsResult);
 }
 
 /**
  * 关闭选择弹窗（点击取消按钮）
  */
-async function closePickerPopup() {
+async function closePickerPopup(): Promise<boolean> {
   debug('closePickerPopup');
 
   const result = await evaluate(`
@@ -1012,10 +1169,10 @@ async function closePickerPopup() {
   `);
 
   await new Promise((r) => setTimeout(r, 1000));
-  return result.data?.value?.closed || false;
+  return (result as EvaluateResult).data?.value?.closed || false;
 }
 
-module.exports = {
+export {
   openSwitchOrgDialog,
   closeSwitchOrgDialog,
   getCurrentOrganization,

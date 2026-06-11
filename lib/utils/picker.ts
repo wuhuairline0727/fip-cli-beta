@@ -1,20 +1,15 @@
-const CDP = require('chrome-remote-interface');
-const { evaluate } = require('../browser');
-const { sleep } = require('./common');
+import CDP from 'chrome-remote-interface';
+import { evaluate } from '../browser';
+import { sleep } from './common';
 
-/**
- * 点击 Picker 按钮（如申请单位旁边的蓝色按钮）
- * @param {string} labelText - 标签文本，如 '申请单位' 或 '纳税主体'
- */
-function escapeJsString(str) {
+function escapeJsString(str: string): string {
   return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
 }
 
-async function clickPickerButton(labelText) {
+export async function clickPickerButton(labelText: string): Promise<boolean> {
   const safeLabel = escapeJsString(labelText);
   const code = `
     (function() {
-      // 找到标签元素
       var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
       var labelEl = null;
       var node;
@@ -27,30 +22,22 @@ async function clickPickerButton(labelText) {
           }
         }
       }
-
       if (!labelEl) return { found: false, reason: 'label_not_found' };
-
-      // 向上找到行容器
       var row = labelEl.parentElement;
       while (row && row.parentElement) {
         var rect = row.getBoundingClientRect();
         if (rect.width > 200) break;
         row = row.parentElement;
       }
-
-      // 在行内查找按钮（FD26IYC-w-l 类的小图标）
       var buttons = Array.from(row.querySelectorAll('.FD26IYC-w-l'));
       var target = buttons.find(function(btn) {
         var rect = btn.getBoundingClientRect();
         return rect.width > 0 && rect.height > 0;
       });
-
       if (!target) return { found: false, reason: 'button_not_found' };
-
       target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
       target.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
       target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-
       return { found: true, clicked: true };
     })()
   `;
@@ -64,17 +51,13 @@ async function clickPickerButton(labelText) {
   return true;
 }
 
-/**
- * 查找 Picker 弹窗（帮助字典/纳税主体帮助等）
- */
-function findPopupCode() {
+export function findPopupCode(): string {
   return `
     (function() {
       var popup = null;
       var allDivs = Array.from(document.querySelectorAll('div'));
       for (var i = 0; i < allDivs.length; i++) {
         var text = allDivs[i].textContent;
-        // 必须同时包含弹窗标题和查询按钮文本
         if ((text.indexOf('帮助字典') !== -1 || text.indexOf('纳税主体帮助') !== -1) &&
             text.indexOf('查询') !== -1 && text.indexOf('确定') !== -1 &&
             text.indexOf('数据选择') !== -1) {
@@ -90,45 +73,32 @@ function findPopupCode() {
   `;
 }
 
-/**
- * 在帮助字典/纳税主体帮助弹窗中查询并选择
- * @param {string} queryCode - 查询编码，如 '1000200020040011'
- */
-async function pickFromDict(queryCode) {
+export async function pickFromDict(queryCode: string): Promise<boolean> {
   const code = `
     (function() {
       var popup = ${findPopupCode()};
-
       if (!popup) return { found: false, reason: 'popup_not_found' };
-
-      // 在输入框中填入查询关键字
       var input = popup.querySelector('input[type="text"]');
       if (!input) return { found: false, reason: 'input_not_found' };
-
       input.focus();
       input.value = '${queryCode}';
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
       input.blur();
-
       return { found: true, filled: true };
     })()
   `;
   const result = await evaluate(code);
   if (!result.ok || !result.data?.value?.found) {
-    throw new Error(
-      `Failed to fill query: ${result.data?.value?.reason || 'unknown'}`
-    );
+    throw new Error(`Failed to fill query: ${result.data?.value?.reason || 'unknown'}`);
   }
 
   await sleep(500);
 
-  // 点击查询按钮
   const queryBtnCode = `
     (function() {
       var popup = ${findPopupCode()};
       if (!popup) return { found: false };
-
       var walker = document.createTreeWalker(popup, NodeFilter.SHOW_TEXT, null, false);
       var node;
       while (node = walker.nextNode()) {
@@ -150,7 +120,6 @@ async function pickFromDict(queryCode) {
   `;
   await evaluate(queryBtnCode);
 
-  // 等待查询结果加载，最多等待 5 秒
   let attempts = 0;
   let rowFound = false;
   while (attempts < 10 && !rowFound) {
@@ -178,13 +147,10 @@ async function pickFromDict(queryCode) {
     throw new Error(`Query result for "${queryCode}" not found after 5s`);
   }
 
-  // 点击第一行结果
   const selectCode = `
     (function() {
       var popup = ${findPopupCode()};
       if (!popup) return { found: false, reason: 'popup_not_found' };
-
-      // 找到包含查询编码的行
       var rows = Array.from(popup.querySelectorAll('tr'));
       var targetRow = null;
       for (var i = 0; i < rows.length; i++) {
@@ -193,31 +159,24 @@ async function pickFromDict(queryCode) {
           break;
         }
       }
-
       if (!targetRow) return { found: false, reason: 'row_not_found' };
-
       targetRow.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
       targetRow.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
       targetRow.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-
       return { found: true, selected: true };
     })()
   `;
   const selectResult = await evaluate(selectCode);
   if (!selectResult.ok || !selectResult.data?.value?.found) {
-    throw new Error(
-      `Failed to select row: ${selectResult.data?.value?.reason || 'unknown'}`
-    );
+    throw new Error(`Failed to select row: ${selectResult.data?.value?.reason || 'unknown'}`);
   }
 
   await sleep(500);
 
-  // 点击确认按钮
   const confirmCode = `
     (function() {
       var popup = ${findPopupCode()};
       if (!popup) return { found: false };
-
       var walker = document.createTreeWalker(popup, NodeFilter.SHOW_TEXT, null, false);
       var node;
       while (node = walker.nextNode()) {
@@ -243,16 +202,10 @@ async function pickFromDict(queryCode) {
   return true;
 }
 
-/**
- * 选择纳税主体（使用弹窗查询选择）
- * @param {string} taxCode - 税号，如 '91110000101638302P'
- */
-async function pickTaxSubject(taxCode) {
-  // 1. 点击纳税主体旁边的蓝色按钮
+export async function pickTaxSubject(taxCode: string): Promise<{ tax_code: string; selected: boolean }> {
   await clickPickerButton('纳税主体');
   await sleep(2000);
 
-  // 2. 在弹窗输入框输入税号
   const fillCode = `
     (function() {
       var popup = document.querySelector('.FD26IYC-a-g');
@@ -268,14 +221,11 @@ async function pickTaxSubject(taxCode) {
   `;
   const fillResult = await evaluate(fillCode);
   if (!fillResult.ok || !fillResult.data?.value?.found) {
-    throw new Error(
-      `Failed to fill tax code: ${fillResult.data?.value?.reason || 'unknown'}`
-    );
+    throw new Error(`Failed to fill tax code: ${fillResult.data?.value?.reason || 'unknown'}`);
   }
 
   await sleep(500);
 
-  // 3. 点击查询按钮
   const queryCode = `
     (function() {
       var popup = document.querySelector('.FD26IYC-a-g');
@@ -293,7 +243,6 @@ async function pickTaxSubject(taxCode) {
   await evaluate(queryCode);
   await sleep(2000);
 
-  // 4. 点击第一行结果
   const selectCode = `
     (function() {
       var popup = document.querySelector('.FD26IYC-a-g');
@@ -312,12 +261,10 @@ async function pickTaxSubject(taxCode) {
   await evaluate(selectCode);
   await sleep(1000);
 
-  // 5. 使用 CDP 真实鼠标点击确定按钮
   const client = await CDP({ port: 9222 });
   try {
     const { Runtime, Input } = client;
 
-    // 获取确定按钮位置（通过文本查找，更可靠）
     const rectResult = await Runtime.evaluate({
       expression: `
         (function() {
@@ -343,24 +290,11 @@ async function pickTaxSubject(taxCode) {
     }
 
     const { x, y } = rectResult.result.value;
-    await Input.dispatchMouseEvent({
-      type: 'mousePressed',
-      x,
-      y,
-      button: 'left',
-      clickCount: 1,
-    });
-    await Input.dispatchMouseEvent({
-      type: 'mouseReleased',
-      x,
-      y,
-      button: 'left',
-      clickCount: 1,
-    });
+    await Input.dispatchMouseEvent({ type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
+    await Input.dispatchMouseEvent({ type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
 
     await sleep(2000);
 
-    // 检查弹窗是否关闭
     const popupCheck = await Runtime.evaluate({
       expression: `document.querySelector('.FD26IYC-a-g') ? 'exists' : 'closed'`,
       returnByValue: true,
@@ -375,10 +309,3 @@ async function pickTaxSubject(taxCode) {
     await client.close();
   }
 }
-
-module.exports = {
-  clickPickerButton,
-  findPopupCode,
-  pickFromDict,
-  pickTaxSubject,
-};

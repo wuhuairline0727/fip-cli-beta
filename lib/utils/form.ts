@@ -1,11 +1,8 @@
-const { evaluate } = require('../browser');
-const { sleep } = require('./common');
-const CDP = require('chrome-remote-interface');
+import { evaluate } from '../browser';
+import { sleep } from './common';
+import CDP from 'chrome-remote-interface';
 
-/**
- * 点击显示查询（使用CDP真实点击）
- */
-async function clickShowQuery() {
+export async function clickShowQuery(): Promise<boolean> {
   const code = `
     (function() {
       var all = document.querySelectorAll('*');
@@ -25,13 +22,11 @@ async function clickShowQuery() {
           }
         }
       }
-      // 如果找到隐藏查询，说明面板已展开
       if (hideCandidates.length > 0) {
         hideCandidates.sort(function(a, b) { return b.top - a.top; });
         return { found: true, x: hideCandidates[0].x, y: hideCandidates[0].y, alreadyOpen: true };
       }
       if (showCandidates.length === 0) {
-        // 检查查询面板是否已展开（通过检查查询输入框是否存在）
         var inputs = document.querySelectorAll('input[id*="FormDateField"]');
         var visibleInputs = Array.from(inputs).filter(function(inp) {
           var rect = inp.getBoundingClientRect();
@@ -42,7 +37,6 @@ async function clickShowQuery() {
         }
         return { found: false };
       }
-      // 选择最下方的显示查询按钮
       showCandidates.sort(function(a, b) { return b.top - a.top; });
       return { found: true, x: showCandidates[0].x, y: showCandidates[0].y, alreadyOpen: false };
     })()
@@ -51,31 +45,17 @@ async function clickShowQuery() {
   if (!result.ok || !result.data?.value?.found) {
     throw new Error('显示查询按钮未找到');
   }
-  // 如果已经展开，无需点击
   if (result.data.value.alreadyOpen) {
     return true;
   }
 
-  // 使用CDP真实点击（先等待webbridge状态稳定）
   await sleep(2000);
   const client = await CDP({ port: 9222 });
   try {
     const { Input } = client;
     const { x, y } = result.data.value;
-    await Input.dispatchMouseEvent({
-      type: 'mousePressed',
-      x,
-      y,
-      button: 'left',
-      clickCount: 1,
-    });
-    await Input.dispatchMouseEvent({
-      type: 'mouseReleased',
-      x,
-      y,
-      button: 'left',
-      clickCount: 1,
-    });
+    await Input.dispatchMouseEvent({ type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
+    await Input.dispatchMouseEvent({ type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
   } finally {
     await client.close();
   }
@@ -84,10 +64,7 @@ async function clickShowQuery() {
   return true;
 }
 
-/**
- * 设置日期输入框
- */
-async function setDateInput(inputId, dateStr) {
+export async function setDateInput(inputId: string, dateStr: string): Promise<{ found: boolean; value?: string; reason?: string }> {
   const code = `
     (function() {
       var allInputs = document.querySelectorAll('input');
@@ -119,19 +96,18 @@ async function setDateInput(inputId, dateStr) {
   return result.data.value;
 }
 
-/**
- * 设置日期范围
- */
-async function setDateRange(startDate, endDate) {
+export interface DateRangeResult {
+  startDate: string;
+  endDate: string;
+}
+
+export async function setDateRange(startDate: string, endDate: string): Promise<DateRangeResult> {
   await setDateInput('FormDateField1-input', startDate);
   await setDateInput('FormDateField2-input', endDate);
   return { startDate, endDate };
 }
 
-/**
- * 设置税期
- */
-async function setTaxPeriod(startPeriod, endPeriod) {
+export async function setTaxPeriod(startPeriod: string, endPeriod: string): Promise<Record<string, unknown>> {
   const code = `
     (function() {
       var allInputs = document.querySelectorAll('input');
@@ -157,5 +133,3 @@ async function setTaxPeriod(startPeriod, endPeriod) {
   await sleep(500);
   return result.data?.value || {};
 }
-
-module.exports = { clickShowQuery, setDateInput, setDateRange, setTaxPeriod };

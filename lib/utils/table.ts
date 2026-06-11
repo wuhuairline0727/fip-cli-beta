@@ -1,20 +1,27 @@
-const { evaluate } = require('../browser');
+import { evaluate } from '../browser';
 
-async function getTableData(options = {}) {
+export interface TableDataOptions {
+  maxRows?: number;
+  includeHeaders?: boolean;
+}
+
+export interface TableDataResult {
+  rowCount: number;
+  data: string[][];
+  headers: string[] | null;
+  tableCount: number;
+  error?: string;
+}
+
+export async function getTableData(options: TableDataOptions = {}): Promise<TableDataResult | { error: string }> {
   let { maxRows = 1000, includeHeaders = true } = options;
-  maxRows = parseInt(maxRows) || 1000;
+  maxRows = parseInt(String(maxRows)) || 1000;
   includeHeaders = includeHeaders !== false;
 
   const result = await evaluate(`
     (function() {
       var includeHeaders = ${includeHeaders};
       var maxRows = ${maxRows};
-
-      // GWT splits table into multiple <table> elements:
-      // - header table (top, few rows)
-      // - data table (middle, many rows)
-      // - footer/pagination table (bottom, few rows)
-      // We need to collect all visible tables and merge them.
 
       var tables = document.querySelectorAll('table');
       var visibleTables = [];
@@ -31,10 +38,8 @@ async function getTableData(options = {}) {
 
       if (visibleTables.length === 0) return { error: 'no visible table found' };
 
-      // Sort by vertical position (top to bottom)
       visibleTables.sort(function(a, b) { return a.top - b.top; });
 
-      // Collect all rows from all visible tables
       var allRows = [];
       for (var t = 0; t < visibleTables.length; t++) {
         var rows = visibleTables[t].table.querySelectorAll('tr');
@@ -52,7 +57,6 @@ async function getTableData(options = {}) {
         for (var c = 0; c < cells.length; c++) {
           rowData.push(cells[c].textContent.trim());
         }
-        // Skip empty rows
         if (rowData.some(function(cell) { return cell !== ''; })) {
           data.push(rowData);
         }
@@ -70,5 +74,3 @@ async function getTableData(options = {}) {
   const value = result?.data?.value;
   return value !== undefined ? value : { error: 'evaluation failed' };
 }
-
-module.exports = { getTableData };

@@ -6,24 +6,7 @@ const os = require('os');
 // 使用临时缓存文件进行测试
 const TEST_CACHE_FILE = path.join(os.tmpdir(), '.fip-orgs-test.json');
 
-// 注入临时缓存文件路径
-const cacheModulePath = require.resolve('../../../lib/utils/organization-cache');
-
-// 清除模块缓存，确保加载新模块
-delete require.cache[cacheModulePath];
-
-// 读取原始模块内容并修改 CACHE_FILE
-const originalContent = fs.readFileSync(cacheModulePath, 'utf8');
-const modifiedContent = originalContent.replace(
-  "const CACHE_FILE = path.join(os.homedir(), '.fip-orgs.json');",
-  `const CACHE_FILE = '${TEST_CACHE_FILE.replace(/\\/g, '\\\\')}';`
-);
-
-// 写入临时模块文件
-const tempModulePath = path.join(os.tmpdir(), 'organization-cache-test.js');
-fs.writeFileSync(tempModulePath, modifiedContent, 'utf8');
-
-// 加载修改后的模块
+// 加载模块并注入临时缓存文件路径
 const {
   loadCache,
   saveCache,
@@ -32,7 +15,11 @@ const {
   getCacheStats,
   clearCache,
   listAllRecords,
-} = require(tempModulePath);
+  setCacheFile,
+} = require('../../../lib/utils/organization-cache');
+
+// 注入临时缓存文件路径
+setCacheFile(TEST_CACHE_FILE);
 
 describe('utils/organization-cache', () => {
   beforeEach(() => {
@@ -44,7 +31,6 @@ describe('utils/organization-cache', () => {
     // 清理测试文件
     try {
       fs.unlinkSync(TEST_CACHE_FILE);
-      fs.unlinkSync(tempModulePath);
     } catch (e) {
       // 忽略清理错误
     }
