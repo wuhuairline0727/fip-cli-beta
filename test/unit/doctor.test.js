@@ -8,13 +8,13 @@ const {
 
 describe('doctor', () => {
   describe('checkNodeVersion()', () => {
-    it('should return ok status for current Node version >= 16', () => {
+    it('should return ok status for current Node version >= 20', () => {
       const result = checkNodeVersion();
       expect(result).to.be.an('object');
       expect(result.name).to.equal('Node.js 版本');
       expect(result.status).to.equal('ok');
       expect(result.message).to.include(process.version);
-      expect(result.message).to.include('16');
+      expect(result.message).to.include('20');
     });
   });
 

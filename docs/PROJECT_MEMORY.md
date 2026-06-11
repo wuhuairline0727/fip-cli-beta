@@ -5,13 +5,13 @@ description: Phase 2功能开发进度、测试结果、部署状态
 
 # FIP Phase 2 开发测试状态
 
-**更新日期**: 2026-06-10
+**更新日期**: 2026-06-11
 **工作目录**: `D:\claude\fip-cli`
 **当前分支**: `master`（feature/p0-p1-infrastructure 已合并）
 
 ---
 
-## 一、已通过测试并部署的功能 (19个)
+## 一、已通过测试并部署的功能 (20个+)
 
 | 命令 | 功能 | 测试状态 | 备注 |
 |------|------|----------|------|
@@ -44,7 +44,7 @@ description: Phase 2功能开发进度、测试结果、部署状态
 | ESLint v10 + Prettier | ✅ | `eslint.config.js`, `.prettierrc` |
 | GitHub Actions CI | ✅ | `.github/workflows/ci.yml`, `release.yml` |
 | 测试框架 (mocha + chai) | ✅ | `test/unit/*.test.js` |
-| 单元测试覆盖 | ✅ | 37 passing (19ms) |
+| 单元测试覆盖 | ✅ | 165 passing (24 个测试文件，覆盖 32 个 lib/ 模块) |
 
 ### P1 已完成 ✅
 | 项目 | 状态 | 文件 |
@@ -53,7 +53,7 @@ description: Phase 2功能开发进度、测试结果、部署状态
 | npm 发布准备 | ✅ | `package.json` 完善，`npm pack` 验证 |
 | 配置 Schema 验证 | ✅ | `lib/config-schema.js` |
 
-**测试统计**: 37 passing (browser/doctor/extractor/config-schema)
+**测试统计**: 165 passing (browser/doctor/extractor/config-schema + ledgers/utils/bills/audit)
 **Lint**: 0 errors, 42 warnings
 **npm pack**: 37 files, 61.9 kB
 

@@ -28,7 +28,7 @@
 | 工具 | 用途 | 安装方式 |
 |------|------|----------|
 | **Kimi WebBridge** | 浏览器自动化控制（导航、点击、提取、截图） | 浏览器扩展 + 本地守护进程 |
-| **Node.js** | CLI 运行时环境 | [nodejs.org](https://nodejs.org) ≥ v16 |
+| **Node.js** | CLI 运行时环境 | [nodejs.org](https://nodejs.org) ≥ v20 |
 | **Git** | 版本控制 | [git-scm.com](https://git-scm.com) |
 | **Chrome 浏览器** | WebBridge 目标浏览器，需开启远程调试端口 | 见下方配置 |
 
