@@ -1,18 +1,19 @@
-const fs = require('fs');
-const path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
 
 let debugMode = false;
 let verboseMode = false;
-const LOG_FILE = path.join(process.cwd(), 'fip-debug.log');
+const LOG_FILE: string = path.join(process.cwd(), 'fip-debug.log');
 
-function setDebug(mode) {
+export function setDebug(mode: boolean): void {
   debugMode = mode;
 }
-function setVerbose(mode) {
+
+export function setVerbose(mode: boolean): void {
   verboseMode = mode;
 }
 
-function debug(...args) {
+export function debug(...args: unknown[]): void {
   if (debugMode) {
     const line = `[DEBUG] ${new Date().toISOString()} ${args.join(' ')}`;
     console.error(line);
@@ -20,7 +21,7 @@ function debug(...args) {
   }
 }
 
-function verbose(...args) {
+export function verbose(...args: unknown[]): void {
   if (verboseMode || debugMode) {
     const line = `[INFO] ${new Date().toISOString()} ${args.join(' ')}`;
     console.error(line);
@@ -28,8 +29,6 @@ function verbose(...args) {
   }
 }
 
-function log(...args) {
+export function log(...args: unknown[]): void {
   console.log(...args);
 }
-
-module.exports = { setDebug, setVerbose, debug, verbose, log };

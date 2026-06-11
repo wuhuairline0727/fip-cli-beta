@@ -1,12 +1,19 @@
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const { validateConfigValue, validateConfig } = require('./config-schema');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import { validateConfigValue, validateConfig } from './config-schema';
 
-const CONFIG_FILE = path.join(os.homedir(), '.fiprc.json');
-const LOCAL_CONFIG = path.join(process.cwd(), 'fip.config.json');
+export const CONFIG_FILE: string = path.join(os.homedir(), '.fiprc.json');
+const LOCAL_CONFIG: string = path.join(process.cwd(), 'fip.config.json');
 
-function getLastMonthRange() {
+export interface LastMonthRange {
+  startDate: string;
+  endDate: string;
+  startPeriod: string;
+  endPeriod: string;
+}
+
+function getLastMonthRange(): LastMonthRange {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth(); // 0-11
@@ -22,23 +29,30 @@ function getLastMonthRange() {
   };
 }
 
-// 移除模块加载时计算的 lastMonth，改为 loadConfig 中动态计算
-// const lastMonth = getLastMonthRange();
+export interface ConfigDefaults {
+  companyCode: string;
+  taxCode: string;
+  voidStatus: string;
+  docStatus: string;
+  docType: string;
+  sellerCode: string;
+}
 
-const DEFAULTS = {
+const DEFAULTS: ConfigDefaults = {
   companyCode: '1000200020040011',
-  // 91110000101638302P — 中国建筑一局（集团）有限公司（日常使用税号）
-  // 91110000101107173B — 另一纳税主体
   taxCode: '91110000101638302P',
   voidStatus: '未作废',
   docStatus: '流程结束',
   docType: '预缴计算单',
-  // sellerCode 默认与 taxCode 保持一致
   sellerCode: '91110000101638302P',
 };
 
-function loadConfig() {
-  let config = {};
+export interface FipConfig extends ConfigDefaults, LastMonthRange {
+  [key: string]: unknown;
+}
+
+export function loadConfig(): FipConfig {
+  let config: Record<string, unknown> = {};
   if (fs.existsSync(CONFIG_FILE)) {
     try {
       config = {
@@ -59,7 +73,6 @@ function loadConfig() {
       console.error('Warning: Failed to parse fip.config.json');
     }
   }
-  // 日期字段每次动态计算，避免长驻进程跨月不刷新
   const lastMonth = getLastMonthRange();
   return {
     ...DEFAULTS,
@@ -68,14 +81,14 @@ function loadConfig() {
     startPeriod: lastMonth.startPeriod,
     endPeriod: lastMonth.endPeriod,
     ...config,
-  };
+  } as FipConfig;
 }
 
-function saveConfig(config) {
+export function saveConfig(config: Record<string, unknown>): void {
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
 }
 
-function get(key) {
+export function get(key?: string): unknown {
   const config = loadConfig();
   if (key) {
     return config[key];
@@ -86,7 +99,7 @@ function get(key) {
   };
 }
 
-function set(key, value) {
+export function set(key: string, value: unknown): FipConfig {
   const error = validateConfigValue(key, value);
   if (error) {
     throw new Error(`配置验证失败: ${error}`);
@@ -96,5 +109,3 @@ function set(key, value) {
   saveConfig(config);
   return config;
 }
-
-module.exports = { loadConfig, saveConfig, get, set, CONFIG_FILE };

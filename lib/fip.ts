@@ -1,21 +1,21 @@
-const utils = require('./utils/index');
-const unbilledIncome = require('./ledgers/unbilled-income');
-const inputTransfer = require('./ledgers/input-transfer');
-const outputInvoice = require('./ledgers/output-invoice');
-const vatPrepayment = require('./ledgers/vat-prepayment');
-const passengerTransport = require('./ledgers/passenger-transport');
-const { extractInvoiceFields } = require('./audit/extractor');
-const { audit } = require('./audit/engine');
-const {
+import * as utils from './utils/index';
+import * as unbilledIncome from './ledgers/unbilled-income';
+import * as inputTransfer from './ledgers/input-transfer';
+import * as outputInvoice from './ledgers/output-invoice';
+import * as vatPrepayment from './ledgers/vat-prepayment';
+import * as passengerTransport from './ledgers/passenger-transport';
+import { extractInvoiceFields } from './audit/extractor';
+import { audit } from './audit/engine';
+import {
   generateTextReport,
   generateJsonReport,
   generateMarkdownReport,
-} = require('./audit/reporter');
-const { extractBill } = require('./bills/extractor');
-const { generateAuditHints } = require('./bills/audit-hints');
-const { ensureConnection } = require('./browser');
+} from './audit/reporter';
+import { extractBill } from './bills/extractor';
+import { generateAuditHints } from './bills/audit-hints';
+import { ensureConnection } from './browser';
 
-module.exports = {
+export = {
   ...utils,
   exportUnbilledIncomeLedger: unbilledIncome.exportUnbilledIncomeLedger,
   exportInputTransferLedger: inputTransfer.exportInputTransferLedger,

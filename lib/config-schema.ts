@@ -1,4 +1,14 @@
-const CONFIG_SCHEMA = {
+export interface ConfigSchemaEntry {
+  type: string;
+  pattern?: RegExp;
+  message?: string;
+}
+
+export interface ConfigSchema {
+  [key: string]: ConfigSchemaEntry;
+}
+
+export const CONFIG_SCHEMA: ConfigSchema = {
   companyCode: {
     type: 'string',
     pattern: /^\d+$/,
@@ -39,10 +49,10 @@ const CONFIG_SCHEMA = {
   },
 };
 
-function validateConfigValue(key, value) {
+export function validateConfigValue(key: string, value: unknown): string | null {
   const schema = CONFIG_SCHEMA[key];
-  if (!schema) return null; // 未知配置项，不验证
-  if (value === null || value === undefined || value === '') return null; // 空值不验证
+  if (!schema) return null;
+  if (value === null || value === undefined || value === '') return null;
 
   if (schema.pattern && !schema.pattern.test(String(value))) {
     return schema.message || `${key} 格式不正确: ${value}`;
@@ -50,13 +60,11 @@ function validateConfigValue(key, value) {
   return null;
 }
 
-function validateConfig(config) {
-  const errors = [];
+export function validateConfig(config: Record<string, unknown>): string[] {
+  const errors: string[] = [];
   for (const [key, value] of Object.entries(config)) {
     const error = validateConfigValue(key, value);
     if (error) errors.push(error);
   }
   return errors;
 }
-
-module.exports = { CONFIG_SCHEMA, validateConfigValue, validateConfig };

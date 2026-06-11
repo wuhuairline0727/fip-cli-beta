@@ -65,6 +65,7 @@
     "prettier": "^3.8.4",
     "sinon": "^22.0.0",
     "ts-mocha": "^11.1.0",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   },
   "overrides": {

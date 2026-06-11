@@ -1,23 +1,35 @@
-const fs = require('fs');
-const path = require('path');
-const { screenshot } = require('./browser');
+import * as fs from 'fs';
+import * as path from 'path';
+import { screenshot } from './browser';
 
 let screenshotOnError = true;
 let screenshotDir = path.join(process.cwd(), 'screenshots');
 
-function setScreenshotOptions(options) {
+export interface ScreenshotOptions {
+  screenshotOnError?: boolean;
+  screenshotDir?: string;
+}
+
+export interface ScreenshotResult {
+  ok: boolean;
+  data?: {
+    path?: string;
+    data?: string;
+  };
+}
+
+export function setScreenshotOptions(options: ScreenshotOptions): void {
   if (options.screenshotOnError !== undefined)
     screenshotOnError = options.screenshotOnError;
   if (options.screenshotDir) screenshotDir = options.screenshotDir;
 }
 
-async function takeErrorScreenshot(errorCode) {
+export async function takeErrorScreenshot(errorCode: string): Promise<string | null> {
   if (!screenshotOnError) return null;
   try {
-    const result = await screenshot('png');
+    const result = await screenshot('png') as ScreenshotResult;
     if (!result.ok || !result.data) return null;
 
-    // WebBridge screenshot 返回文件路径，需要读取文件
     const srcPath = result.data.path;
     if (srcPath && fs.existsSync(srcPath)) {
       if (!fs.existsSync(screenshotDir)) {
@@ -29,7 +41,6 @@ async function takeErrorScreenshot(errorCode) {
       return filepath;
     }
 
-    // 兼容旧版 base64 返回格式
     if (result.data.data) {
       if (!fs.existsSync(screenshotDir)) {
         fs.mkdirSync(screenshotDir, { recursive: true });
@@ -45,22 +56,25 @@ async function takeErrorScreenshot(errorCode) {
   return null;
 }
 
-function success(data) {
+export function success(data: unknown): void {
   console.log(JSON.stringify({ ok: true, data }, null, 2));
 }
 
-async function error(code, message) {
+export interface FipError extends Error {
+  code: string;
+  isFipError: boolean;
+}
+
+export async function error(code: string, message: string): Promise<never> {
   const screenshotPath = await takeErrorScreenshot(code);
-  const output = { ok: false, error: { code, message } };
+  const output: Record<string, unknown> = { ok: false, error: { code, message } };
   if (screenshotPath) {
     output.screenshot = screenshotPath;
   }
   console.log(JSON.stringify(output, null, 2));
-  process.exitCode = 1; // 确保即使 throw 被 catch 吞掉，退出码仍为 1
-  const err = new Error(message);
+  process.exitCode = 1;
+  const err = new Error(message) as FipError;
   err.code = code;
   err.isFipError = true;
   throw err;
 }
-
-module.exports = { success, error, setScreenshotOptions, takeErrorScreenshot };

@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// TypeScript 支持：tsx CJS 注册器，使 require() 能解析 .ts 文件
+require('tsx/cjs');
+
 const { program } = require('commander');
 const { navigate, evaluate } = require('../lib/browser');
 const { success, error, setScreenshotOptions } = require('../lib/output');
