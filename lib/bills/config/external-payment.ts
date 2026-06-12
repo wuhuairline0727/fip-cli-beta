@@ -26,6 +26,7 @@ export const inputFields: Record<
   // CFK 叫"成本费用属性"
   reimbursement_type: { byId: 'DataSetFieldComboBox6-input' },
   // CFK 基本信息中没有"预算类别"字段（仅在子表中），不要顶层提取
+  budget_category: {},
 };
 
 export const tables: Array<{

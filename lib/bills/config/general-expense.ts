@@ -6,8 +6,13 @@ export const basePatterns: Record<string, RegExp> = {
   domestic_foreign: /境内境外[：:]\s*([^\n\r]+)/,
 };
 
-export const inputFields: Record<string, { byLabel: string }> = {
+export const inputFields: Record<
+  string,
+  { byId?: string; byIdPrefix?: string; byLabel?: string }
+> = {
   domestic_foreign: { byLabel: '境内境外' },
+  // TBX 基本信息中没有"预算类别"字段，排除通用配置
+  budget_category: {},
 };
 
 export const tables: Array<{
