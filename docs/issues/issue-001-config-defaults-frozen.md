@@ -1,6 +1,8 @@
+> **注意**：本文档记录的是 JavaScript 版本时期的问题分析，当前项目已迁移至 TypeScript。文件路径已更新，但行号可能不准确。
+
 ## 问题描述
 
-`bin/fip-cli.js` 第 474 行在模块加载时执行 `const cfg = config.get()`，导致所有 commander option 的默认值被冻结在进程启动时刻：
+`bin/fip-cli.ts` 第 474 行在模块加载时执行 `const cfg = config.get()`，导致所有 commander option 的默认值被冻结在进程启动时刻：
 
 ```javascript
 const cfg = config.get();   // ← 进程启动时执行一次
@@ -49,4 +51,4 @@ program
 ---
 
 **标签**: `bug`, `P0`, `config`
-**文件**: `bin/fip-cli.js:474`
+**文件**: `bin/fip-cli.ts:474`

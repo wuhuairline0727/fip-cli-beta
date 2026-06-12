@@ -1,6 +1,8 @@
+> **注意**：本文档记录的是 JavaScript 版本时期的问题分析，当前项目已迁移至 TypeScript。文件路径已更新，但行号可能不准确。
+
 ## 问题描述
 
-`lib/browser.js` 第 84 行使用 `new Promise(async executor)` 模式：
+`lib/browser.ts` 第 84 行使用 `new Promise(async executor)` 模式：
 
 ```javascript
 function request(action, args, session = SESSION) {
@@ -62,10 +64,10 @@ async function request(action, args, session = SESSION) {
 
 ## 影响范围
 
-- `lib/browser.js` 核心请求函数
-- 所有通过 `browser.js` 发送的 WebBridge 请求
+- `lib/browser.ts` 核心请求函数
+- 所有通过 `browser.ts` 发送的 WebBridge 请求
 
 ---
 
 **标签**: `bug`, `P0`, `browser`, `promise`
-**文件**: `lib/browser.js:84`
+**文件**: `lib/browser.ts:84`

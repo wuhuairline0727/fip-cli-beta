@@ -1,6 +1,8 @@
+> **注意**：本文档记录的是 JavaScript 版本时期的问题分析，当前项目已迁移至 TypeScript。文件路径已更新，但行号可能不准确。
+
 ## 问题描述
 
-`lib/utils/navigation.js` 第 20 行使用 `indexOf` 进行菜单模糊匹配：
+`lib/utils/navigation.ts` 第 20 行使用 `indexOf` 进行菜单模糊匹配：
 
 ```javascript
 var target = items.find(function(item) {
@@ -44,4 +46,4 @@ return text === '${menuName}' || text.startsWith('${menuName} ') || text.endsWit
 ---
 
 **标签**: `bug`, `P0`, `navigation`, `gwt`
-**文件**: `lib/utils/navigation.js:20`, `lib/utils/navigation.js:66`
+**文件**: `lib/utils/navigation.ts:20`, `lib/utils/navigation.ts:66`

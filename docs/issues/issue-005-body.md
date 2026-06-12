@@ -1,6 +1,8 @@
+> **注意**：本文档记录的是 JavaScript 版本时期的问题分析，当前项目已迁移至 TypeScript。文件路径已更新，但行号可能不准确。
+
 ## 问题描述
 
-`lib/config.js` 第 25 行在模块加载时计算 `lastMonth`：
+`lib/config.ts` 第 25 行在模块加载时计算 `lastMonth`：
 
 ```javascript
 const lastMonth = getLastMonthRange();   // ← 模块加载时算一次
@@ -45,4 +47,4 @@ function get() {
 ---
 
 **标签**: `enhancement`, `config`
-**文件**: `lib/config.js:25`
+**文件**: `lib/config.ts:25`

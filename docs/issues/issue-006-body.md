@@ -1,10 +1,12 @@
+> **注意**：本文档记录的是 JavaScript 版本时期的问题分析，当前项目已迁移至 TypeScript。文件路径已更新，但行号可能不准确。
+
 ## 问题描述
 
-`lib/config.js` 中 `DEFAULTS.taxCode` 与 `bin/fip-cli.js` 帮助文字不一致：
+`lib/config.ts` 中 `DEFAULTS.taxCode` 与 `bin/fip-cli.ts` 帮助文字不一致：
 
 | 来源 | 值 |
 |------|-----|
-| `lib/config.js` DEFAULTS | `91110000101107173B` |
+| `lib/config.ts` DEFAULTS | `91110000101107173B` |
 | `pick-tax-subject` 帮助文字第一个示例 | `91110000101638302P` |
 | 用户 `~/.fiprc.json`（已覆盖） | `91110000101638302P` |
 
@@ -17,7 +19,7 @@
 
 统一默认值，建议采用 `91110000101638302P`（与帮助文字一致，且是日常使用的税号）。
 
-同时在 `config.js` 中加上注释说明两个税号分别对应的公司：
+同时在 `config.ts` 中加上注释说明两个税号分别对应的公司：
 - `91110000101638302P` — 中国建筑一局（集团）有限公司
 - `91110000101107173B` — 另一纳税主体
 
@@ -28,4 +30,4 @@
 ---
 
 **标签**: `enhancement`, `config`
-**文件**: `lib/config.js:29`, `bin/fip-cli.js:204`
+**文件**: `lib/config.ts:29`, `bin/fip-cli.ts:204`

@@ -1,15 +1,17 @@
+> **注意**：本文档记录的是 JavaScript 版本时期的问题分析，当前项目已迁移至 TypeScript。文件路径已更新，但行号可能不准确。
+
 ## 问题描述
 
-`lib/output.js` 的 `error()` 函数在输出 JSON 后会 `throw err`，但 `bin/fip-cli.js` 中每个 commander action 都用 `try/catch` 包裹：
+`lib/output.ts` 的 `error()` 函数在输出 JSON 后会 `throw err`，但 `bin/fip-cli.ts` 中每个 commander action 都用 `try/catch` 包裹：
 
 ```javascript
-// lib/output.js
+// lib/output.ts
 async function error(code, message) {
   console.log(JSON.stringify({ ok: false, error: { code, message } }, null, 2));
   throw new Error(message);  // ← 抛出去
 }
 
-// bin/fip-cli.js
+// bin/fip-cli.ts
 .action(async (name) => {
   try {
     await fip.clickDashboardTab(name);
@@ -60,4 +62,4 @@ async function error(code, message) {
 ---
 
 **标签**: `bug`, `P0`, `cli`, `exit-code`
-**文件**: `lib/output.js:52`, `bin/fip-cli.js` (多处)
+**文件**: `lib/output.ts:52`, `bin/fip-cli.ts` (多处)
