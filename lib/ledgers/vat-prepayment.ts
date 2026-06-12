@@ -54,7 +54,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
   console.log('4. 展开查询条件...');
   const showQueryBtn = await utils.cdpFindElementByText('显示查询');
   if (showQueryBtn?.found) {
-    await utils.cdpClick(showQueryBtn.x, showQueryBtn.y, 1500);
+    await utils.cdpClick(showQueryBtn.x!, showQueryBtn.y!, 1500);
   }
 
   // 3. 设置单据类型
@@ -73,7 +73,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
       }
       return { found: false, reason: 'no_visible_input' };
     })()
-  `);
+  `) as { found: boolean; reason?: string; x?: number; y?: number; value?: string };
   if (!docTypeInputResult?.found) {
     throw new Error(
       '未找到单据类型输入框: ' + (docTypeInputResult?.reason || 'unknown')
@@ -85,7 +85,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
     docTypeInputResult.x,
     docTypeInputResult.y
   );
-  await utils.cdpClick(docTypeInputResult.x, docTypeInputResult.y, 2000);
+  await utils.cdpClick(docTypeInputResult.x!, docTypeInputResult.y!, 2000);
   console.log('  已点击输入框，等待下拉菜单打开...');
 
   // 直接查找下拉选项
@@ -94,7 +94,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
     throw new Error('未找到下拉选项: ' + opts.docType);
   }
   console.log('  找到选项，坐标:', optionResult.x, optionResult.y);
-  await utils.cdpClick(optionResult.x, optionResult.y, 1500);
+  await utils.cdpClick(optionResult.x!, optionResult.y!, 1500);
   console.log('  已点击选项，等待下拉菜单关闭...');
 
   // 4. 设置所属税期
@@ -133,7 +133,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
     'DataSetFieldComboBox1-input'
   );
   if (companyBtn?.found) {
-    await utils.cdpClick(companyBtn.x, companyBtn.y, 2000);
+    await utils.cdpClick(companyBtn.x!, companyBtn.y!, 2000);
     await utils.pickFromDict(opts.companyCode as string);
     await utils.sleep(1000);
   }
@@ -144,7 +144,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
     'DataSetFieldComboBox2-input'
   );
   if (taxBtn?.found) {
-    await utils.cdpClick(taxBtn.x, taxBtn.y, 2000);
+    await utils.cdpClick(taxBtn.x!, taxBtn.y!, 2000);
 
     // 在弹窗中输入税号
     await utils.cdpEvaluate(`
@@ -167,7 +167,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
     // 点击弹窗查询按钮
     const popupQueryBtn = await utils.cdpFindPopupElementByText('查询');
     if (popupQueryBtn?.found) {
-      await utils.cdpClick(popupQueryBtn.x, popupQueryBtn.y, 2000);
+      await utils.cdpClick(popupQueryBtn.x!, popupQueryBtn.y!, 2000);
     }
 
     // 选择包含税号的行
@@ -194,7 +194,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
     // 点击确定按钮
     const confirmBtn = await utils.cdpFindPopupElementByText('确定');
     if (confirmBtn?.found) {
-      await utils.cdpClick(confirmBtn.x, confirmBtn.y, 1500);
+      await utils.cdpClick(confirmBtn.x!, confirmBtn.y!, 1500);
     }
   }
 
@@ -216,11 +216,11 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
       candidates.sort(function(a, b) { return b.top - a.top; });
       return { found: true, x: candidates[0].x, y: candidates[0].y };
     })()
-  `);
+  `) as { found: boolean; x?: number; y?: number };
   if (!queryBtn?.found) {
     throw new Error('查询按钮未找到');
   }
-  await utils.cdpClick(queryBtn.x, queryBtn.y, 5000);
+  await utils.cdpClick(queryBtn.x!, queryBtn.y!, 5000);
   console.log('查询已执行，等待结果加载...');
 
   // 如果仅查询模式，返回结果
@@ -250,12 +250,12 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
       candidates.sort(function(a, b) { return a.left - b.left; });
       return { found: true, x: candidates[0].x, y: candidates[0].y };
     })()
-  `);
+  `) as { found: boolean; x?: number; y?: number };
   if (!exportBtnResult?.found) {
     throw new Error('未找到导出按钮');
   }
   console.log('  导出按钮坐标:', exportBtnResult.x, exportBtnResult.y);
-  await utils.cdpClick(exportBtnResult.x, exportBtnResult.y, 2000);
+  await utils.cdpClick(exportBtnResult.x!, exportBtnResult.y!, 2000);
 
   // 8. 点击弹窗中的导出按钮
   console.log('11. 点击弹窗确认导出...');
@@ -273,7 +273,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
   }
 
   if (popupFound) {
-    await utils.cdpClick(popupExportBtn.x, popupExportBtn.y, 2000);
+    await utils.cdpClick(popupExportBtn!.x!, popupExportBtn!.y!, 2000);
 
     // 检查弹窗是否关闭
     const popupCheck = await utils.cdpEvaluate(`

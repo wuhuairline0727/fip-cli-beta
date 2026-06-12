@@ -1,10 +1,16 @@
 import * as http from 'http';
+import type { WebBridgeResponse, ListTabsData, TabInfo } from './types/webbridge';
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 
 const WEBBRIDGE_PORT = 10086;
 const CDP_PORT = 9222;
+
+interface CDPVersionResponse {
+  Browser?: string;
+  [key: string]: unknown;
+}
 
 export interface DiagnosticCheck {
   name: string;
@@ -130,7 +136,7 @@ export async function checkCdpPort(): Promise<DiagnosticCheck> {
       return {
         name: 'Chrome 远程调试',
         status: 'ok',
-        message: `端口 ${CDP_PORT} 已开启（Chrome ${(version as any).Browser?.split('/')[1] || '未知版本'}）`,
+        message: `端口 ${CDP_PORT} 已开启（Chrome ${(version as CDPVersionResponse).Browser?.split('/')[1] || '未知版本'}）`,
       };
     } catch (e) {
       return {
@@ -173,7 +179,8 @@ export async function checkFipConnection(): Promise<DiagnosticCheck> {
       };
     }
 
-    const tabs = result.data && (result.data as any).tabs ? (result.data as any).tabs : [];
+    const listData = result.data as ListTabsData | undefined;
+    const tabs = listData?.tabs ?? [];
     if (!Array.isArray(tabs) || tabs.length === 0) {
       return {
         name: 'FIP 登录状态',
@@ -183,7 +190,7 @@ export async function checkFipConnection(): Promise<DiagnosticCheck> {
       };
     }
 
-    const fipTab = tabs.find((t: any) => t.url && t.url.includes('fip.cscec.com'));
+    const fipTab = tabs.find((t: TabInfo) => t.url.includes('fip.cscec.com'));
 
     if (!fipTab) {
       return {
@@ -266,7 +273,7 @@ function isPortOpen(port: number): Promise<boolean> {
   });
 }
 
-function webBridgeRequest(action: string): Promise<any> {
+function webBridgeRequest(action: string): Promise<WebBridgeResponse> {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify({ action, args: {}, session: 'fip' });
     const req = http.request(
@@ -303,7 +310,7 @@ function webBridgeRequest(action: string): Promise<any> {
   });
 }
 
-function cdpVersion(): Promise<unknown> {
+function cdpVersion(): Promise<CDPVersionResponse> {
   return new Promise((resolve, reject) => {
     const req = http.get(
       {

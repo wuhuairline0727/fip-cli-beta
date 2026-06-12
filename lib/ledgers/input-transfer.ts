@@ -48,7 +48,7 @@ export async function exportInputTransferLedger(options: InputTransferOptions = 
   await utils.clickDrawerItem('进项转出台账');
   await utils.sleep(2000);
 
-  const hasQueryForm = await utils.cdpEvaluate(`
+  const hasQueryForm = await utils.cdpEvaluate<boolean>(`
     (function() {
       var allInputs = document.querySelectorAll('input');
       for (var i = 0; i < allInputs.length; i++) {
@@ -63,7 +63,7 @@ export async function exportInputTransferLedger(options: InputTransferOptions = 
 
   if (!hasQueryForm) {
     console.log('4. 选择进项转出明细台账...');
-    const radioResult = await utils.cdpEvaluate(`
+    const radioResult = await utils.cdpEvaluate<{ success: boolean; x: number; y: number; tag: string; reason?: string }>(`
       (function() {
         var all = document.querySelectorAll('*');
         var target = null;
@@ -146,7 +146,7 @@ export async function exportInputTransferLedger(options: InputTransferOptions = 
   );
 
   console.log('5. 选择转出税期...');
-  const taxPeriodResult = await utils.cdpEvaluate(`
+  const taxPeriodResult = await utils.cdpEvaluate<{ found: boolean; x?: number; y?: number; id?: string }>(`
     (function() {
       var radios = document.querySelectorAll('input[type="radio"]');
       for (var i = 0; i < radios.length; i++) {
@@ -160,7 +160,7 @@ export async function exportInputTransferLedger(options: InputTransferOptions = 
   `);
 
   if (taxPeriodResult?.found) {
-    await utils.cdpClick(taxPeriodResult.x, taxPeriodResult.y, 1000);
+    await utils.cdpClick(taxPeriodResult.x!, taxPeriodResult.y!, 1000);
     console.log('已点击转出税期单选按钮:', taxPeriodResult.id);
   }
 
@@ -194,7 +194,7 @@ export async function exportInputTransferLedger(options: InputTransferOptions = 
   await utils.sleep(500);
 
   console.log('7. 设置单据状态:', opts.docStatus);
-  const statusResult = await utils.cdpEvaluate(`
+  const statusResult = await utils.cdpEvaluate<{ found: boolean; x?: number; y?: number }>(`
     (function() {
       var input = document.getElementById('FormComboBoxDJZT-input');
       if (!input) return { found: false };
@@ -204,7 +204,7 @@ export async function exportInputTransferLedger(options: InputTransferOptions = 
   `);
 
   if (statusResult?.found) {
-    await utils.cdpClick(statusResult.x, statusResult.y, 1000);
+    await utils.cdpClick(statusResult.x!, statusResult.y!, 1000);
 
     await utils.cdpEvaluateAndClick(
       `

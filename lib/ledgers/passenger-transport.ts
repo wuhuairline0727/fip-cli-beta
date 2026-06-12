@@ -52,7 +52,7 @@ export async function exportPassengerTransportLedger(options: LedgerOptions = {}
   console.log('4. 展开查询条件...');
   const showQueryBtn = await utils.cdpFindElementByText('显示查询');
   if (showQueryBtn?.found) {
-    await utils.cdpClick(showQueryBtn.x, showQueryBtn.y, 1500);
+    await utils.cdpClick(showQueryBtn.x!, showQueryBtn.y!, 1500);
   }
 
   // 3. 设置所属税期
@@ -92,7 +92,7 @@ export async function exportPassengerTransportLedger(options: LedgerOptions = {}
     'DataSetFieldComboBox1-input'
   );
   if (companyBtn?.found) {
-    await utils.cdpClick(companyBtn.x, companyBtn.y, 2000);
+    await utils.cdpClick(companyBtn.x!, companyBtn.y!, 2000);
     await utils.pickFromDict(opts.companyCode as string);
     await utils.sleep(1000);
   }
@@ -103,7 +103,7 @@ export async function exportPassengerTransportLedger(options: LedgerOptions = {}
     'DataSetFieldComboBox2-input'
   );
   if (taxBtn?.found) {
-    await utils.cdpClick(taxBtn.x, taxBtn.y, 2000);
+    await utils.cdpClick(taxBtn.x!, taxBtn.y!, 2000);
 
     // 在弹窗中输入税号
     await utils.cdpEvaluate(`
@@ -236,12 +236,12 @@ export async function exportPassengerTransportLedger(options: LedgerOptions = {}
       }
       return { found: false };
     })()
-  `);
+  `) as { found: boolean; x?: number; y?: number };
   if (!exportBtnResult?.found) {
     throw new Error('未找到导出按钮');
   }
   console.log('  导出按钮坐标:', exportBtnResult.x, exportBtnResult.y);
-  await utils.cdpClick(exportBtnResult.x, exportBtnResult.y, 2000);
+  await utils.cdpClick(exportBtnResult.x!, exportBtnResult.y!, 2000);
 
   // 8. 点击弹窗中的导出按钮
   console.log('10. 点击弹窗确认导出...');

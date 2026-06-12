@@ -484,7 +484,7 @@ async function closeSwitchOrgDialog(action: 'cancel' | 'confirm' = 'cancel'): Pr
   `);
 
   await new Promise((r) => setTimeout(r, 1500));
-  return (result as EvaluateResult).data?.value?.closed || false;
+  return ((result as EvaluateResult).data?.value as { closed?: boolean } | undefined)?.closed || false;
 }
 
 /**
@@ -1169,7 +1169,7 @@ async function closePickerPopup(): Promise<boolean> {
   `);
 
   await new Promise((r) => setTimeout(r, 1000));
-  return (result as EvaluateResult).data?.value?.closed || false;
+  return ((result as EvaluateResult).data?.value as { closed?: boolean } | undefined)?.closed || false;
 }
 
 export {

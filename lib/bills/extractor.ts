@@ -185,7 +185,7 @@ export function buildExtractionCode(config: BillConfig): string {
     .join(',\n');
 
   // 序列化 tables（支持数组或对象格式）
-  const tablesList = Array.isArray(tables) ? tables : Object.values(tables);
+  const tablesList = (Array.isArray(tables) ? tables : Object.values(tables)) as Array<{ name: string; identifyBy?: { headerText?: string }; columns?: Array<{ label?: string; header?: string; key?: string; field?: string; type?: string }> }>;
   const tablesArray = tablesList
     .map((t) => {
       const cols = (t.columns || [])

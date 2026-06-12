@@ -10,7 +10,40 @@ export interface WebBridgeRequest {
   session?: string;
 }
 
-export interface WebBridgeResponse<T = unknown> {
+export interface WebBridgeResponseData {
+  value?: unknown;
+  [key: string]: unknown;
+}
+
+export interface EvaluateData extends WebBridgeResponseData {
+  value?: unknown;
+}
+
+export interface ScreenshotData extends WebBridgeResponseData {
+  path?: string;
+  data?: string;
+}
+
+export interface ListTabsData extends WebBridgeResponseData {
+  success: boolean;
+  tabs: TabInfo[];
+}
+
+export interface FindTabData extends WebBridgeResponseData {
+  tabId: string;
+  url?: string;
+  title?: string;
+  active?: boolean;
+}
+
+export type WebBridgeResponseDataUnion =
+  | EvaluateData
+  | ScreenshotData
+  | ListTabsData
+  | FindTabData
+  | WebBridgeResponseData;
+
+export interface WebBridgeResponse<T extends WebBridgeResponseData = WebBridgeResponseData> {
   ok: boolean;
   data?: T;
   error?: {

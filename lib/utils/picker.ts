@@ -285,11 +285,11 @@ export async function pickTaxSubject(taxCode: string): Promise<{ tax_code: strin
       returnByValue: true,
     });
 
-    if (!rectResult?.result?.value?.found) {
+    if (!((rectResult?.result?.value as { found?: boolean } | undefined)?.found)) {
       throw new Error('Confirm button not found');
     }
 
-    const { x, y } = rectResult.result.value;
+    const { x, y } = rectResult.result!.value as { x: number; y: number };
     await Input.dispatchMouseEvent({ type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
     await Input.dispatchMouseEvent({ type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
 
@@ -300,7 +300,7 @@ export async function pickTaxSubject(taxCode: string): Promise<{ tax_code: strin
       returnByValue: true,
     });
 
-    if (popupCheck.result.value === 'exists') {
+    if ((popupCheck.result?.value as string | undefined) === 'exists') {
       throw new Error('Popup still open after confirm click');
     }
 

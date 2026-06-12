@@ -24,16 +24,43 @@ export interface BillInfo {
   hints: string;
 }
 
+interface ExpenseAllocation {
+  amount?: number;
+  budget_amount_with_tax?: number;
+  expense_item?: string;
+  department?: string;
+  budget_item?: string;
+  budget_project?: string;
+  budget_balance?: unknown;
+}
+
+interface ExpenseDetail {
+  amount_with_tax?: string;
+  amount?: string;
+  reason_summary?: string;
+  reason?: string;
+  department?: string;
+  expense_item?: string;
+}
+
+interface BillMeta {
+  bill_type_name?: string;
+}
+
+interface AuditHint {
+  message?: string;
+}
+
 export function extractBillInfo(bill: Record<string, unknown>): BillInfo {
-  const alloc = (bill.expense_allocation as any[])?.[0];
-  const details = (bill.expense_details as any[]) || (bill.expense_items as any[]) || [];
+  const alloc = (bill.expense_allocation as ExpenseAllocation[])?.[0];
+  const details = (bill.expense_details as ExpenseDetail[]) || (bill.expense_items as ExpenseDetail[]) || [];
 
   let amount = bill.payment_amount as number | undefined;
   if (!amount && alloc) amount = alloc.amount || alloc.budget_amount_with_tax;
   if (!amount && details.length > 0) {
     amount = details.reduce(
-      (sum: number, d: any) =>
-        sum + (parseFloat(d.amount_with_tax) || parseFloat(d.amount) || 0),
+      (sum: number, d: ExpenseDetail) =>
+        sum + (parseFloat(d.amount_with_tax || '') || parseFloat(d.amount || '') || 0),
       0
     );
   }
@@ -51,8 +78,8 @@ export function extractBillInfo(bill: Record<string, unknown>): BillInfo {
 
   let accountSubject = '—';
   const subjects = [
-    ...new Set(details.map((d: any) => d.expense_item).filter(Boolean)),
-  ];
+    ...new Set(details.map((d: ExpenseDetail) => d.expense_item).filter(Boolean)),
+  ] as string[];
   if (subjects.length === 1) {
     accountSubject = subjects[0];
   } else if (subjects.length > 1) {
@@ -62,7 +89,7 @@ export function extractBillInfo(bill: Record<string, unknown>): BillInfo {
   }
 
   return {
-    type: (bill._meta as any)?.bill_type_name || '—',
+    type: (bill._meta as BillMeta)?.bill_type_name || '—',
     no: (bill.bill_no as string) || '—',
     submitter: (bill.submitter as string) || '—',
     dept: (dept as string) || '—',
@@ -73,7 +100,7 @@ export function extractBillInfo(bill: Record<string, unknown>): BillInfo {
       ? alloc.budget_item || alloc.budget_project || '—'
       : '—',
     budgetBalance: alloc ? alloc.budget_balance : '—',
-    hints: ((bill.audit_hints as any[]) || []).map((h) => h.message).join('; ') || '—',
+    hints: ((bill.audit_hints as AuditHint[]) || []).map((h) => h.message).join('; ') || '—',
   };
 }
 

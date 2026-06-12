@@ -82,8 +82,16 @@ fip-cli config endPeriod     2026-04
 ## Documentation
 
 - [完整使用指南](docs/GUIDE.md) — 所有命令详解、配置说明、故障排查
-- [开发文档](docs/DEVELOPMENT.md) — 项目结构、测试、代码规范
+- [开发文档](docs/DEVELOPMENT.md) — 项目结构、测试、代码规范、TypeScript 类型系统
 - [更新日志](docs/CHANGELOG.md) — 版本历史
+
+## Tech Stack
+
+- **TypeScript** — 全项目 TypeScript 化，`strict: true`，零 `any` 类型泄漏
+- **tsx** — Node.js 运行时 TS 加载（CJS 模式）
+- **Mocha + Chai + Sinon** — 单元测试框架
+- **Kimi WebBridge** — 浏览器自动化（HTTP API + CDP）
+- **Commander.js** — CLI 命令解析
 
 ## License
 

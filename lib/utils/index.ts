@@ -9,6 +9,30 @@ import * as attachment from './attachment';
 import * as dialog from './dialog';
 import * as organization from './organization';
 
+type UtilsModule = {
+  [K in keyof (typeof common &
+    typeof navigation &
+    typeof form &
+    typeof picker &
+    typeof bill &
+    typeof cdp &
+    typeof table &
+    typeof attachment &
+    typeof dialog &
+    typeof organization)]: (typeof common &
+    typeof navigation &
+    typeof form &
+    typeof picker &
+    typeof bill &
+    typeof cdp &
+    typeof table &
+    typeof attachment &
+    typeof dialog &
+    typeof organization)[K] & {
+    _source?: string;
+  };
+};
+
 const modules = [
   common,
   navigation,
@@ -33,7 +57,7 @@ const moduleNames = [
   'dialog',
   'organization',
 ];
-const exported: Record<string, any> = {};
+const exported: Record<string, unknown> = {};
 
 for (let i = 0; i < modules.length; i++) {
   const mod = modules[i];
@@ -41,12 +65,13 @@ for (let i = 0; i < modules.length; i++) {
   for (const key of Object.keys(mod)) {
     if (Object.prototype.hasOwnProperty.call(exported, key)) {
       console.warn(
-        `[fip-cli] 命名空间冲突: "${key}" 已存在于 ${exported[key]._source}，被 ${name} 覆盖`
+        `[fip-cli] 命名空间冲突: "${key}" 已存在于 ${(exported[key] as Record<string, unknown>)._source}，被 ${name} 覆盖`
       );
     }
-    exported[key] = (mod as any)[key];
-    exported[key]._source = name;
+    exported[key] = (mod as Record<string, unknown>)[key];
+    (exported[key] as Record<string, unknown>)._source = name;
   }
 }
 
-export = exported;
+const _exported: UtilsModule = exported as unknown as UtilsModule;
+export = _exported;

@@ -49,7 +49,7 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
   await utils.sleep(2000);
 
   // 2. 检查页面是否已有查询表单（避免重复选择单选按钮）
-  const hasQueryForm = await utils.cdpEvaluate(`
+  const hasQueryForm = await utils.cdpEvaluate<boolean>(`
     (function() {
       return !!document.getElementById('JINX_IPT_START-input');
     })()
@@ -77,7 +77,7 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
         }
         return { success: false, reason: 'element not found' };
       })()
-    `);
+    `) as { success: boolean; reason?: string; x?: number; y?: number; tag?: string };
 
     if (!radioResult?.success) {
       throw new Error(
@@ -86,7 +86,7 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
       );
     }
 
-    await utils.cdpClick(radioResult.x, radioResult.y, 1500);
+    await utils.cdpClick(radioResult.x!, radioResult.y!, 1500);
     console.log('已点击销项发票明细台账:', radioResult.tag);
 
     // 等待弹窗出现并点击查询按钮
@@ -168,10 +168,10 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
       }
       return { found: false };
     })()
-  `);
+  `) as { found: boolean; x?: number; y?: number; id?: string };
 
   if (dateRadioResult?.found) {
-    await utils.cdpClick(dateRadioResult.x, dateRadioResult.y, 1000);
+    await utils.cdpClick(dateRadioResult.x!, dateRadioResult.y!, 1000);
     console.log('已点击开票日期单选按钮:', dateRadioResult.id);
   }
   await utils.sleep(1000);
@@ -211,10 +211,10 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
       }
       return { found: false };
     })()
-  `);
+  `) as { found: boolean; x?: number; y?: number };
 
   if (companyBtnResult?.found) {
-    await utils.cdpClick(companyBtnResult.x, companyBtnResult.y, 2000);
+    await utils.cdpClick(companyBtnResult.x!, companyBtnResult.y!, 2000);
     await utils.pickFromDict(opts.companyCode as string);
     await utils.sleep(1000);
   }
@@ -235,10 +235,10 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
       }
       return { found: false };
     })()
-  `);
+  `) as { found: boolean; x?: number; y?: number };
 
   if (sellerBtnResult?.found) {
-    await utils.cdpClick(sellerBtnResult.x, sellerBtnResult.y, 2000);
+    await utils.cdpClick(sellerBtnResult.x!, sellerBtnResult.y!, 2000);
     await utils.pickFromDict(opts.sellerCode as string);
     await utils.sleep(1000);
   }

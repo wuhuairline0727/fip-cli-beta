@@ -1,12 +1,34 @@
 import CDP from 'chrome-remote-interface';
 
+export interface Runtime {
+  evaluate(options: {
+    expression: string;
+    returnByValue?: boolean;
+  }): Promise<{
+    result?: {
+      value?: unknown;
+      type?: string;
+    };
+  }>;
+}
+
+export interface Input {
+  dispatchMouseEvent(options: {
+    type: string;
+    x: number;
+    y: number;
+    button?: string;
+    clickCount?: number;
+  }): Promise<void>;
+}
+
 export interface CDPClient {
-  Runtime: any;
-  Input: any;
+  Runtime: Runtime;
+  Input: Input;
   close(): Promise<void>;
 }
 
-export async function withCDP<T>(callback: (Runtime: any, Input: any) => Promise<T>): Promise<T> {
+export async function withCDP<T>(callback: (Runtime: Runtime, Input: Input) => Promise<T>): Promise<T> {
   const client = await CDP({ port: 9222 }) as CDPClient;
   try {
     return await callback(client.Runtime, client.Input);
@@ -19,6 +41,7 @@ export interface ClickResult {
   clicked: boolean;
   x: number;
   y: number;
+  reason?: string;
 }
 
 export async function cdpClick(x: number, y: number, sleepMs = 1000): Promise<ClickResult> {
@@ -57,7 +80,7 @@ export async function cdpEvaluateAndClick(
 
   return withCDP(async (Runtime, Input) => {
     const evalResult = await Runtime.evaluate({ expression, returnByValue: true });
-    const value = evalResult?.result?.value;
+    const value = evalResult?.result?.value as Record<string, unknown> | undefined;
 
     if (!value || value[returnKey] !== true) {
       return { clicked: false, reason: 'not_found' };
@@ -67,7 +90,7 @@ export async function cdpEvaluateAndClick(
       console.log(log);
     }
 
-    const { x, y } = value;
+    const { x, y } = value as { x: number; y: number };
     await Input.dispatchMouseEvent({ type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
     await Input.dispatchMouseEvent({ type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
 
@@ -79,10 +102,10 @@ export async function cdpEvaluateAndClick(
   });
 }
 
-export async function cdpEvaluate(expression: string): Promise<unknown> {
+export async function cdpEvaluate<T = unknown>(expression: string): Promise<T> {
   return withCDP(async (Runtime) => {
     const result = await Runtime.evaluate({ expression, returnByValue: true });
-    return result?.result?.value;
+    return result?.result?.value as T;
   });
 }
 

@@ -186,7 +186,7 @@ export async function downloadAttachments(options: DownloadOptions = {}): Promis
   const rows = attachmentRows?.data?.value || [];
   if (rows.length === 0) {
     await closeAttachmentPopup();
-    return { downloaded: 0, files: [], downloadDir };
+    return { downloaded: 0, total: 0, files: [], downloadDir };
   }
 
   const downloadedFiles: DownloadedFile[] = [];

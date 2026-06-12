@@ -27,7 +27,7 @@ function rawRequest(
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(data),
         },
-        timeout: 15000,
+        timeout: 30000,
       },
       (res) => {
         let body = '';
@@ -48,7 +48,7 @@ function rawRequest(
     );
     req.on('timeout', () => {
       req.destroy();
-      reject(new Error('WebBridge request timeout (15s)'));
+      reject(new Error('WebBridge request timeout (30s)'));
     });
     req.on('error', (err) => {
       reject(new Error(`WebBridge request failed: ${err.message}`));
@@ -118,13 +118,13 @@ export async function navigate(
     url: 'fip.cscec.com',
     active: false,
   });
-  if (tabResult.ok && tabResult.data && (tabResult.data as TabInfo).tabId) {
+  if (tabResult.ok && tabResult.data && (tabResult.data as unknown as { tabId: string }).tabId) {
     return request('find_tab', { url: 'fip.cscec.com', active: true });
   }
   return request('navigate', { url, newTab, group_title: 'fip' });
 }
 
-export async function evaluate(code: string): Promise<WebBridgeResponse> {
+export async function evaluate(code: string): Promise<WebBridgeResponse<any>> {
   debug('evaluate: code length=', code.length);
   return request('evaluate', { code });
 }
