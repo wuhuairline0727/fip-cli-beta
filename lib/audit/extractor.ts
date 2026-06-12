@@ -398,7 +398,10 @@ export async function extractInvoiceFields(): Promise<Record<string, unknown>> {
   `;
 
   const result = await evaluate(code);
-  return (result.data as { value?: Record<string, unknown> } | undefined)?.value || {};
+  return (
+    (result.data as { value?: Record<string, unknown> } | undefined)?.value ||
+    {}
+  );
 }
 
 export async function extractFromInputs(): Promise<Record<string, unknown>> {
@@ -424,5 +427,8 @@ export async function extractFromInputs(): Promise<Record<string, unknown>> {
     })()
   `;
   const result = await evaluate(code);
-  return (result.data as { value?: Record<string, unknown> } | undefined)?.value || {};
+  return (
+    (result.data as { value?: Record<string, unknown> } | undefined)?.value ||
+    {}
+  );
 }

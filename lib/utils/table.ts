@@ -13,7 +13,9 @@ export interface TableDataResult {
   error?: string;
 }
 
-export async function getTableData(options: TableDataOptions = {}): Promise<TableDataResult | { error: string }> {
+export async function getTableData(
+  options: TableDataOptions = {}
+): Promise<TableDataResult | { error: string }> {
   let { maxRows = 1000, includeHeaders = true } = options;
   maxRows = parseInt(String(maxRows)) || 1000;
   includeHeaders = includeHeaders !== false;

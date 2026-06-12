@@ -11,10 +11,27 @@ import * as bill from '../../lib/utils/bill';
 import * as attachment from '../../lib/utils/attachment';
 
 // 测试报告收集器
-const testResults: Array<{ name: string; passed: boolean; error: any; details: any; timestamp: string }> = [];
+const testResults: Array<{
+  name: string;
+  passed: boolean;
+  error: any;
+  details: any;
+  timestamp: string;
+}> = [];
 
-function recordTest(name: string, passed: boolean, error: any = null, details: any = {}) {
-  testResults.push({ name, passed, error, details, timestamp: new Date().toISOString() });
+function recordTest(
+  name: string,
+  passed: boolean,
+  error: any = null,
+  details: any = {}
+) {
+  testResults.push({
+    name,
+    passed,
+    error,
+    details,
+    timestamp: new Date().toISOString(),
+  });
   const status = passed ? '✅' : '❌';
   const errorMsg = error ? ` - ${error.message || error}` : '';
   console.log(`  ${status} ${name}${errorMsg}`);
@@ -38,7 +55,9 @@ async function ensureDashboard() {
     // 必须包含 #/dashboard 才算在首页
     if (!info.url || !info.url.includes('#/dashboard')) {
       console.log('  [恢复] 页面不在首页，导航到 dashboard...');
-      await browser.evaluate("location.href = 'https://fip.cscec.com/OSPPortal/CSCPortal.jsp#/dashboard'");
+      await browser.evaluate(
+        "location.href = 'https://fip.cscec.com/OSPPortal/CSCPortal.jsp#/dashboard'"
+      );
       await common.sleep(3000);
     }
   } catch (e) {
@@ -46,14 +65,14 @@ async function ensureDashboard() {
   }
 }
 
-describe('🔴 真实浏览器测试', function() {
+describe('🔴 真实浏览器测试', function () {
   this.timeout(120000); // 2分钟超时
 
-  before(async function() {
+  before(async function () {
     console.log('\n========================================');
     console.log('开始真实浏览器测试');
     console.log('========================================\n');
-    
+
     // 确认浏览器连接
     const connected = await browser.checkConnection();
     if (!connected) {
@@ -61,7 +80,7 @@ describe('🔴 真实浏览器测试', function() {
     }
     console.log('✅ WebBridge 已连接');
     console.log('✅ CDP 端口 9222 可用');
-    
+
     const info = await common.getPageInfo();
     console.log(`✅ 当前页面: ${info.title}`);
     console.log(`✅ 当前 URL: ${info.url}`);
@@ -87,7 +106,10 @@ describe('🔴 真实浏览器测试', function() {
     });
 
     it('navigate() 应能导航到当前页面', async () => {
-      const result = await browser.navigate('https://fip.cscec.com/OSPPortal/CSCPortal.jsp#/dashboard', false);
+      const result = await browser.navigate(
+        'https://fip.cscec.com/OSPPortal/CSCPortal.jsp#/dashboard',
+        false
+      );
       expect(result.ok).to.equal(true);
     });
 
@@ -137,7 +159,8 @@ describe('🔴 真实浏览器测试', function() {
     });
 
     it('cdpEvaluateAndClick() 应能查找并点击', async () => {
-      const result = await cdp.cdpEvaluateAndClick(`
+      const result = await cdp.cdpEvaluateAndClick(
+        `
         (function() {
           var all = document.querySelectorAll('*');
           for (var i = 0; i < all.length; i++) {
@@ -150,7 +173,9 @@ describe('🔴 真实浏览器测试', function() {
           }
           return { found: false };
         })()
-      `, { sleepMs: 1000 });
+      `,
+        { sleepMs: 1000 }
+      );
       expect(result.clicked).to.equal(true);
     });
   });
@@ -212,7 +237,9 @@ describe('🔴 真实浏览器测试', function() {
       const result = await navigation.openSideMenu('税务系统');
       expect(result).to.equal(true);
       // 验证抽屉是否打开
-      const drawerCheck = await browser.evaluate("document.querySelector('.ant-drawer-open') ? 'exists' : 'not_found'");
+      const drawerCheck = await browser.evaluate(
+        "document.querySelector('.ant-drawer-open') ? 'exists' : 'not_found'"
+      );
       expect(drawerCheck.data.value).to.equal('exists');
     });
 
@@ -234,7 +261,7 @@ describe('🔴 真实浏览器测试', function() {
       await common.sleep(500);
       await navigation.clickDrawerItem('税务台账');
       await common.sleep(3000);
-      
+
       // 如果有选择台账类型的弹窗，选择第一个或关闭
       const popupCheck = await cdp.cdpEvaluate(`
         (function() {
@@ -264,27 +291,36 @@ describe('🔴 真实浏览器测试', function() {
 
     it('setDateInput() 应设置日期输入框', async () => {
       // 先确保查询面板展开
-      try { await form.clickShowQuery(); } catch (e) {}
+      try {
+        await form.clickShowQuery();
+      } catch (e) {}
       await common.sleep(1000);
-      
-      const result = await form.setDateInput('FormDateField1-input', '2026-01-01');
+
+      const result = await form.setDateInput(
+        'FormDateField1-input',
+        '2026-01-01'
+      );
       expect(result.found).to.equal(true);
       expect(result.value).to.equal('2026-01-01');
     });
 
     it('setDateRange() 应设置日期范围', async () => {
-      try { await form.clickShowQuery(); } catch (e) {}
+      try {
+        await form.clickShowQuery();
+      } catch (e) {}
       await common.sleep(1000);
-      
+
       const result = await form.setDateRange('2026-01-01', '2026-12-31');
       expect(result.startDate).to.equal('2026-01-01');
       expect(result.endDate).to.equal('2026-12-31');
     });
 
     it('setTaxPeriod() 应设置税期', async () => {
-      try { await form.clickShowQuery(); } catch (e) {}
+      try {
+        await form.clickShowQuery();
+      } catch (e) {}
       await common.sleep(1000);
-      
+
       const result = await form.setTaxPeriod('2026-01', '2026-12');
       expect(result).to.be.an('object');
     });
@@ -299,9 +335,9 @@ describe('🔴 真实浏览器测试', function() {
       await common.sleep(500);
       await navigation.clickDrawerItem('税务台账');
       await common.sleep(3000);
-      
+
       // 选择销项发票明细台账
-      const radioResult = await cdp.cdpEvaluate(`
+      const radioResult = (await cdp.cdpEvaluate(`
         (function() {
           var all = document.querySelectorAll('*');
           for (var i = 0; i < all.length; i++) {
@@ -314,11 +350,11 @@ describe('🔴 真实浏览器测试', function() {
           }
           return { found: false };
         })()
-      `) as { found?: boolean; x?: number; y?: number };
+      `)) as { found?: boolean; x?: number; y?: number };
       if (radioResult?.found) {
         await cdp.cdpClick(radioResult.x!, radioResult.y!, 3000);
       }
-      
+
       // 处理可能的弹窗
       await dialog.dismissDialogs();
       await common.sleep(1000);
@@ -477,26 +513,28 @@ describe('🔴 真实浏览器测试', function() {
   });
 
   // ==================== 测试报告 ====================
-  after(async function() {
+  after(async function () {
     console.log('\n========================================');
     console.log('真实浏览器测试报告');
     console.log('========================================');
-    
-    const passed = testResults.filter(r => r.passed).length;
-    const failed = testResults.filter(r => !r.passed).length;
-    
+
+    const passed = testResults.filter((r) => r.passed).length;
+    const failed = testResults.filter((r) => !r.passed).length;
+
     console.log(`\n总计: ${testResults.length} 个测试`);
     console.log(`通过: ${passed} ✅`);
     console.log(`失败: ${failed} ❌`);
-    
+
     if (failed > 0) {
       console.log('\n失败的测试:');
-      testResults.filter(r => !r.passed).forEach(r => {
-        console.log(`  ❌ ${r.name}`);
-        console.log(`     错误: ${r.error?.message || r.error}`);
-      });
+      testResults
+        .filter((r) => !r.passed)
+        .forEach((r) => {
+          console.log(`  ❌ ${r.name}`);
+          console.log(`     错误: ${r.error?.message || r.error}`);
+        });
     }
-    
+
     console.log('\n========================================');
   });
 });

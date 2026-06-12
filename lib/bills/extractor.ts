@@ -12,11 +12,20 @@ export interface BillConfig {
   name?: string;
   codePrefix?: string;
   basePatterns?: Record<string, RegExp>;
-  inputFields?: Record<string, { byId?: string; byIdPrefix?: string; byLabel?: string }>;
+  inputFields?: Record<
+    string,
+    { byId?: string; byIdPrefix?: string; byLabel?: string }
+  >;
   tables?: Array<{
     name: string;
     identifyBy: { headerText: string };
-    columns: Array<{ label?: string; header?: string; key?: string; field?: string; type?: string }>;
+    columns: Array<{
+      label?: string;
+      header?: string;
+      key?: string;
+      field?: string;
+      type?: string;
+    }>;
   }>;
   auditHints?: unknown[];
   filterConfig?: Record<string, unknown>;
@@ -28,11 +37,15 @@ export interface BillConfig {
  * @param data - 提取的原始数据
  * @returns 处理后数据
  */
-export function postProcessYjk(data: Record<string, unknown>): Record<string, unknown> {
+export function postProcessYjk(
+  data: Record<string, unknown>
+): Record<string, unknown> {
   const result = { ...data };
 
   // 获取预缴增值税⑥作为分母
-  const vatPrepayment6 = parseAmount(data.vat_prepayment_6 as string | null | undefined);
+  const vatPrepayment6 = parseAmount(
+    data.vat_prepayment_6 as string | null | undefined
+  );
   if (!vatPrepayment6 || vatPrepayment6 === 0) {
     return result;
   }
@@ -81,23 +94,29 @@ export function postProcessYjk(data: Record<string, unknown>): Record<string, un
 
     // 补充表格级税率汇总
     result.surcharge_tax_rates = {};
-    (result.surcharge_prepayment as Array<Record<string, unknown>>).forEach((row) => {
-      if (row.urban_maintenance_tax_rate) {
-        (result.surcharge_tax_rates as Record<string, unknown>)['城市维护建设税'] =
-          row.urban_maintenance_tax_rate;
+    (result.surcharge_prepayment as Array<Record<string, unknown>>).forEach(
+      (row) => {
+        if (row.urban_maintenance_tax_rate) {
+          (result.surcharge_tax_rates as Record<string, unknown>)[
+            '城市维护建设税'
+          ] = row.urban_maintenance_tax_rate;
+        }
+        if (row.education_surcharge_rate) {
+          (result.surcharge_tax_rates as Record<string, unknown>)[
+            '教育费及附加'
+          ] = row.education_surcharge_rate;
+        }
+        if (row.local_education_surcharge_rate) {
+          (result.surcharge_tax_rates as Record<string, unknown>)[
+            '地方教育费及附加'
+          ] = row.local_education_surcharge_rate;
+        }
+        if (row.total_surcharge_rate) {
+          (result.surcharge_tax_rates as Record<string, unknown>)['合计'] =
+            row.total_surcharge_rate;
+        }
       }
-      if (row.education_surcharge_rate) {
-        (result.surcharge_tax_rates as Record<string, unknown>)['教育费及附加'] =
-          row.education_surcharge_rate;
-      }
-      if (row.local_education_surcharge_rate) {
-        (result.surcharge_tax_rates as Record<string, unknown>)['地方教育费及附加'] =
-          row.local_education_surcharge_rate;
-      }
-      if (row.total_surcharge_rate) {
-        (result.surcharge_tax_rates as Record<string, unknown>)['合计'] = row.total_surcharge_rate;
-      }
-    });
+    );
   }
 
   // 补充增值税预缴汇总信息
@@ -185,7 +204,19 @@ export function buildExtractionCode(config: BillConfig): string {
     .join(',\n');
 
   // 序列化 tables（支持数组或对象格式）
-  const tablesList = (Array.isArray(tables) ? tables : Object.values(tables)) as Array<{ name: string; identifyBy?: { headerText?: string }; columns?: Array<{ label?: string; header?: string; key?: string; field?: string; type?: string }> }>;
+  const tablesList = (
+    Array.isArray(tables) ? tables : Object.values(tables)
+  ) as Array<{
+    name: string;
+    identifyBy?: { headerText?: string };
+    columns?: Array<{
+      label?: string;
+      header?: string;
+      key?: string;
+      field?: string;
+      type?: string;
+    }>;
+  }>;
   const tablesArray = tablesList
     .map((t) => {
       const cols = (t.columns || [])
@@ -552,7 +583,9 @@ export async function extractBill(
 
   const code = buildExtractionCode(config);
   const evalResult = await evaluate(code);
-  let extractedData = (evalResult.data as { value?: Record<string, unknown> } | undefined)?.value || {};
+  let extractedData =
+    (evalResult.data as { value?: Record<string, unknown> } | undefined)
+      ?.value || {};
 
   debug('extractBill: extracted keys=', Object.keys(extractedData).join(', '));
 

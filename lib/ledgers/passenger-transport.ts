@@ -18,7 +18,9 @@ interface LedgerResult {
   options?: Record<string, unknown>;
 }
 
-export async function exportPassengerTransportLedger(options: LedgerOptions = {}): Promise<LedgerResult> {
+export async function exportPassengerTransportLedger(
+  options: LedgerOptions = {}
+): Promise<LedgerResult> {
   const cfg = config.get() as Record<string, unknown>;
   const defaults = {
     startPeriod: (cfg.startPeriod as string) || '2026-04',
@@ -223,7 +225,7 @@ export async function exportPassengerTransportLedger(options: LedgerOptions = {}
 
   // 7. 点击导出按钮
   console.log('9. 点击导出按钮...');
-  const exportBtnResult = await utils.cdpEvaluate(`
+  const exportBtnResult = (await utils.cdpEvaluate(`
     (function() {
       var all = document.querySelectorAll('*');
       for (var i = 0; i < all.length; i++) {
@@ -236,7 +238,7 @@ export async function exportPassengerTransportLedger(options: LedgerOptions = {}
       }
       return { found: false };
     })()
-  `) as { found: boolean; x?: number; y?: number };
+  `)) as { found: boolean; x?: number; y?: number };
   if (!exportBtnResult?.found) {
     throw new Error('未找到导出按钮');
   }

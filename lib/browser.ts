@@ -1,6 +1,10 @@
 import * as http from 'http';
 import { debug } from './logger';
-import type { WebBridgeRequest, WebBridgeResponse, TabInfo } from './types/webbridge';
+import type {
+  WebBridgeRequest,
+  WebBridgeResponse,
+  TabInfo,
+} from './types/webbridge';
 
 const BASE_URL = 'http://127.0.0.1:10086/command';
 const SESSION = 'fip';
@@ -118,7 +122,11 @@ export async function navigate(
     url: 'fip.cscec.com',
     active: false,
   });
-  if (tabResult.ok && tabResult.data && (tabResult.data as unknown as { tabId: string }).tabId) {
+  if (
+    tabResult.ok &&
+    tabResult.data &&
+    (tabResult.data as unknown as { tabId: string }).tabId
+  ) {
     return request('find_tab', { url: 'fip.cscec.com', active: true });
   }
   return request('navigate', { url, newTab, group_title: 'fip' });
@@ -129,6 +137,8 @@ export async function evaluate(code: string): Promise<WebBridgeResponse<any>> {
   return request('evaluate', { code });
 }
 
-export async function screenshot(format: string = 'png'): Promise<WebBridgeResponse> {
+export async function screenshot(
+  format: string = 'png'
+): Promise<WebBridgeResponse> {
   return request('screenshot', { format });
 }

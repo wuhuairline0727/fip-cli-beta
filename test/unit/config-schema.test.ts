@@ -39,19 +39,29 @@ describe('config-schema', () => {
     });
 
     it('should validate taxCode format', () => {
-      expect(validateConfigValue('taxCode', '91110000101107173B')).to.equal(null);
-      expect(validateConfigValue('taxCode', 'short')).to.equal('税号应为15-20位字母数字');
+      expect(validateConfigValue('taxCode', '91110000101107173B')).to.equal(
+        null
+      );
+      expect(validateConfigValue('taxCode', 'short')).to.equal(
+        '税号应为15-20位字母数字'
+      );
     });
 
     it('should validate sellerCode format', () => {
-      expect(validateConfigValue('sellerCode', '91110000101107173B')).to.equal(null);
-      expect(validateConfigValue('sellerCode', 'invalid')).to.equal('销方税号应为15-20位字母数字');
+      expect(validateConfigValue('sellerCode', '91110000101107173B')).to.equal(
+        null
+      );
+      expect(validateConfigValue('sellerCode', 'invalid')).to.equal(
+        '销方税号应为15-20位字母数字'
+      );
     });
 
     it('should validate period format', () => {
       expect(validateConfigValue('startPeriod', '2026-04')).to.equal(null);
       expect(validateConfigValue('endPeriod', '2026-04')).to.equal(null);
-      expect(validateConfigValue('startPeriod', '2026/04')).to.equal('期间格式应为 YYYY-MM');
+      expect(validateConfigValue('startPeriod', '2026/04')).to.equal(
+        '期间格式应为 YYYY-MM'
+      );
     });
   });
 

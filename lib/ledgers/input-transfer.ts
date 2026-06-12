@@ -18,7 +18,9 @@ export interface InputTransferResult {
   options?: Record<string, unknown>;
 }
 
-export async function exportInputTransferLedger(options: InputTransferOptions = {}): Promise<InputTransferResult> {
+export async function exportInputTransferLedger(
+  options: InputTransferOptions = {}
+): Promise<InputTransferResult> {
   const cfg = config.get() as Record<string, unknown>;
   const defaults = {
     startPeriod: cfg.startPeriod || '2026-04',
@@ -63,7 +65,13 @@ export async function exportInputTransferLedger(options: InputTransferOptions = 
 
   if (!hasQueryForm) {
     console.log('4. 选择进项转出明细台账...');
-    const radioResult = await utils.cdpEvaluate<{ success: boolean; x: number; y: number; tag: string; reason?: string }>(`
+    const radioResult = await utils.cdpEvaluate<{
+      success: boolean;
+      x: number;
+      y: number;
+      tag: string;
+      reason?: string;
+    }>(`
       (function() {
         var all = document.querySelectorAll('*');
         var target = null;
@@ -85,7 +93,10 @@ export async function exportInputTransferLedger(options: InputTransferOptions = 
     `);
 
     if (!radioResult?.success) {
-      throw new Error('Failed to select 进项转出明细台账: ' + (radioResult?.reason || 'unknown'));
+      throw new Error(
+        'Failed to select 进项转出明细台账: ' +
+          (radioResult?.reason || 'unknown')
+      );
     }
 
     await utils.cdpClick(radioResult.x, radioResult.y, 1500);
@@ -120,7 +131,9 @@ export async function exportInputTransferLedger(options: InputTransferOptions = 
       { sleepMs: 3000, log: '弹窗查询已执行，等待页面加载...' }
     );
     if (!popupQueryResult.clicked) {
-      throw new Error('弹窗查询按钮点击失败: ' + (popupQueryResult.reason || 'unknown'));
+      throw new Error(
+        '弹窗查询按钮点击失败: ' + (popupQueryResult.reason || 'unknown')
+      );
     }
   } else {
     console.log('4. 页面已有查询表单，跳过单选按钮选择');
@@ -146,7 +159,12 @@ export async function exportInputTransferLedger(options: InputTransferOptions = 
   );
 
   console.log('5. 选择转出税期...');
-  const taxPeriodResult = await utils.cdpEvaluate<{ found: boolean; x?: number; y?: number; id?: string }>(`
+  const taxPeriodResult = await utils.cdpEvaluate<{
+    found: boolean;
+    x?: number;
+    y?: number;
+    id?: string;
+  }>(`
     (function() {
       var radios = document.querySelectorAll('input[type="radio"]');
       for (var i = 0; i < radios.length; i++) {
@@ -194,7 +212,11 @@ export async function exportInputTransferLedger(options: InputTransferOptions = 
   await utils.sleep(500);
 
   console.log('7. 设置单据状态:', opts.docStatus);
-  const statusResult = await utils.cdpEvaluate<{ found: boolean; x?: number; y?: number }>(`
+  const statusResult = await utils.cdpEvaluate<{
+    found: boolean;
+    x?: number;
+    y?: number;
+  }>(`
     (function() {
       var input = document.getElementById('FormComboBoxDJZT-input');
       if (!input) return { found: false };

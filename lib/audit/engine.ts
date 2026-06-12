@@ -123,7 +123,9 @@ export function formatAmount(amount: number): string {
   return sign + '¥' + grouped + '.' + decPart;
 }
 
-export function getBillingUnit(profitCenter: string | undefined): BillingUnitResult {
+export function getBillingUnit(
+  profitCenter: string | undefined
+): BillingUnitResult {
   const rules = loadRules();
   const pc = profitCenter || '';
   if (pc.startsWith('L1000')) {
@@ -135,11 +137,21 @@ export function getBillingUnit(profitCenter: string | undefined): BillingUnitRes
   return { unit: '【请人工确认】', status: '需确认' };
 }
 
-export function calculateDerivedValues(fields: Record<string, unknown>): DerivedValues {
-  const invoiced = parseAmount(fields.invoiced_amount as string | null | undefined);
-  const received = parseAmount(fields.received_amount as string | null | undefined);
-  const current = parseAmount(fields.current_amount as string | null | undefined);
-  const confirmed = parseAmount(fields.confirmed_amount as string | null | undefined);
+export function calculateDerivedValues(
+  fields: Record<string, unknown>
+): DerivedValues {
+  const invoiced = parseAmount(
+    fields.invoiced_amount as string | null | undefined
+  );
+  const received = parseAmount(
+    fields.received_amount as string | null | undefined
+  );
+  const current = parseAmount(
+    fields.current_amount as string | null | undefined
+  );
+  const confirmed = parseAmount(
+    fields.confirmed_amount as string | null | undefined
+  );
   const unpaid = invoiced - received;
   const totalAfter = invoiced + current;
 
@@ -183,8 +195,12 @@ export function performChecks(
   };
 
   // 检查3: 单据合同金额与附件合同额核对
-  const contractAmount = parseAmount(fields.contract_amount as string | null | undefined);
-  const attachmentContract = parseAmount(fields.attachment_contract_amount as string | null | undefined);
+  const contractAmount = parseAmount(
+    fields.contract_amount as string | null | undefined
+  );
+  const attachmentContract = parseAmount(
+    fields.attachment_contract_amount as string | null | undefined
+  );
   if (contractAmount > 0 && attachmentContract > 0) {
     if (Math.abs(contractAmount - attachmentContract) < 0.01) {
       checks.contract_match = {
@@ -245,7 +261,9 @@ export function performChecks(
   }
 
   // 检查5: 开票金额与累计确权额核对
-  const confirmed = parseAmount(fields.confirmed_amount as string | null | undefined);
+  const confirmed = parseAmount(
+    fields.confirmed_amount as string | null | undefined
+  );
   if (confirmed <= 0) {
     checks.amount_limit = {
       point: '开票金额与累计确权额核对',
@@ -306,7 +324,9 @@ export function performChecks(
 
 export function checkAttachments(fields: Record<string, unknown>): CheckResult {
   const rules = loadRules();
-  const attachments = (fields.attachments || []) as Array<{ name?: string } | string>;
+  const attachments = (fields.attachments || []) as Array<
+    { name?: string } | string
+  >;
   const required = rules.attachments_required || [];
   const uiCount = (fields.attachment_count_from_ui as number) || 0;
 

@@ -1,5 +1,8 @@
 import { expect } from 'chai';
-import { extractKeywords, generateAuditHints } from '../../../lib/bills/audit-hints';
+import {
+  extractKeywords,
+  generateAuditHints,
+} from '../../../lib/bills/audit-hints';
 
 describe('bills/audit-hints', () => {
   describe('extractKeywords()', () => {
@@ -54,7 +57,12 @@ describe('bills/audit-hints', () => {
       const hints = generateAuditHints(data, 'SLBX');
       expect(hints).to.be.an('array');
       if (hints.length > 0) {
-        expect(hints[0]).to.have.all.keys('name', 'description', 'level', 'message');
+        expect(hints[0]).to.have.all.keys(
+          'name',
+          'description',
+          'level',
+          'message'
+        );
       }
     });
 

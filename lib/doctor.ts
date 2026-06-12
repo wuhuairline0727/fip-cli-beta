@@ -1,5 +1,9 @@
 import * as http from 'http';
-import type { WebBridgeResponse, ListTabsData, TabInfo } from './types/webbridge';
+import type {
+  WebBridgeResponse,
+  ListTabsData,
+  TabInfo,
+} from './types/webbridge';
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
@@ -342,9 +346,15 @@ function cdpVersion(): Promise<CDPVersionResponse> {
 export function generateReport(checks: DiagnosticCheck[]): string {
   const lines: string[] = [];
   lines.push('');
-  lines.push('╔══════════════════════════════════════════════════════════════╗');
-  lines.push('║                    FIP CLI 诊断报告                          ║');
-  lines.push('╚══════════════════════════════════════════════════════════════╝');
+  lines.push(
+    '╔══════════════════════════════════════════════════════════════╗'
+  );
+  lines.push(
+    '║                    FIP CLI 诊断报告                          ║'
+  );
+  lines.push(
+    '╚══════════════════════════════════════════════════════════════╝'
+  );
   lines.push('');
 
   const statusIcon: Record<string, string> = {
@@ -392,7 +402,12 @@ export function generateReport(checks: DiagnosticCheck[]): string {
   return lines.join('\n');
 }
 
-export function generateJsonReport(checks: DiagnosticCheck[]): { healthy: boolean; summary: Record<string, number>; checks: DiagnosticCheck[]; timestamp: string } {
+export function generateJsonReport(checks: DiagnosticCheck[]): {
+  healthy: boolean;
+  summary: Record<string, number>;
+  checks: DiagnosticCheck[];
+  timestamp: string;
+} {
   const summary = {
     ok: checks.filter((c) => c.status === 'ok').length,
     warn: checks.filter((c) => c.status === 'warn').length,

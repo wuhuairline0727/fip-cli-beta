@@ -12,8 +12,12 @@ const fakeCDP = {
   cdpEvaluate: sinon.stub().resolves({ ok: true }),
   cdpClick: sinon.stub().resolves({ ok: true }),
   cdpEvaluateAndClick: sinon.stub().resolves({ ok: true, clicked: true }),
-  cdpFindPickerButtonByInputId: sinon.stub().resolves({ found: true, x: 100, y: 100 }),
-  cdpFindPopupElementByText: sinon.stub().resolves({ found: true, x: 100, y: 100 }),
+  cdpFindPickerButtonByInputId: sinon
+    .stub()
+    .resolves({ found: true, x: 100, y: 100 }),
+  cdpFindPopupElementByText: sinon
+    .stub()
+    .resolves({ found: true, x: 100, y: 100 }),
   cdpFindElementByText: sinon.stub().resolves({ found: true, x: 100, y: 100 }),
   cdpFindDropdownOption: sinon.stub().resolves({ found: true, x: 100, y: 100 }),
 };
@@ -95,9 +99,18 @@ describe('utils/organization', () => {
             ok: true,
             title: '切换组织机构',
             fields: {
-              组织机构: { id: 'DataSetFieldComboBox1-input', value: '测试公司' },
-              项目名称: { id: 'DataSetFieldComboBox3-input', value: '测试项目' },
-              部门名称: { id: 'DataSetFieldComboBox2-input', value: '测试部门' },
+              组织机构: {
+                id: 'DataSetFieldComboBox1-input',
+                value: '测试公司',
+              },
+              项目名称: {
+                id: 'DataSetFieldComboBox3-input',
+                value: '测试项目',
+              },
+              部门名称: {
+                id: 'DataSetFieldComboBox2-input',
+                value: '测试部门',
+              },
               板块编号: { id: 'FormTextInput2-input', value: '0101' },
               板块名称: { id: 'FormTextInput3-input', value: '住宅' },
               利润中心: { id: 'FormTextInput1-input', value: '测试项目' },
@@ -131,9 +144,9 @@ describe('utils/organization', () => {
         .resolves({ data: { value: { closed: 0 } } });
 
       // 模拟点击失败
-      fakeBrowser.evaluate
-        .onThirdCall()
-        .resolves({ data: { value: { ok: false, error: '切换组织机构按钮未找到' } } });
+      fakeBrowser.evaluate.onThirdCall().resolves({
+        data: { value: { ok: false, error: '切换组织机构按钮未找到' } },
+      });
 
       try {
         await openSwitchOrgDialog();
@@ -212,7 +225,13 @@ describe('utils/organization', () => {
   describe('getCurrentOrganization()', () => {
     it('should return organization from page header if available', async () => {
       fakeBrowser.evaluate.resolves({
-        data: { value: { found: true, source: 'header', organization: '中建一局总部' } },
+        data: {
+          value: {
+            found: true,
+            source: 'header',
+            organization: '中建一局总部',
+          },
+        },
       });
 
       const result = await getCurrentOrganization();
@@ -238,7 +257,10 @@ describe('utils/organization', () => {
               ok: true,
               title: '切换组织机构',
               fields: {
-                组织机构: { id: 'DataSetFieldComboBox1-input', value: '中建一局山东分公司' },
+                组织机构: {
+                  id: 'DataSetFieldComboBox1-input',
+                  value: '中建一局山东分公司',
+                },
               },
             },
           },
@@ -295,9 +317,18 @@ describe('utils/organization', () => {
               ok: true,
               title: '切换组织机构',
               fields: {
-                组织机构: { id: 'DataSetFieldComboBox1-input', value: '旧公司' },
-                项目名称: { id: 'DataSetFieldComboBox3-input', value: '旧项目' },
-                部门名称: { id: 'DataSetFieldComboBox2-input', value: '旧部门' },
+                组织机构: {
+                  id: 'DataSetFieldComboBox1-input',
+                  value: '旧公司',
+                },
+                项目名称: {
+                  id: 'DataSetFieldComboBox3-input',
+                  value: '旧项目',
+                },
+                部门名称: {
+                  id: 'DataSetFieldComboBox2-input',
+                  value: '旧部门',
+                },
               },
             },
           },

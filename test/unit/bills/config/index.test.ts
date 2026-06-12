@@ -1,5 +1,9 @@
 import { expect } from 'chai';
-import { detectBillType, getBillConfig, BILL_TYPE_MAP } from '../../../../lib/bills/config/index';
+import {
+  detectBillType,
+  getBillConfig,
+  BILL_TYPE_MAP,
+} from '../../../../lib/bills/config/index';
 
 describe('bills/config/index', () => {
   describe('detectBillType()', () => {
@@ -90,7 +94,13 @@ describe('bills/config/index', () => {
 
   describe('BILL_TYPE_MAP', () => {
     it('should contain all supported types', () => {
-      expect(BILL_TYPE_MAP).to.have.all.keys('SLBX', 'TBX', 'CFK', 'CBX', 'YJK');
+      expect(BILL_TYPE_MAP).to.have.all.keys(
+        'SLBX',
+        'TBX',
+        'CFK',
+        'CBX',
+        'YJK'
+      );
     });
   });
 });

@@ -95,10 +95,18 @@ describe('bills/extractor', () => {
       };
 
       const result = postProcessYjk(data) as any;
-      expect(result.surcharge_prepayment[0].urban_maintenance_tax_rate).to.equal('7.00%');
-      expect(result.surcharge_prepayment[0].education_surcharge_rate).to.equal('3.00%');
-      expect(result.surcharge_prepayment[0].local_education_surcharge_rate).to.equal('2.00%');
-      expect(result.surcharge_prepayment[0].total_surcharge_rate).to.equal('12.00%');
+      expect(
+        result.surcharge_prepayment[0].urban_maintenance_tax_rate
+      ).to.equal('7.00%');
+      expect(result.surcharge_prepayment[0].education_surcharge_rate).to.equal(
+        '3.00%'
+      );
+      expect(
+        result.surcharge_prepayment[0].local_education_surcharge_rate
+      ).to.equal('2.00%');
+      expect(result.surcharge_prepayment[0].total_surcharge_rate).to.equal(
+        '12.00%'
+      );
       expect(result.surcharge_tax_rates['城市维护建设税']).to.equal('7.00%');
       expect(result.surcharge_tax_rates['教育费及附加']).to.equal('3.00%');
       expect(result.surcharge_tax_rates['地方教育费及附加']).to.equal('2.00%');
@@ -117,8 +125,10 @@ describe('bills/extractor', () => {
       };
 
       const result = postProcessYjk(data) as any;
-      expect(result.surcharge_prepayment[0].urban_maintenance_tax_rate).to.be.undefined;
-      expect(result.surcharge_prepayment[0].education_surcharge_rate).to.be.undefined;
+      expect(result.surcharge_prepayment[0].urban_maintenance_tax_rate).to.be
+        .undefined;
+      expect(result.surcharge_prepayment[0].education_surcharge_rate).to.be
+        .undefined;
     });
 
     it('should skip rate calculation when vat_prepayment_6 is missing', () => {
@@ -131,7 +141,8 @@ describe('bills/extractor', () => {
       };
 
       const result = postProcessYjk(data) as any;
-      expect(result.surcharge_prepayment[0].urban_maintenance_tax_rate).to.be.undefined;
+      expect(result.surcharge_prepayment[0].urban_maintenance_tax_rate).to.be
+        .undefined;
     });
 
     it('should include vat_summary and income_tax_summary', () => {

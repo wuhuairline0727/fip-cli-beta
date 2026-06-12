@@ -49,7 +49,9 @@ describe('config', () => {
     });
 
     it('should accept valid companyCode', () => {
-      expect(() => config.set('companyCode', '1000200020040011')).to.not.throw();
+      expect(() =>
+        config.set('companyCode', '1000200020040011')
+      ).to.not.throw();
     });
 
     it('should validate startDate format', () => {

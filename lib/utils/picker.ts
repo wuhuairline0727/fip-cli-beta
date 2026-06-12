@@ -90,7 +90,9 @@ export async function pickFromDict(queryCode: string): Promise<boolean> {
   `;
   const result = await evaluate(code);
   if (!result.ok || !result.data?.value?.found) {
-    throw new Error(`Failed to fill query: ${result.data?.value?.reason || 'unknown'}`);
+    throw new Error(
+      `Failed to fill query: ${result.data?.value?.reason || 'unknown'}`
+    );
   }
 
   await sleep(500);
@@ -168,7 +170,9 @@ export async function pickFromDict(queryCode: string): Promise<boolean> {
   `;
   const selectResult = await evaluate(selectCode);
   if (!selectResult.ok || !selectResult.data?.value?.found) {
-    throw new Error(`Failed to select row: ${selectResult.data?.value?.reason || 'unknown'}`);
+    throw new Error(
+      `Failed to select row: ${selectResult.data?.value?.reason || 'unknown'}`
+    );
   }
 
   await sleep(500);
@@ -202,7 +206,9 @@ export async function pickFromDict(queryCode: string): Promise<boolean> {
   return true;
 }
 
-export async function pickTaxSubject(taxCode: string): Promise<{ tax_code: string; selected: boolean }> {
+export async function pickTaxSubject(
+  taxCode: string
+): Promise<{ tax_code: string; selected: boolean }> {
   await clickPickerButton('纳税主体');
   await sleep(2000);
 
@@ -221,7 +227,9 @@ export async function pickTaxSubject(taxCode: string): Promise<{ tax_code: strin
   `;
   const fillResult = await evaluate(fillCode);
   if (!fillResult.ok || !fillResult.data?.value?.found) {
-    throw new Error(`Failed to fill tax code: ${fillResult.data?.value?.reason || 'unknown'}`);
+    throw new Error(
+      `Failed to fill tax code: ${fillResult.data?.value?.reason || 'unknown'}`
+    );
   }
 
   await sleep(500);
@@ -285,13 +293,27 @@ export async function pickTaxSubject(taxCode: string): Promise<{ tax_code: strin
       returnByValue: true,
     });
 
-    if (!((rectResult?.result?.value as { found?: boolean } | undefined)?.found)) {
+    if (
+      !(rectResult?.result?.value as { found?: boolean } | undefined)?.found
+    ) {
       throw new Error('Confirm button not found');
     }
 
     const { x, y } = rectResult.result!.value as { x: number; y: number };
-    await Input.dispatchMouseEvent({ type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
-    await Input.dispatchMouseEvent({ type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
+    await Input.dispatchMouseEvent({
+      type: 'mousePressed',
+      x,
+      y,
+      button: 'left',
+      clickCount: 1,
+    });
+    await Input.dispatchMouseEvent({
+      type: 'mouseReleased',
+      x,
+      y,
+      button: 'left',
+      clickCount: 1,
+    });
 
     await sleep(2000);
 

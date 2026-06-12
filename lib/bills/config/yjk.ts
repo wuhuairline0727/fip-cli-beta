@@ -20,7 +20,10 @@ export const basePatterns: Record<string, RegExp> = {
 };
 
 // === input 字段映射（通过 ID 前缀提取，GWT 框架下 ID 后缀不稳定）===
-export const inputFields: Record<string, { byIdPrefix?: string; byLabel?: string }> = {
+export const inputFields: Record<
+  string,
+  { byIdPrefix?: string; byLabel?: string }
+> = {
   // 基础信息
   apply_reason_input: { byIdPrefix: 'SW_STO_YJKF_NOTE' },
   prepayment_type_input: { byIdPrefix: 'SW_STO_YJKF_YJLX' },

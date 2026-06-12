@@ -91,7 +91,10 @@ export function addOrganizationRecord(record: OrganizationRecord): boolean {
     cache.organizations.sort((a, b) => {
       const countDiff = (b.useCount || 0) - (a.useCount || 0);
       if (countDiff !== 0) return countDiff;
-      return new Date(b.lastUsedAt || 0).getTime() - new Date(a.lastUsedAt || 0).getTime();
+      return (
+        new Date(b.lastUsedAt || 0).getTime() -
+        new Date(a.lastUsedAt || 0).getTime()
+      );
     });
     cache.organizations = cache.organizations.slice(0, MAX_CACHE_SIZE);
   }
@@ -101,14 +104,19 @@ export function addOrganizationRecord(record: OrganizationRecord): boolean {
   return true;
 }
 
-export function findOrganization(query: Partial<OrganizationRecord> = {}): OrganizationRecord[] {
+export function findOrganization(
+  query: Partial<OrganizationRecord> = {}
+): OrganizationRecord[] {
   const cache = loadCache();
   if (!cache.organizations.length) return [];
 
   return cache.organizations.filter((record) => {
     return Object.entries(query).every(([key, value]) => {
-      if (!value || (typeof value === 'string' && value.trim() === '')) return true;
-      const recordValue = (record[key as keyof OrganizationRecord] || '').toString().toLowerCase();
+      if (!value || (typeof value === 'string' && value.trim() === ''))
+        return true;
+      const recordValue = (record[key as keyof OrganizationRecord] || '')
+        .toString()
+        .toLowerCase();
       const queryValue = value.toString().toLowerCase();
       return recordValue.includes(queryValue);
     });
@@ -142,7 +150,9 @@ export function clearCache(): void {
   });
 }
 
-export function listAllRecords(): Array<OrganizationRecord & { index: number }> {
+export function listAllRecords(): Array<
+  OrganizationRecord & { index: number }
+> {
   const cache = loadCache();
   return cache.organizations.map((record, index) => ({
     index: index + 1,

@@ -35,8 +35,13 @@ import type {
 interface CDPUtils {
   cdpEvaluate(expression: string): Promise<unknown>;
   cdpClick(x: number, y: number, sleepMs?: number): Promise<ClickResult>;
-  cdpFindPickerButtonByInputId(inputId: string): Promise<FindElementResult & { reason?: string }>;
-  cdpFindPopupElementByText(text: string, constraints?: { leftMin?: number; leftMax?: number }): Promise<FindElementResult & { reason?: string }>;
+  cdpFindPickerButtonByInputId(
+    inputId: string
+  ): Promise<FindElementResult & { reason?: string }>;
+  cdpFindPopupElementByText(
+    text: string,
+    constraints?: { leftMin?: number; leftMax?: number }
+  ): Promise<FindElementResult & { reason?: string }>;
   cdpEvaluateAndClick(
     expression: string,
     options?: EvaluateAndClickOptions
@@ -105,7 +110,10 @@ interface SwitchOrganizationResult {
   success: boolean;
   mode: string;
   current?: OrganizationRecord;
-  selection?: AutoSelectResult | { error: string; partial: AutoSelectResult } | null;
+  selection?:
+    | AutoSelectResult
+    | { error: string; partial: AutoSelectResult }
+    | null;
   cache?: {
     isNewRecord: boolean;
     totalRecords: number;
@@ -274,7 +282,9 @@ async function closeAllOrgDialogs(): Promise<boolean> {
   }
 
   await new Promise((r) => setTimeout(r, 1000));
-  return result?.data?.value?.closed || (popupResult?.data?.value?.closed ?? 0) > 0;
+  return (
+    result?.data?.value?.closed || (popupResult?.data?.value?.closed ?? 0) > 0
+  );
 }
 
 /**
@@ -302,9 +312,7 @@ async function openSwitchOrgDialog(): Promise<DialogValue> {
 
   const clickValue = (clickResult as EvaluateResult).data?.value;
   if (!clickValue?.ok) {
-    throw new Error(
-      clickValue?.error || '点击切换组织机构按钮失败'
-    );
+    throw new Error(clickValue?.error || '点击切换组织机构按钮失败');
   }
 
   await new Promise((r) => setTimeout(r, 1500));
@@ -387,7 +395,8 @@ async function readDialogFields(): Promise<DialogValue> {
     })()
   `);
 
-  const dialogValue = (dialogInfo as EvaluateResult).data?.value || (dialogInfo as DialogValue);
+  const dialogValue =
+    (dialogInfo as EvaluateResult).data?.value || (dialogInfo as DialogValue);
   if (!dialogValue.ok) {
     throw new Error(dialogValue.error || '读取对话框失败');
   }
@@ -398,7 +407,9 @@ async function readDialogFields(): Promise<DialogValue> {
  * 关闭切换组织机构对话框
  * @param action - 'cancel' 取消, 'confirm' 确定
  */
-async function closeSwitchOrgDialog(action: 'cancel' | 'confirm' = 'cancel'): Promise<boolean> {
+async function closeSwitchOrgDialog(
+  action: 'cancel' | 'confirm' = 'cancel'
+): Promise<boolean> {
   debug('closeSwitchOrgDialog: action=', action);
 
   if (!cdpUtils) {
@@ -435,7 +446,11 @@ async function closeSwitchOrgDialog(action: 'cancel' | 'confirm' = 'cancel'): Pr
 
   debug('closeSwitchOrgDialog: btnResult=', JSON.stringify(btnResult));
 
-  if (btnResult?.found && btnResult.x !== undefined && btnResult.y !== undefined) {
+  if (
+    btnResult?.found &&
+    btnResult.x !== undefined &&
+    btnResult.y !== undefined
+  ) {
     await cdpUtils.cdpClick(btnResult.x, btnResult.y, 3000);
     debug(
       'closeSwitchOrgDialog: clicked',
@@ -484,7 +499,10 @@ async function closeSwitchOrgDialog(action: 'cancel' | 'confirm' = 'cancel'): Pr
   `);
 
   await new Promise((r) => setTimeout(r, 1500));
-  return ((result as EvaluateResult).data?.value as { closed?: boolean } | undefined)?.closed || false;
+  return (
+    ((result as EvaluateResult).data?.value as { closed?: boolean } | undefined)
+      ?.closed || false
+  );
 }
 
 /**
@@ -597,9 +615,7 @@ async function queryAndSelectInPopup(
 
   const fillValue = (fillResult as QueryFillResult).data?.value;
   if (!fillValue?.found) {
-    throw new Error(
-      `弹窗查询框填充失败: ${fillValue?.reason || 'unknown'}`
-    );
+    throw new Error(`弹窗查询框填充失败: ${fillValue?.reason || 'unknown'}`);
   }
 
   await new Promise((r) => setTimeout(r, 500));
@@ -669,7 +685,11 @@ async function queryAndSelectInPopup(
 
   // 6. 点击确定按钮关闭弹窗
   const confirmBtn = await cdpUtils.cdpFindPopupElementByText('确定');
-  if (confirmBtn?.found && confirmBtn.x !== undefined && confirmBtn.y !== undefined) {
+  if (
+    confirmBtn?.found &&
+    confirmBtn.x !== undefined &&
+    confirmBtn.y !== undefined
+  ) {
     await cdpUtils.cdpClick(confirmBtn.x, confirmBtn.y, 1500);
     debug('已点击弹窗确定按钮');
   }
@@ -712,7 +732,11 @@ async function clickRefreshButton(): Promise<boolean> {
     })()
   `)) as CDPBtnResult;
 
-  if (btnResult?.found && btnResult.x !== undefined && btnResult.y !== undefined) {
+  if (
+    btnResult?.found &&
+    btnResult.x !== undefined &&
+    btnResult.y !== undefined
+  ) {
     await cdpUtils.cdpClick(btnResult.x, btnResult.y, 2000);
     debug('已点击刷新按钮');
     return true;
@@ -782,7 +806,10 @@ async function clickSystemConfirm(): Promise<boolean> {
 /**
  * 获取当前组织机构信息
  */
-async function getCurrentOrganization(): Promise<{ organization: string; fromDialog?: boolean }> {
+async function getCurrentOrganization(): Promise<{
+  organization: string;
+  fromDialog?: boolean;
+}> {
   debug('getCurrentOrganization');
 
   const fromHeader = await evaluate(`
@@ -807,7 +834,9 @@ async function getCurrentOrganization(): Promise<{ organization: string; fromDia
   try {
     dialog = await openSwitchOrgDialog();
   } catch (e) {
-    throw new Error('无法获取当前组织机构信息：' + (e as Error).message, { cause: e });
+    throw new Error('无法获取当前组织机构信息：' + (e as Error).message, {
+      cause: e,
+    });
   }
   if (dialog.ok && dialog.fields && dialog.fields['组织机构']) {
     const org = dialog.fields['组织机构'].value;
@@ -827,7 +856,9 @@ async function getCurrentOrganization(): Promise<{ organization: string; fromDia
  * @param options.fromCache - 是否仅从缓存查找
  * @param options.autoSelect - 是否尝试自动选择（需要 CDP）
  */
-async function switchOrganization(options: SwitchOrganizationOptions = {}): Promise<SwitchOrganizationResult> {
+async function switchOrganization(
+  options: SwitchOrganizationOptions = {}
+): Promise<SwitchOrganizationResult> {
   debug('switchOrganization: options=', JSON.stringify(options));
 
   if (options.fromCache) {
@@ -866,7 +897,10 @@ async function switchOrganization(options: SwitchOrganizationOptions = {}): Prom
     debug('switchOrganization: cache record added, isNew=', isNewRecord);
 
     // 如果提供了目标值且启用了自动选择，尝试使用 CDP 选择
-    let selectionResult: AutoSelectResult | { error: string; partial: AutoSelectResult } | null = null;
+    let selectionResult:
+      | AutoSelectResult
+      | { error: string; partial: AutoSelectResult }
+      | null = null;
     if (options.autoSelect && cdpUtils) {
       selectionResult = await tryAutoSelect(dialog.fields || {}, options);
 
@@ -951,11 +985,22 @@ async function selectFirstDepartment(): Promise<string | null> {
     })()
   `);
 
-  const depts = (popupInfo as PopupInfoResult).data?.value || (popupInfo as { found?: boolean; reason?: string; departments?: string[]; rowCount?: number });
+  const depts =
+    (popupInfo as PopupInfoResult).data?.value ||
+    (popupInfo as {
+      found?: boolean;
+      reason?: string;
+      departments?: string[];
+      rowCount?: number;
+    });
   debug('部门列表:', JSON.stringify(depts));
 
   const popupData = (popupInfo as PopupInfoResult).data?.value;
-  if (!popupData?.found || !popupData.departments || popupData.departments.length === 0) {
+  if (
+    !popupData?.found ||
+    !popupData.departments ||
+    popupData.departments.length === 0
+  ) {
     // 关闭弹窗
     await closePickerPopup();
     throw new Error('部门列表为空');
@@ -994,7 +1039,11 @@ async function selectFirstDepartment(): Promise<string | null> {
 
   // 4. 点击确定按钮
   const confirmBtn = await cdpUtils.cdpFindPopupElementByText('确定');
-  if (confirmBtn?.found && confirmBtn.x !== undefined && confirmBtn.y !== undefined) {
+  if (
+    confirmBtn?.found &&
+    confirmBtn.x !== undefined &&
+    confirmBtn.y !== undefined
+  ) {
     await cdpUtils.cdpClick(confirmBtn.x, confirmBtn.y, 1500);
     debug('已点击部门弹窗确定');
   }
@@ -1063,7 +1112,10 @@ async function tryAutoSelect(
           result.department = { selected: true, name: firstDept };
         }
       } catch (e) {
-        debug('tryAutoSelect: failed to auto-select department:', (e as Error).message);
+        debug(
+          'tryAutoSelect: failed to auto-select department:',
+          (e as Error).message
+        );
       }
     }
 
@@ -1169,7 +1221,10 @@ async function closePickerPopup(): Promise<boolean> {
   `);
 
   await new Promise((r) => setTimeout(r, 1000));
-  return ((result as EvaluateResult).data?.value as { closed?: boolean } | undefined)?.closed || false;
+  return (
+    ((result as EvaluateResult).data?.value as { closed?: boolean } | undefined)
+      ?.closed || false
+  );
 }
 
 export {

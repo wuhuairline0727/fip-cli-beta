@@ -54,8 +54,20 @@ export async function clickShowQuery(): Promise<boolean> {
   try {
     const { Input } = client;
     const { x, y } = result.data.value;
-    await Input.dispatchMouseEvent({ type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
-    await Input.dispatchMouseEvent({ type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
+    await Input.dispatchMouseEvent({
+      type: 'mousePressed',
+      x,
+      y,
+      button: 'left',
+      clickCount: 1,
+    });
+    await Input.dispatchMouseEvent({
+      type: 'mouseReleased',
+      x,
+      y,
+      button: 'left',
+      clickCount: 1,
+    });
   } finally {
     await client.close();
   }
@@ -64,7 +76,10 @@ export async function clickShowQuery(): Promise<boolean> {
   return true;
 }
 
-export async function setDateInput(inputId: string, dateStr: string): Promise<{ found: boolean; value?: string; reason?: string }> {
+export async function setDateInput(
+  inputId: string,
+  dateStr: string
+): Promise<{ found: boolean; value?: string; reason?: string }> {
   const code = `
     (function() {
       var allInputs = document.querySelectorAll('input');
@@ -101,13 +116,19 @@ export interface DateRangeResult {
   endDate: string;
 }
 
-export async function setDateRange(startDate: string, endDate: string): Promise<DateRangeResult> {
+export async function setDateRange(
+  startDate: string,
+  endDate: string
+): Promise<DateRangeResult> {
   await setDateInput('FormDateField1-input', startDate);
   await setDateInput('FormDateField2-input', endDate);
   return { startDate, endDate };
 }
 
-export async function setTaxPeriod(startPeriod: string, endPeriod: string): Promise<Record<string, unknown>> {
+export async function setTaxPeriod(
+  startPeriod: string,
+  endPeriod: string
+): Promise<Record<string, unknown>> {
   const code = `
     (function() {
       var allInputs = document.querySelectorAll('input');

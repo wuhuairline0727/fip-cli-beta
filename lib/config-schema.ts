@@ -49,7 +49,10 @@ export const CONFIG_SCHEMA: ConfigSchema = {
   },
 };
 
-export function validateConfigValue(key: string, value: unknown): string | null {
+export function validateConfigValue(
+  key: string,
+  value: unknown
+): string | null {
   const schema = CONFIG_SCHEMA[key];
   if (!schema) return null;
   if (value === null || value === undefined || value === '') return null;

@@ -55,7 +55,9 @@ const PREFIXES: string[] = Object.keys(BILL_TYPE_MAP).sort(
  * @param billId - 单据编号
  * @returns 单据类型代码或 null
  */
-export function detectBillType(billId: string | null | undefined): string | null {
+export function detectBillType(
+  billId: string | null | undefined
+): string | null {
   if (!billId || typeof billId !== 'string') {
     return null;
   }
@@ -69,7 +71,10 @@ export function detectBillType(billId: string | null | undefined): string | null
 
 interface SpecificConfig {
   basePatterns?: Record<string, RegExp>;
-  inputFields?: Record<string, { byLabel?: string; byId?: string; byIdPrefix?: string }>;
+  inputFields?: Record<
+    string,
+    { byLabel?: string; byId?: string; byIdPrefix?: string }
+  >;
   tables?: Array<{
     name: string;
     identifyBy: { headerText: string };

@@ -53,14 +53,20 @@ interface AuditHint {
 
 export function extractBillInfo(bill: Record<string, unknown>): BillInfo {
   const alloc = (bill.expense_allocation as ExpenseAllocation[])?.[0];
-  const details = (bill.expense_details as ExpenseDetail[]) || (bill.expense_items as ExpenseDetail[]) || [];
+  const details =
+    (bill.expense_details as ExpenseDetail[]) ||
+    (bill.expense_items as ExpenseDetail[]) ||
+    [];
 
   let amount = bill.payment_amount as number | undefined;
   if (!amount && alloc) amount = alloc.amount || alloc.budget_amount_with_tax;
   if (!amount && details.length > 0) {
     amount = details.reduce(
       (sum: number, d: ExpenseDetail) =>
-        sum + (parseFloat(d.amount_with_tax || '') || parseFloat(d.amount || '') || 0),
+        sum +
+        (parseFloat(d.amount_with_tax || '') ||
+          parseFloat(d.amount || '') ||
+          0),
       0
     );
   }
@@ -78,7 +84,9 @@ export function extractBillInfo(bill: Record<string, unknown>): BillInfo {
 
   let accountSubject = '—';
   const subjects = [
-    ...new Set(details.map((d: ExpenseDetail) => d.expense_item).filter(Boolean)),
+    ...new Set(
+      details.map((d: ExpenseDetail) => d.expense_item).filter(Boolean)
+    ),
   ] as string[];
   if (subjects.length === 1) {
     accountSubject = subjects[0];
@@ -100,11 +108,17 @@ export function extractBillInfo(bill: Record<string, unknown>): BillInfo {
       ? alloc.budget_item || alloc.budget_project || '—'
       : '—',
     budgetBalance: alloc ? alloc.budget_balance : '—',
-    hints: ((bill.audit_hints as AuditHint[]) || []).map((h) => h.message).join('; ') || '—',
+    hints:
+      ((bill.audit_hints as AuditHint[]) || [])
+        .map((h) => h.message)
+        .join('; ') || '—',
   };
 }
 
-export function generateReport(bills: BillInfo[], title = '单据合并报表'): string {
+export function generateReport(
+  bills: BillInfo[],
+  title = '单据合并报表'
+): string {
   const lines: string[] = [];
   const total = bills.reduce(
     (sum, info) => sum + (typeof info.amount === 'number' ? info.amount : 0),

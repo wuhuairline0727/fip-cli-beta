@@ -120,8 +120,20 @@ export async function clickDashboardTab(tabName: string): Promise<boolean> {
   const client = await CDP({ port: 9222 });
   try {
     const { Input } = client;
-    await Input.dispatchMouseEvent({ type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
-    await Input.dispatchMouseEvent({ type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
+    await Input.dispatchMouseEvent({
+      type: 'mousePressed',
+      x,
+      y,
+      button: 'left',
+      clickCount: 1,
+    });
+    await Input.dispatchMouseEvent({
+      type: 'mouseReleased',
+      x,
+      y,
+      button: 'left',
+      clickCount: 1,
+    });
   } finally {
     await client.close();
   }
@@ -175,7 +187,11 @@ export interface WaitForElementResult {
 
 export async function waitForElement(
   text: string,
-  options: { timeout?: number; interval?: number; constraints?: ElementConstraints } = {}
+  options: {
+    timeout?: number;
+    interval?: number;
+    constraints?: ElementConstraints;
+  } = {}
 ): Promise<WaitForElementResult> {
   const { timeout = 10000, interval = 500, constraints = {} } = options;
   const start = Date.now();
@@ -201,7 +217,9 @@ export interface WaitForPopupResult {
   waited: number;
 }
 
-export async function waitForPopup(timeout = 10000): Promise<WaitForPopupResult> {
+export async function waitForPopup(
+  timeout = 10000
+): Promise<WaitForPopupResult> {
   const start = Date.now();
   let interval = 100;
   while (Date.now() - start < timeout) {
@@ -230,7 +248,10 @@ export interface WaitForUrlResult {
   waited: number;
 }
 
-export async function waitForUrl(pattern: string | RegExp, timeout = 10000): Promise<WaitForUrlResult> {
+export async function waitForUrl(
+  pattern: string | RegExp,
+  timeout = 10000
+): Promise<WaitForUrlResult> {
   const start = Date.now();
   const interval = 500;
   const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;

@@ -13,8 +13,17 @@ describe('audit/reporter', () => {
         project_name: '测试项目',
         profit_center: '利润中心A',
         checks: {
-          contract_match: { status: '通过', point: '合同金额核对', message: '金额匹配' },
-          attachments: { status: '失败', point: '附件完整性', message: '缺少附件', action_needed: '补充附件' },
+          contract_match: {
+            status: '通过',
+            point: '合同金额核对',
+            message: '金额匹配',
+          },
+          attachments: {
+            status: '失败',
+            point: '附件完整性',
+            message: '缺少附件',
+            action_needed: '补充附件',
+          },
         },
         stats: { passed: 1, warning: 0, failed: 1, manual: 0, info: 0 },
       };
@@ -57,8 +66,17 @@ describe('audit/reporter', () => {
         project_name: '测试项目',
         profit_center: '利润中心A',
         checks: {
-          contract_match: { status: '通过', point: '合同金额核对', message: 'OK' },
-          approver: { status: '失败', point: '审批人', message: '未找到', action_needed: '确认审批人' },
+          contract_match: {
+            status: '通过',
+            point: '合同金额核对',
+            message: 'OK',
+          },
+          approver: {
+            status: '失败',
+            point: '审批人',
+            message: '未找到',
+            action_needed: '确认审批人',
+          },
         },
         stats: { passed: 1, warning: 0, failed: 1, manual: 0, info: 0 },
       };

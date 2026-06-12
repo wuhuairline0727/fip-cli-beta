@@ -18,7 +18,9 @@ interface LedgerResult {
   options?: Record<string, unknown>;
 }
 
-export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Promise<LedgerResult> {
+export async function exportOutputInvoiceLedger(
+  options: LedgerOptions = {}
+): Promise<LedgerResult> {
   const cfg = config.get() as Record<string, unknown>;
   const defaults = {
     startDate: (cfg.startDate as string) || '2026-04-01',
@@ -58,7 +60,7 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
   if (!hasQueryForm) {
     // 页面没有查询表单，需要选择单选按钮
     console.log('4. 选择销项发票明细台账...');
-    const radioResult = await utils.cdpEvaluate(`
+    const radioResult = (await utils.cdpEvaluate(`
       (function() {
         var all = document.querySelectorAll('*');
         var target = null;
@@ -77,7 +79,13 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
         }
         return { success: false, reason: 'element not found' };
       })()
-    `) as { success: boolean; reason?: string; x?: number; y?: number; tag?: string };
+    `)) as {
+      success: boolean;
+      reason?: string;
+      x?: number;
+      y?: number;
+      tag?: string;
+    };
 
     if (!radioResult?.success) {
       throw new Error(
@@ -157,7 +165,7 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
 
   // 4. 选择"开票日期"单选按钮（使用 CDP 真实点击）
   console.log('6. 选择开票日期...');
-  const dateRadioResult = await utils.cdpEvaluate(`
+  const dateRadioResult = (await utils.cdpEvaluate(`
     (function() {
       var radios = document.querySelectorAll('input[type="radio"]');
       for (var i = 0; i < radios.length; i++) {
@@ -168,7 +176,7 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
       }
       return { found: false };
     })()
-  `) as { found: boolean; x?: number; y?: number; id?: string };
+  `)) as { found: boolean; x?: number; y?: number; id?: string };
 
   if (dateRadioResult?.found) {
     await utils.cdpClick(dateRadioResult.x!, dateRadioResult.y!, 1000);
@@ -200,7 +208,7 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
 
   // 6. 选择申请单位（左上角蓝色按钮）
   console.log('8. 选择申请单位:', opts.companyCode);
-  const companyBtnResult = await utils.cdpEvaluate(`
+  const companyBtnResult = (await utils.cdpEvaluate(`
     (function() {
       var btns = document.querySelectorAll('.FD26IYC-w-l');
       for (var i = 0; i < btns.length; i++) {
@@ -211,7 +219,7 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
       }
       return { found: false };
     })()
-  `) as { found: boolean; x?: number; y?: number };
+  `)) as { found: boolean; x?: number; y?: number };
 
   if (companyBtnResult?.found) {
     await utils.cdpClick(companyBtnResult.x!, companyBtnResult.y!, 2000);
@@ -221,7 +229,7 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
 
   // 7. 选择销方（右侧蓝色按钮）
   console.log('9. 选择销方:', opts.sellerCode);
-  const sellerBtnResult = await utils.cdpEvaluate(`
+  const sellerBtnResult = (await utils.cdpEvaluate(`
     (function() {
       var input = document.getElementById('DataSetFieldComboBox6-input');
       if (!input) return { notFound: true };
@@ -235,7 +243,7 @@ export async function exportOutputInvoiceLedger(options: LedgerOptions = {}): Pr
       }
       return { found: false };
     })()
-  `) as { found: boolean; x?: number; y?: number };
+  `)) as { found: boolean; x?: number; y?: number };
 
   if (sellerBtnResult?.found) {
     await utils.cdpClick(sellerBtnResult.x!, sellerBtnResult.y!, 2000);

@@ -14,7 +14,9 @@ describe('bills/config/common', () => {
 
   it('should have valid regex patterns', () => {
     const patterns = common.COMMON_BASE_PATTERNS;
-    expect(patterns.bill_no.test('单据编号：SLBX2004202605003766')).to.equal(true);
+    expect(patterns.bill_no.test('单据编号：SLBX2004202605003766')).to.equal(
+      true
+    );
     expect(patterns.submitter.test('提单人：张三')).to.equal(true);
     expect(patterns.submit_date.test('提单日期：2026-04-01')).to.equal(true);
     expect(patterns.status.test('状态：审批中')).to.equal(true);

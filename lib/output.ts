@@ -24,10 +24,12 @@ export function setScreenshotOptions(options: ScreenshotOptions): void {
   if (options.screenshotDir) screenshotDir = options.screenshotDir;
 }
 
-export async function takeErrorScreenshot(errorCode: string): Promise<string | null> {
+export async function takeErrorScreenshot(
+  errorCode: string
+): Promise<string | null> {
   if (!screenshotOnError) return null;
   try {
-    const result = await screenshot('png') as ScreenshotResult;
+    const result = (await screenshot('png')) as ScreenshotResult;
     if (!result.ok || !result.data) return null;
 
     const srcPath = result.data.path;
@@ -67,7 +69,10 @@ export interface FipError extends Error {
 
 export async function error(code: string, message: string): Promise<never> {
   const screenshotPath = await takeErrorScreenshot(code);
-  const output: Record<string, unknown> = { ok: false, error: { code, message } };
+  const output: Record<string, unknown> = {
+    ok: false,
+    error: { code, message },
+  };
   if (screenshotPath) {
     output.screenshot = screenshotPath;
   }

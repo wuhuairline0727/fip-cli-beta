@@ -6,10 +6,7 @@
 // ============ CDP 类型（来自 lib/utils/cdp.ts）============
 
 export interface CDPRuntime {
-  evaluate(options: {
-    expression: string;
-    returnByValue?: boolean;
-  }): Promise<{
+  evaluate(options: { expression: string; returnByValue?: boolean }): Promise<{
     result?: {
       value?: unknown;
       type?: string;
@@ -162,11 +159,20 @@ export interface BillConfig {
   name?: string;
   codePrefix?: string;
   basePatterns?: Record<string, RegExp>;
-  inputFields?: Record<string, { byId?: string; byIdPrefix?: string; byLabel?: string }>;
+  inputFields?: Record<
+    string,
+    { byId?: string; byIdPrefix?: string; byLabel?: string }
+  >;
   tables?: Array<{
     name: string;
     identifyBy: { headerText: string };
-    columns: Array<{ label?: string; header?: string; key?: string; field?: string; type?: string }>;
+    columns: Array<{
+      label?: string;
+      header?: string;
+      key?: string;
+      field?: string;
+      type?: string;
+    }>;
   }>;
   auditHints?: unknown[];
   filterConfig?: Record<string, unknown>;
@@ -348,7 +354,10 @@ export interface SwitchOrganizationResult {
   success: boolean;
   mode: string;
   current?: OrganizationRecord;
-  selection?: AutoSelectResult | { error: string; partial: AutoSelectResult } | null;
+  selection?:
+    | AutoSelectResult
+    | { error: string; partial: AutoSelectResult }
+    | null;
   cache?: {
     isNewRecord: boolean;
     totalRecords: number;
@@ -389,14 +398,27 @@ export interface FipAPI {
   // --- utils / common ---
   sleep(ms: number): Promise<void>;
   escapeJsString(str: string): string;
-  findVisibleElementByText(text: string, constraints?: ElementConstraints): Promise<FoundElement | null>;
+  findVisibleElementByText(
+    text: string,
+    constraints?: ElementConstraints
+  ): Promise<FoundElement | null>;
   getPageInfo(): Promise<PageInfo>;
   clickDashboardTab(tabName: string): Promise<boolean>;
   clickQueryButton(): Promise<boolean>;
   getTableRowCount(): Promise<TableRowCount>;
-  waitForElement(text: string, options?: { timeout?: number; interval?: number; constraints?: ElementConstraints }): Promise<WaitForElementResult>;
+  waitForElement(
+    text: string,
+    options?: {
+      timeout?: number;
+      interval?: number;
+      constraints?: ElementConstraints;
+    }
+  ): Promise<WaitForElementResult>;
   waitForPopup(timeout?: number): Promise<WaitForPopupResult>;
-  waitForUrl(pattern: string | RegExp, timeout?: number): Promise<WaitForUrlResult>;
+  waitForUrl(
+    pattern: string | RegExp,
+    timeout?: number
+  ): Promise<WaitForUrlResult>;
 
   // --- utils / navigation ---
   openSideMenu(menuName: string): Promise<boolean>;
@@ -404,48 +426,96 @@ export interface FipAPI {
 
   // --- utils / form ---
   clickShowQuery(): Promise<boolean>;
-  setDateInput(inputId: string, dateStr: string): Promise<{ found: boolean; value?: string; reason?: string }>;
+  setDateInput(
+    inputId: string,
+    dateStr: string
+  ): Promise<{ found: boolean; value?: string; reason?: string }>;
   setDateRange(startDate: string, endDate: string): Promise<DateRangeResult>;
-  setTaxPeriod(startPeriod: string, endPeriod: string): Promise<Record<string, unknown>>;
+  setTaxPeriod(
+    startPeriod: string,
+    endPeriod: string
+  ): Promise<Record<string, unknown>>;
 
   // --- utils / picker ---
   clickPickerButton(labelText: string): Promise<boolean>;
   pickFromDict(queryCode: string): Promise<boolean>;
-  pickTaxSubject(taxCode: string): Promise<{ tax_code: string; selected: boolean }>;
+  pickTaxSubject(
+    taxCode: string
+  ): Promise<{ tax_code: string; selected: boolean }>;
 
   // --- utils / bill ---
   openBill(billId: string, tabName?: string | null): Promise<OpenBillResult>;
   closeBill(): Promise<CloseBillResult>;
 
   // --- utils / cdp ---
-  withCDP<T>(callback: (Runtime: CDPRuntime, Input: CDPInput) => Promise<T>): Promise<T>;
+  withCDP<T>(
+    callback: (Runtime: CDPRuntime, Input: CDPInput) => Promise<T>
+  ): Promise<T>;
   cdpClick(x: number, y: number, sleepMs?: number): Promise<ClickResult>;
-  cdpEvaluateAndClick(expression: string, options?: EvaluateAndClickOptions): Promise<ClickResult | { clicked: false; reason: string }>;
+  cdpEvaluateAndClick(
+    expression: string,
+    options?: EvaluateAndClickOptions
+  ): Promise<ClickResult | { clicked: false; reason: string }>;
   cdpEvaluate(expression: string): Promise<unknown>;
-  cdpFindElementByText(text: string, constraints?: { leftMin?: number; leftMax?: number; topMin?: number; topMax?: number }): Promise<FindElementResult>;
-  cdpFindPickerButtonByInputId(inputId: string): Promise<FindElementResult & { reason?: string }>;
+  cdpFindElementByText(
+    text: string,
+    constraints?: {
+      leftMin?: number;
+      leftMax?: number;
+      topMin?: number;
+      topMax?: number;
+    }
+  ): Promise<FindElementResult>;
+  cdpFindPickerButtonByInputId(
+    inputId: string
+  ): Promise<FindElementResult & { reason?: string }>;
   cdpFindDropdownOption(text: string): Promise<FindElementResult>;
-  cdpFindPopupElementByText(text: string, constraints?: { leftMin?: number; leftMax?: number }): Promise<FindElementResult & { reason?: string }>;
+  cdpFindPopupElementByText(
+    text: string,
+    constraints?: { leftMin?: number; leftMax?: number }
+  ): Promise<FindElementResult & { reason?: string }>;
 
   // --- utils / table ---
-  getTableData(options?: TableDataOptions): Promise<TableDataResult | { error: string }>;
+  getTableData(
+    options?: TableDataOptions
+  ): Promise<TableDataResult | { error: string }>;
 
   // --- utils / attachment ---
   listAttachments(options?: AttachmentOptions): Promise<ListAttachmentsResult>;
   downloadAttachments(options?: DownloadOptions): Promise<DownloadResult>;
-  closeAttachmentPopup(): Promise<{ closed: boolean; reason?: string; method?: string }>;
-  waitForDownload(downloadDir: string, expectedName: string, timeoutMs?: number): Promise<string | null>;
+  closeAttachmentPopup(): Promise<{
+    closed: boolean;
+    reason?: string;
+    method?: string;
+  }>;
+  waitForDownload(
+    downloadDir: string,
+    expectedName: string,
+    timeoutMs?: number
+  ): Promise<string | null>;
 
   // --- utils / dialog ---
   dismissDialogs(options?: DismissOptions): Promise<DismissResult>;
-  waitAndDismissDialogs(timeout?: number, options?: DismissOptions): Promise<DismissResult>;
+  waitAndDismissDialogs(
+    timeout?: number,
+    options?: DismissOptions
+  ): Promise<DismissResult>;
 
   // --- utils / organization ---
   openSwitchOrgDialog(): Promise<DialogValue>;
   closeSwitchOrgDialog(action?: 'cancel' | 'confirm'): Promise<boolean>;
-  getCurrentOrganization(): Promise<{ organization: string; fromDialog?: boolean }>;
-  switchOrganization(options?: SwitchOrganizationOptions): Promise<SwitchOrganizationResult>;
-  queryAndSelectInPopup(fieldLabel: string, queryText: string, inputId?: string): Promise<{ selected: boolean; field: string; value: string }>;
+  getCurrentOrganization(): Promise<{
+    organization: string;
+    fromDialog?: boolean;
+  }>;
+  switchOrganization(
+    options?: SwitchOrganizationOptions
+  ): Promise<SwitchOrganizationResult>;
+  queryAndSelectInPopup(
+    fieldLabel: string,
+    queryText: string,
+    inputId?: string
+  ): Promise<{ selected: boolean; field: string; value: string }>;
   clickRefreshButton(): Promise<boolean>;
   clickSystemConfirm(): Promise<boolean>;
   selectFirstDepartment(): Promise<string | null>;
@@ -466,11 +536,17 @@ export interface FipAPI {
   listAllRecords(): Array<OrganizationRecord & { index: number }>;
 
   // --- ledgers ---
-  exportUnbilledIncomeLedger(options?: UnbilledIncomeOptions): Promise<UnbilledIncomeResult>;
-  exportInputTransferLedger(options?: InputTransferOptions): Promise<InputTransferResult>;
+  exportUnbilledIncomeLedger(
+    options?: UnbilledIncomeOptions
+  ): Promise<UnbilledIncomeResult>;
+  exportInputTransferLedger(
+    options?: InputTransferOptions
+  ): Promise<InputTransferResult>;
   exportOutputInvoiceLedger(options?: LedgerOptions): Promise<LedgerResult>;
   exportVatPrepaymentLedger(options?: LedgerOptions): Promise<LedgerResult>;
-  exportPassengerTransportLedger(options?: LedgerOptions): Promise<LedgerResult>;
+  exportPassengerTransportLedger(
+    options?: LedgerOptions
+  ): Promise<LedgerResult>;
 
   // --- audit ---
   extractInvoiceFields(): Promise<Record<string, unknown>>;
@@ -480,8 +556,14 @@ export interface FipAPI {
   generateAuditMarkdownReport(result: AuditResult): string;
 
   // --- bills ---
-  extractBill(billId: string | null, billType?: string | null): Promise<Record<string, unknown>>;
-  generateBillAuditHints(data: Record<string, unknown>, billType: string): AuditHint[];
+  extractBill(
+    billId: string | null,
+    billType?: string | null
+  ): Promise<Record<string, unknown>>;
+  generateBillAuditHints(
+    data: Record<string, unknown>,
+    billType: string
+  ): AuditHint[];
 
   // --- browser ---
   ensureConnection(): Promise<void>;

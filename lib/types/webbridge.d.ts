@@ -43,7 +43,9 @@ export type WebBridgeResponseDataUnion =
   | FindTabData
   | WebBridgeResponseData;
 
-export interface WebBridgeResponse<T extends WebBridgeResponseData = WebBridgeResponseData> {
+export interface WebBridgeResponse<
+  T extends WebBridgeResponseData = WebBridgeResponseData,
+> {
   ok: boolean;
   data?: T;
   error?: {

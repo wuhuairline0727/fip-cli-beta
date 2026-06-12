@@ -22,7 +22,9 @@ export interface ListAttachmentsResult {
   downloadDir: string;
 }
 
-export async function listAttachments(options: AttachmentOptions = {}): Promise<ListAttachmentsResult> {
+export async function listAttachments(
+  options: AttachmentOptions = {}
+): Promise<ListAttachmentsResult> {
   const { downloadDir = './downloads' } = options;
 
   if (!fs.existsSync(downloadDir)) {
@@ -117,11 +119,14 @@ export interface DownloadResult {
   downloadDir: string;
 }
 
-export async function downloadAttachments(options: DownloadOptions = {}): Promise<DownloadResult> {
+export async function downloadAttachments(
+  options: DownloadOptions = {}
+): Promise<DownloadResult> {
   const defaultChromeDir = fs.existsSync('D:/下载')
     ? 'D:/下载'
     : path.join(require('os').homedir(), 'Downloads');
-  const { downloadDir = './downloads', chromeDownloadDir = defaultChromeDir } = options;
+  const { downloadDir = './downloads', chromeDownloadDir = defaultChromeDir } =
+    options;
 
   if (!fs.existsSync(downloadDir)) {
     fs.mkdirSync(downloadDir, { recursive: true });
@@ -265,7 +270,11 @@ export async function downloadAttachments(options: DownloadOptions = {}): Promis
       await cdpClick(btn.x, btn.y);
       await sleep(1000);
 
-      const fileName = await waitForDownload(chromeDownloadDir, row.name, 60000);
+      const fileName = await waitForDownload(
+        chromeDownloadDir,
+        row.name,
+        60000
+      );
       if (fileName) {
         const srcPath = path.join(chromeDownloadDir, fileName);
         const destPath = path.join(downloadDir, fileName);
@@ -273,10 +282,18 @@ export async function downloadAttachments(options: DownloadOptions = {}): Promis
           fs.renameSync(srcPath, destPath);
           downloadedFiles.push({ name: fileName, moved: true, path: destPath });
         } catch (e: any) {
-          downloadedFiles.push({ name: fileName, moved: false, error: e.message });
+          downloadedFiles.push({
+            name: fileName,
+            moved: false,
+            error: e.message,
+          });
         }
       } else {
-        downloadedFiles.push({ name: row.name, moved: false, error: 'timeout' });
+        downloadedFiles.push({
+          name: row.name,
+          moved: false,
+          error: 'timeout',
+        });
       }
     }
   }
@@ -291,7 +308,11 @@ export async function downloadAttachments(options: DownloadOptions = {}): Promis
   };
 }
 
-export async function closeAttachmentPopup(): Promise<{ closed: boolean; reason?: string; method?: string }> {
+export async function closeAttachmentPopup(): Promise<{
+  closed: boolean;
+  reason?: string;
+  method?: string;
+}> {
   const result = await evaluate(`
     (function() {
       var popups = document.querySelectorAll('.FD26IYC-a-g, .gwt-DialogBox, [class*=DialogBox]');
@@ -328,7 +349,11 @@ export async function closeAttachmentPopup(): Promise<{ closed: boolean; reason?
   return result?.data?.value || { closed: false };
 }
 
-export async function waitForDownload(downloadDir: string, expectedName: string, timeoutMs = 60000): Promise<string | null> {
+export async function waitForDownload(
+  downloadDir: string,
+  expectedName: string,
+  timeoutMs = 60000
+): Promise<string | null> {
   const startTime = Date.now();
   const ext = path.extname(expectedName) || '.pdf';
   const baseName = path.basename(expectedName, ext).replace(/\+/g, ' ');
@@ -344,7 +369,10 @@ export async function waitForDownload(downloadDir: string, expectedName: string,
         .filter((f) => {
           if (f.endsWith('.crdownload')) return false;
           if (!f.endsWith(ext)) return false;
-          const normalizedExpected = baseName.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
+          const normalizedExpected = baseName.replace(
+            /[^\u4e00-\u9fa5a-zA-Z0-9]/g,
+            ''
+          );
           const normalizedActual = f.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
           return normalizedActual.includes(normalizedExpected.substring(0, 10));
         })

@@ -1,7 +1,9 @@
 import * as utils from '../utils/index';
 import * as config from '../config';
 
-export function periodToDateRange(period: string | null | undefined): { startDate: string; endDate: string } | null {
+export function periodToDateRange(
+  period: string | null | undefined
+): { startDate: string; endDate: string } | null {
   if (!period || typeof period !== 'string') return null;
   const [year, month] = period.split('-');
   if (!year || !month || year.length !== 4 || month.length !== 2) return null;
@@ -31,7 +33,9 @@ export interface UnbilledIncomeResult {
   options?: Record<string, unknown>;
 }
 
-export async function exportUnbilledIncomeLedger(options: UnbilledIncomeOptions = {}): Promise<UnbilledIncomeResult> {
+export async function exportUnbilledIncomeLedger(
+  options: UnbilledIncomeOptions = {}
+): Promise<UnbilledIncomeResult> {
   const cfg = config.get() as Record<string, unknown>;
   const defaults = {
     startDate: cfg.startDate || '2026-01-01',
@@ -84,7 +88,10 @@ export async function exportUnbilledIncomeLedger(options: UnbilledIncomeOptions 
   await utils.sleep(500);
 
   console.log('6. 设置所属税期:', opts.startPeriod, '至', opts.endPeriod);
-  await utils.setTaxPeriod(opts.startPeriod as string, opts.endPeriod as string);
+  await utils.setTaxPeriod(
+    opts.startPeriod as string,
+    opts.endPeriod as string
+  );
   await utils.sleep(500);
 
   console.log('7. 选择申请单位:', opts.companyCode);

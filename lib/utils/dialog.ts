@@ -12,7 +12,9 @@ export interface DismissResult {
   details: string[];
 }
 
-export async function dismissDialogs(options: DismissOptions = {}): Promise<DismissResult> {
+export async function dismissDialogs(
+  options: DismissOptions = {}
+): Promise<DismissResult> {
   const {
     closeButtonTexts = ['确定', '确认', '关闭', '知道了', '取消'],
     maxDialogs = 5,
@@ -97,7 +99,10 @@ export async function dismissDialogs(options: DismissOptions = {}): Promise<Dism
   return { closed, details };
 }
 
-export async function waitAndDismissDialogs(timeout = 5000, options: DismissOptions = {}): Promise<DismissResult> {
+export async function waitAndDismissDialogs(
+  timeout = 5000,
+  options: DismissOptions = {}
+): Promise<DismissResult> {
   const startTime = Date.now();
   let totalClosed = 0;
   const allDetails: string[] = [];

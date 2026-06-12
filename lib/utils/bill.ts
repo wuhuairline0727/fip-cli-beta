@@ -9,7 +9,10 @@ export interface OpenBillResult {
   url: string;
 }
 
-export async function openBill(billId: string, tabName: string | null = null): Promise<OpenBillResult> {
+export async function openBill(
+  billId: string,
+  tabName: string | null = null
+): Promise<OpenBillResult> {
   const tabsToSearch = tabName
     ? [tabName]
     : ['我的单据', '待办', '已办', '已办结'];

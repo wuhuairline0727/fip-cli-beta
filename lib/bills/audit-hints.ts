@@ -16,7 +16,9 @@ export interface AuditHint {
  * @param expenseItem - 费用事项字符串
  * @returns 关键词数组
  */
-export function extractKeywords(expenseItem: string | null | undefined): string[] {
+export function extractKeywords(
+  expenseItem: string | null | undefined
+): string[] {
   if (!expenseItem || typeof expenseItem !== 'string') {
     return [];
   }

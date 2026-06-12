@@ -10,16 +10,16 @@ import { navigate } from '../../lib/browser';
 
 chai.should();
 
-describe('organization auto-select integration', function() {
+describe('organization auto-select integration', function () {
   this.timeout(120000);
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     // 确保在首页
     await navigate('https://fip.cscec.com/OSPPortal/CSCPortal.jsp#/dashboard');
     await new Promise((r) => setTimeout(r, 2000));
   });
 
-  it('should auto-select organization, project and department', async function() {
+  it('should auto-select organization, project and department', async function () {
     const result = await switchOrganization({
       autoSelect: true,
       organization: '中建一局集团第五建筑有限公司总部',
@@ -34,14 +34,20 @@ describe('organization auto-select integration', function() {
     (result as any).should.have.property('mode', 'auto_select');
     (result as any).should.have.property('selection');
     (result.selection as any)!.should.have.property('organization');
-    (result.selection as any)!.organization.should.have.property('selected', true);
+    (result.selection as any)!.organization.should.have.property(
+      'selected',
+      true
+    );
     (result.selection as any)!.should.have.property('project');
     (result.selection as any)!.project.should.have.property('selected', true);
     (result.selection as any)!.should.have.property('department');
-    (result.selection as any)!.department.should.have.property('selected', true);
+    (result.selection as any)!.department.should.have.property(
+      'selected',
+      true
+    );
   });
 
-  it('should read dialog fields correctly', async function() {
+  it('should read dialog fields correctly', async function () {
     const dialog = await openSwitchOrgDialog();
     console.log('对话框字段:', JSON.stringify(dialog.fields, null, 2));
 

@@ -163,13 +163,21 @@ export function generateMarkdownReport(result: AuditResult): string {
   lines.push(`| 项目 | 金额 |`);
   lines.push(`|------|------|`);
   if (result.fields?.contract_amount !== undefined)
-    lines.push(`| 合同总金额 | ${result.fields.contract_amount as string | number} |`);
+    lines.push(
+      `| 合同总金额 | ${result.fields.contract_amount as string | number} |`
+    );
   if (result.fields?.invoiced_amount !== undefined)
-    lines.push(`| 已开票总金额 | ${result.fields.invoiced_amount as string | number} |`);
+    lines.push(
+      `| 已开票总金额 | ${result.fields.invoiced_amount as string | number} |`
+    );
   if (result.fields?.current_amount !== undefined)
-    lines.push(`| 本次开票金额 | ${result.fields.current_amount as string | number} |`);
+    lines.push(
+      `| 本次开票金额 | ${result.fields.current_amount as string | number} |`
+    );
   if (result.fields?.received_amount !== undefined)
-    lines.push(`| 已收款总金额 | ${result.fields.received_amount as string | number} |`);
+    lines.push(
+      `| 已收款总金额 | ${result.fields.received_amount as string | number} |`
+    );
   if (result.derived?.unpaid_formatted)
     lines.push(`| 已开票未收款 | ${result.derived.unpaid_formatted} |`);
   lines.push('');

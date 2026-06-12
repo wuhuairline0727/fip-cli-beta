@@ -20,31 +20,55 @@ function createFakeUtils(sinonInstance: typeof sinon) {
     cdpEvaluateAndClick: sinonInstance.stub().resolves({ clicked: true }),
     cdpEvaluate: sinonInstance.stub().callsFake((code: string) => {
       if (code.includes("'closed'")) return Promise.resolve('closed');
-      if (code.includes('hasQueryForm') || code.includes("document.getElementById('JINX_IPT_START-input')")) {
+      if (
+        code.includes('hasQueryForm') ||
+        code.includes("document.getElementById('JINX_IPT_START-input')")
+      ) {
         return Promise.resolve(true);
       }
-      if (code.includes('success')) return Promise.resolve({ success: true, x: 100, y: 100, tag: 'DIV' });
+      if (code.includes('success'))
+        return Promise.resolve({ success: true, x: 100, y: 100, tag: 'DIV' });
       if (code.includes('found')) {
-        if (code.includes('radio') || code.includes('FD26IYC-w-l') || code.includes('DataSetFieldComboBox')) {
+        if (
+          code.includes('radio') ||
+          code.includes('FD26IYC-w-l') ||
+          code.includes('DataSetFieldComboBox')
+        ) {
           return Promise.resolve({ found: true, x: 100, y: 100, id: 'radio1' });
         }
-        if (code.includes('FormComboBoxDJZT')) return Promise.resolve({ found: true, x: 100, y: 100 });
-        if (code.includes('FormTextInput1-input')) return Promise.resolve({ found: true });
-        if (code.includes('FD26IYC-O-d')) return Promise.resolve({ found: true });
+        if (code.includes('FormComboBoxDJZT'))
+          return Promise.resolve({ found: true, x: 100, y: 100 });
+        if (code.includes('FormTextInput1-input'))
+          return Promise.resolve({ found: true });
+        if (code.includes('FD26IYC-O-d'))
+          return Promise.resolve({ found: true });
         // 通用 found 返回（查询按钮等）
         return Promise.resolve({ found: true, x: 100, y: 100 });
       }
       // vat-prepayment: 单据类型输入框查找
       if (code.includes('完税预缴单') || code.includes('预缴计算单')) {
-        return Promise.resolve({ found: true, x: 100, y: 100, value: '预缴计算单' });
+        return Promise.resolve({
+          found: true,
+          x: 100,
+          y: 100,
+          value: '预缴计算单',
+        });
       }
       return Promise.resolve(true);
     }),
     cdpClick: sinonInstance.stub().resolves(),
-    cdpFindElementByText: sinonInstance.stub().resolves({ found: true, x: 100, y: 100 }),
-    cdpFindPickerButtonByInputId: sinonInstance.stub().resolves({ found: true, x: 100, y: 100 }),
-    cdpFindDropdownOption: sinonInstance.stub().resolves({ found: true, x: 100, y: 100 }),
-    cdpFindPopupElementByText: sinonInstance.stub().resolves({ found: true, x: 100, y: 100 }),
+    cdpFindElementByText: sinonInstance
+      .stub()
+      .resolves({ found: true, x: 100, y: 100 }),
+    cdpFindPickerButtonByInputId: sinonInstance
+      .stub()
+      .resolves({ found: true, x: 100, y: 100 }),
+    cdpFindDropdownOption: sinonInstance
+      .stub()
+      .resolves({ found: true, x: 100, y: 100 }),
+    cdpFindPopupElementByText: sinonInstance
+      .stub()
+      .resolves({ found: true, x: 100, y: 100 }),
     waitForPopup: sinonInstance.stub().resolves({ found: false }),
   };
 }
@@ -56,7 +80,9 @@ describe('ledgers/vat-prepayment', () => {
   let originalUtilsModule: any;
 
   beforeEach(() => {
-    delete require.cache[require.resolve('../../../lib/ledgers/vat-prepayment')];
+    delete require.cache[
+      require.resolve('../../../lib/ledgers/vat-prepayment')
+    ];
     delete require.cache[utilsPath];
     delete require.cache[configPath];
 
@@ -90,7 +116,9 @@ describe('ledgers/vat-prepayment', () => {
       delete require.cache[utilsPath];
     }
     delete require.cache[configPath];
-    delete require.cache[require.resolve('../../../lib/ledgers/vat-prepayment')];
+    delete require.cache[
+      require.resolve('../../../lib/ledgers/vat-prepayment')
+    ];
   });
 
   it('should export exportVatPrepaymentLedger function', () => {

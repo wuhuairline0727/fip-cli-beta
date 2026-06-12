@@ -19,7 +19,9 @@ interface LedgerResult {
   options?: Record<string, unknown>;
 }
 
-export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Promise<LedgerResult> {
+export async function exportVatPrepaymentLedger(
+  options: LedgerOptions = {}
+): Promise<LedgerResult> {
   const cfg = config.get() as Record<string, unknown>;
   const defaults = {
     startPeriod: (cfg.startPeriod as string) || '2026-04',
@@ -59,7 +61,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
 
   // 3. 设置单据类型
   console.log('5. 设置单据类型:', opts.docType);
-  const docTypeInputResult = await utils.cdpEvaluate(`
+  const docTypeInputResult = (await utils.cdpEvaluate(`
     (function() {
       var allInputs = document.querySelectorAll('input');
       for (var i = 0; i < allInputs.length; i++) {
@@ -73,7 +75,13 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
       }
       return { found: false, reason: 'no_visible_input' };
     })()
-  `) as { found: boolean; reason?: string; x?: number; y?: number; value?: string };
+  `)) as {
+    found: boolean;
+    reason?: string;
+    x?: number;
+    y?: number;
+    value?: string;
+  };
   if (!docTypeInputResult?.found) {
     throw new Error(
       '未找到单据类型输入框: ' + (docTypeInputResult?.reason || 'unknown')
@@ -89,7 +97,9 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
   console.log('  已点击输入框，等待下拉菜单打开...');
 
   // 直接查找下拉选项
-  const optionResult = await utils.cdpFindDropdownOption(opts.docType as string);
+  const optionResult = await utils.cdpFindDropdownOption(
+    opts.docType as string
+  );
   if (!optionResult?.found) {
     throw new Error('未找到下拉选项: ' + opts.docType);
   }
@@ -200,7 +210,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
 
   // 8. 点击查询按钮
   console.log('8. 点击查询按钮...');
-  const queryBtn = await utils.cdpEvaluate(`
+  const queryBtn = (await utils.cdpEvaluate(`
     (function() {
       var all = document.querySelectorAll('*');
       var candidates = [];
@@ -216,7 +226,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
       candidates.sort(function(a, b) { return b.top - a.top; });
       return { found: true, x: candidates[0].x, y: candidates[0].y };
     })()
-  `) as { found: boolean; x?: number; y?: number };
+  `)) as { found: boolean; x?: number; y?: number };
   if (!queryBtn?.found) {
     throw new Error('查询按钮未找到');
   }
@@ -232,7 +242,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
 
   // 8. 点击导出按钮
   console.log('10. 点击导出按钮...');
-  const exportBtnResult = await utils.cdpEvaluate(`
+  const exportBtnResult = (await utils.cdpEvaluate(`
     (function() {
       var all = document.querySelectorAll('*');
       var candidates = [];
@@ -250,7 +260,7 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
       candidates.sort(function(a, b) { return a.left - b.left; });
       return { found: true, x: candidates[0].x, y: candidates[0].y };
     })()
-  `) as { found: boolean; x?: number; y?: number };
+  `)) as { found: boolean; x?: number; y?: number };
   if (!exportBtnResult?.found) {
     throw new Error('未找到导出按钮');
   }
@@ -265,7 +275,9 @@ export async function exportVatPrepaymentLedger(options: LedgerOptions = {}): Pr
   let popupExportBtn = null;
   for (let attempt = 0; attempt < 10; attempt++) {
     await utils.sleep(500);
-    popupExportBtn = await utils.cdpFindPopupElementByText('导出', { leftMin: 1000 });
+    popupExportBtn = await utils.cdpFindPopupElementByText('导出', {
+      leftMin: 1000,
+    });
     if (popupExportBtn?.found) {
       popupFound = true;
       break;

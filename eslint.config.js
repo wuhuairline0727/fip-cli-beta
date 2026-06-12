@@ -1,10 +1,37 @@
 const js = require('@eslint/js');
+const ts = require('@typescript-eslint/eslint-plugin');
+const tsParser = require('@typescript-eslint/parser');
 const prettier = require('eslint-config-prettier');
 const globals = require('globals');
 
 module.exports = [
+  {
+    files: ['**/*.js'],
+  },
   js.configs.recommended,
   {
+    files: ['**/*.ts'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': ts,
+    },
+    rules: {
+      ...ts.configs.recommended.rules,
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      // TypeScript 已经通过类型系统检查变量定义，关闭 ESLint 的 no-undef
+      'no-undef': 'off',
+    },
+  },
+  {
+    files: ['**/*.js', '**/*.ts'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'commonjs',
@@ -13,14 +40,10 @@ module.exports = [
       },
     },
     rules: {
-      'no-unused-vars': 'warn',
-      // 代码中包含大量通过 CDP 发送到浏览器执行的动态脚本字符串，
-      // 字符串中的反斜杠转义在 ESLint 静态分析中被误判为无用转义，
-      // 实际在浏览器端执行时这些转义是必需的，故关闭此规则。
       'no-useless-escape': 'off',
-      // 现有代码中 Promise executor 使用 async 函数，
-      // 虽为反模式但不影响当前功能，暂不重构业务逻辑。
       'no-async-promise-executor': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
+      'no-empty': 'off',
     },
   },
   prettier,

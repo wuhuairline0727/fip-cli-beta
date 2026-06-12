@@ -42,7 +42,13 @@ program
         success(config.get());
       } else if (value !== undefined) {
         config.set(key, value);
-        success({ key, value, saved: true, config_file: (config as Record<string, unknown>).CONFIG_FILE as string });
+        success({
+          key,
+          value,
+          saved: true,
+          config_file: (config as Record<string, unknown>)
+            .CONFIG_FILE as string,
+        });
       } else {
         success({ key, value: config.get(key) });
       }
@@ -225,50 +231,58 @@ program
   .option('--department <dept>', '设置部门名称')
   .option('--list', '查看本地缓存的组织机构记录')
   .option('--from-cache', '仅从缓存查找，不打开浏览器')
-  .action(async (options: { list?: boolean; set?: string; project?: string; department?: string; fromCache?: boolean }) => {
-    try {
-      // 查看缓存模式
-      if (options.list) {
-        const {
-          listAllRecords,
-          getCacheStats,
-          CACHE_FILE,
-        } = require('../lib/utils/organization-cache');
-        const records = listAllRecords();
-        const stats = getCacheStats();
-        success({
-          cache_file: CACHE_FILE,
-          total_records: stats.totalRecords,
-          last_updated: stats.lastUpdated,
-          unique_organizations: stats.uniqueOrganizations,
-          records: records,
-        });
-        return;
-      }
+  .action(
+    async (options: {
+      list?: boolean;
+      set?: string;
+      project?: string;
+      department?: string;
+      fromCache?: boolean;
+    }) => {
+      try {
+        // 查看缓存模式
+        if (options.list) {
+          const {
+            listAllRecords,
+            getCacheStats,
+            CACHE_FILE,
+          } = require('../lib/utils/organization-cache');
+          const records = listAllRecords();
+          const stats = getCacheStats();
+          success({
+            cache_file: CACHE_FILE,
+            total_records: stats.totalRecords,
+            last_updated: stats.lastUpdated,
+            unique_organizations: stats.uniqueOrganizations,
+            records: records,
+          });
+          return;
+        }
 
-      if (
-        options.set ||
-        options.project ||
-        options.department ||
-        options.fromCache
-      ) {
-        // 切换/查询模式（支持缓存）
-        const result = await fipTyped.switchOrganization({
-          organization: options.set,
-          project: options.project,
-          department: options.department,
-          fromCache: options.fromCache,
-        });
-        success(result);
-      } else {
-        // 查询模式：打开对话框读取信息，自动记录缓存
-        const result = await fipTyped.switchOrganization({});
-        success(result);
+        if (
+          options.set ||
+          options.project ||
+          options.department ||
+          options.fromCache
+        ) {
+          // 切换/查询模式（支持缓存）
+          const result = await fipTyped.switchOrganization({
+            organization: options.set,
+            project: options.project,
+            department: options.department,
+            fromCache: options.fromCache,
+          });
+          success(result);
+        } else {
+          // 查询模式：打开对话框读取信息，自动记录缓存
+          const result = await fipTyped.switchOrganization({});
+          success(result);
+        }
+      } catch (e: any) {
+        error('switch_org_error', e.message);
       }
-    } catch (e: any) {
-      error('switch_org_error', e.message);
     }
-  });
+  );
 
 program
   .command('page-info')
@@ -289,19 +303,29 @@ program
   .option('--left-max <n>', '最大 left 坐标', '9999')
   .option('--top-min <n>', '最小 top 坐标', '0')
   .option('--top-max <n>', '最大 top 坐标', '9999')
-  .action(async (text: string, options: { leftMin: string; leftMax: string; topMin: string; topMax: string }) => {
-    try {
-      const result = await fipTyped.findVisibleElementByText(text, {
-        leftMin: parseInt(options.leftMin),
-        leftMax: parseInt(options.leftMax),
-        topMin: parseInt(options.topMin),
-        topMax: parseInt(options.topMax),
-      });
-      success({ text, found: !!result, coordinates: result });
-    } catch (e: any) {
-      error('find_element_error', e.message);
+  .action(
+    async (
+      text: string,
+      options: {
+        leftMin: string;
+        leftMax: string;
+        topMin: string;
+        topMax: string;
+      }
+    ) => {
+      try {
+        const result = await fipTyped.findVisibleElementByText(text, {
+          leftMin: parseInt(options.leftMin),
+          leftMax: parseInt(options.leftMax),
+          topMin: parseInt(options.topMin),
+          topMax: parseInt(options.topMax),
+        });
+        success({ text, found: !!result, coordinates: result });
+      } catch (e: any) {
+        error('find_element_error', e.message);
+      }
     }
-  });
+  );
 
 program
   .command('wait <ms>')
@@ -370,7 +394,9 @@ program
   .option('--dir <path>', '下载目录', './downloads')
   .action(async (options: { dir: string }) => {
     try {
-      const result = await fipTyped.listAttachments({ downloadDir: options.dir });
+      const result = await fipTyped.listAttachments({
+        downloadDir: options.dir,
+      });
       success(result);
     } catch (e: any) {
       error('list_attachments_error', e.message);
@@ -399,17 +425,19 @@ program
   .description('轮询等待指定文本元素出现（默认超时10秒）')
   .option('--timeout <ms>', '超时毫秒数', '10000')
   .option('--interval <ms>', '轮询间隔毫秒数', '500')
-  .action(async (text: string, options: { timeout: string; interval: string }) => {
-    try {
-      const result = await fipTyped.waitForElement(text, {
-        timeout: parseInt(options.timeout),
-        interval: parseInt(options.interval),
-      });
-      success(result);
-    } catch (e: any) {
-      error('wait_for_element_error', e.message);
+  .action(
+    async (text: string, options: { timeout: string; interval: string }) => {
+      try {
+        const result = await fipTyped.waitForElement(text, {
+          timeout: parseInt(options.timeout),
+          interval: parseInt(options.interval),
+        });
+        success(result);
+      } catch (e: any) {
+        error('wait_for_element_error', e.message);
+      }
     }
-  });
+  );
 
 program
   .command('wait-for-popup')
@@ -430,7 +458,10 @@ program
   .option('--timeout <ms>', '超时毫秒数', '10000')
   .action(async (pattern: string, options: { timeout: string }) => {
     try {
-      const result = await fipTyped.waitForUrl(pattern, parseInt(options.timeout));
+      const result = await fipTyped.waitForUrl(
+        pattern,
+        parseInt(options.timeout)
+      );
       success(result);
     } catch (e: any) {
       error('wait_for_url_error', e.message);
@@ -455,13 +486,20 @@ program
       // WebBridge 返回文件路径
       if (result.data.path && fs.existsSync(result.data.path as string)) {
         fs.copyFileSync(result.data.path as string, outputPath);
-        success({ saved: true, path: outputPath, size: (result.data as { sizeBytes?: number }).sizeBytes });
+        success({
+          saved: true,
+          path: outputPath,
+          size: (result.data as { sizeBytes?: number }).sizeBytes,
+        });
         return;
       }
 
       // 兼容旧版 base64 返回格式
       if (result.data.data) {
-        fs.writeFileSync(outputPath, Buffer.from(result.data.data as string, 'base64'));
+        fs.writeFileSync(
+          outputPath,
+          Buffer.from(result.data.data as string, 'base64')
+        );
         success({
           saved: true,
           path: outputPath,
@@ -487,29 +525,37 @@ program
   .option('--tax-code <code>', '纳税主体税号')
   .option('--void-status <status>', '作废状态 (全部/未作废/已作废)')
   .option('--query-only', '仅查询不导出', false)
-  .action(async (options: {
-    startDate?: string; endDate?: string; startPeriod?: string; endPeriod?: string;
-    companyCode?: string; taxCode?: string; voidStatus?: string; queryOnly: boolean;
-  }) => {
-    try {
-      await fipTyped.ensureConnection();
-      const cfg = config.get() as Record<string, string | undefined>;
-      const args = {
-        startDate: options.startDate || cfg.startDate,
-        endDate: options.endDate || cfg.endDate,
-        startPeriod: options.startPeriod || cfg.startPeriod,
-        endPeriod: options.endPeriod || cfg.endPeriod,
-        companyCode: options.companyCode || cfg.companyCode,
-        taxCode: options.taxCode || cfg.taxCode,
-        voidStatus: options.voidStatus || cfg.voidStatus,
-        queryOnly: options.queryOnly,
-      };
-      const result = await fipTyped.exportUnbilledIncomeLedger(args);
-      success(result);
-    } catch (e: any) {
-      error('export_unbilled_error', e.message);
+  .action(
+    async (options: {
+      startDate?: string;
+      endDate?: string;
+      startPeriod?: string;
+      endPeriod?: string;
+      companyCode?: string;
+      taxCode?: string;
+      voidStatus?: string;
+      queryOnly: boolean;
+    }) => {
+      try {
+        await fipTyped.ensureConnection();
+        const cfg = config.get() as Record<string, string | undefined>;
+        const args = {
+          startDate: options.startDate || cfg.startDate,
+          endDate: options.endDate || cfg.endDate,
+          startPeriod: options.startPeriod || cfg.startPeriod,
+          endPeriod: options.endPeriod || cfg.endPeriod,
+          companyCode: options.companyCode || cfg.companyCode,
+          taxCode: options.taxCode || cfg.taxCode,
+          voidStatus: options.voidStatus || cfg.voidStatus,
+          queryOnly: options.queryOnly,
+        };
+        const result = await fipTyped.exportUnbilledIncomeLedger(args);
+        success(result);
+      } catch (e: any) {
+        error('export_unbilled_error', e.message);
+      }
     }
-  });
+  );
 
 program
   .command('export-input-transfer')
@@ -523,25 +569,31 @@ program
     '单据状态 (全部/制单中/审批中/流程结束/已作废)'
   )
   .option('--query-only', '仅查询不导出', false)
-  .action(async (options: {
-    startPeriod?: string; endPeriod?: string; companyCode?: string; taxCode?: string;
-    docStatus?: string; queryOnly: boolean;
-  }) => {
-    try {
-      const cfg = config.get() as Record<string, string | undefined>;
-      const result = await fipTyped.exportInputTransferLedger({
-        startPeriod: options.startPeriod || cfg.startPeriod,
-        endPeriod: options.endPeriod || cfg.endPeriod,
-        companyCode: options.companyCode || cfg.companyCode,
-        taxCode: options.taxCode || cfg.taxCode,
-        docStatus: options.docStatus || cfg.docStatus,
-        queryOnly: options.queryOnly,
-      });
-      success(result);
-    } catch (e: any) {
-      error('export_input_transfer_error', e.message);
+  .action(
+    async (options: {
+      startPeriod?: string;
+      endPeriod?: string;
+      companyCode?: string;
+      taxCode?: string;
+      docStatus?: string;
+      queryOnly: boolean;
+    }) => {
+      try {
+        const cfg = config.get() as Record<string, string | undefined>;
+        const result = await fipTyped.exportInputTransferLedger({
+          startPeriod: options.startPeriod || cfg.startPeriod,
+          endPeriod: options.endPeriod || cfg.endPeriod,
+          companyCode: options.companyCode || cfg.companyCode,
+          taxCode: options.taxCode || cfg.taxCode,
+          docStatus: options.docStatus || cfg.docStatus,
+          queryOnly: options.queryOnly,
+        });
+        success(result);
+      } catch (e: any) {
+        error('export_input_transfer_error', e.message);
+      }
     }
-  });
+  );
 
 program
   .command('export-output-invoice')
@@ -551,23 +603,29 @@ program
   .option('--company-code <code>', '申请单位编码')
   .option('--seller-code <code>', '销方税号')
   .option('--query-only', '仅查询不导出', false)
-  .action(async (options: {
-    startDate?: string; endDate?: string; companyCode?: string; sellerCode?: string; queryOnly: boolean;
-  }) => {
-    try {
-      const cfg = config.get() as Record<string, string | undefined>;
-      const result = await fipTyped.exportOutputInvoiceLedger({
-        startDate: options.startDate || cfg.startDate,
-        endDate: options.endDate || cfg.endDate,
-        companyCode: options.companyCode || cfg.companyCode,
-        sellerCode: options.sellerCode || cfg.sellerCode,
-        queryOnly: options.queryOnly,
-      });
-      success(result);
-    } catch (e: any) {
-      error('export_output_invoice_error', e.message);
+  .action(
+    async (options: {
+      startDate?: string;
+      endDate?: string;
+      companyCode?: string;
+      sellerCode?: string;
+      queryOnly: boolean;
+    }) => {
+      try {
+        const cfg = config.get() as Record<string, string | undefined>;
+        const result = await fipTyped.exportOutputInvoiceLedger({
+          startDate: options.startDate || cfg.startDate,
+          endDate: options.endDate || cfg.endDate,
+          companyCode: options.companyCode || cfg.companyCode,
+          sellerCode: options.sellerCode || cfg.sellerCode,
+          queryOnly: options.queryOnly,
+        });
+        success(result);
+      } catch (e: any) {
+        error('export_output_invoice_error', e.message);
+      }
     }
-  });
+  );
 
 program
   .command('export-vat-prepayment')
@@ -578,25 +636,31 @@ program
   .option('--tax-code <code>', '纳税主体税号')
   .option('--doc-type <type>', '单据类型 (完税预缴单/预缴计算单)')
   .option('--query-only', '仅查询不导出', false)
-  .action(async (options: {
-    startPeriod?: string; endPeriod?: string; companyCode?: string; taxCode?: string;
-    docType?: string; queryOnly: boolean;
-  }) => {
-    try {
-      const cfg = config.get() as Record<string, string | undefined>;
-      const result = await fipTyped.exportVatPrepaymentLedger({
-        startPeriod: options.startPeriod || cfg.startPeriod,
-        endPeriod: options.endPeriod || cfg.endPeriod,
-        companyCode: options.companyCode || cfg.companyCode,
-        taxCode: options.taxCode || cfg.taxCode,
-        docType: options.docType || cfg.docType,
-        queryOnly: options.queryOnly,
-      });
-      success(result);
-    } catch (e: any) {
-      error('export_vat_prepayment_error', e.message);
+  .action(
+    async (options: {
+      startPeriod?: string;
+      endPeriod?: string;
+      companyCode?: string;
+      taxCode?: string;
+      docType?: string;
+      queryOnly: boolean;
+    }) => {
+      try {
+        const cfg = config.get() as Record<string, string | undefined>;
+        const result = await fipTyped.exportVatPrepaymentLedger({
+          startPeriod: options.startPeriod || cfg.startPeriod,
+          endPeriod: options.endPeriod || cfg.endPeriod,
+          companyCode: options.companyCode || cfg.companyCode,
+          taxCode: options.taxCode || cfg.taxCode,
+          docType: options.docType || cfg.docType,
+          queryOnly: options.queryOnly,
+        });
+        success(result);
+      } catch (e: any) {
+        error('export_vat_prepayment_error', e.message);
+      }
     }
-  });
+  );
 
 program
   .command('export-passenger-transport')
@@ -606,23 +670,29 @@ program
   .option('--company-code <code>', '申请单位编码')
   .option('--tax-code <code>', '纳税主体税号')
   .option('--query-only', '仅查询不导出', false)
-  .action(async (options: {
-    startPeriod?: string; endPeriod?: string; companyCode?: string; taxCode?: string; queryOnly: boolean;
-  }) => {
-    try {
-      const cfg = config.get() as Record<string, string | undefined>;
-      const result = await fipTyped.exportPassengerTransportLedger({
-        startPeriod: options.startPeriod || cfg.startPeriod,
-        endPeriod: options.endPeriod || cfg.endPeriod,
-        companyCode: options.companyCode || cfg.companyCode,
-        taxCode: options.taxCode || cfg.taxCode,
-        queryOnly: options.queryOnly,
-      });
-      success(result);
-    } catch (e: any) {
-      error('export_passenger_transport_error', e.message);
+  .action(
+    async (options: {
+      startPeriod?: string;
+      endPeriod?: string;
+      companyCode?: string;
+      taxCode?: string;
+      queryOnly: boolean;
+    }) => {
+      try {
+        const cfg = config.get() as Record<string, string | undefined>;
+        const result = await fipTyped.exportPassengerTransportLedger({
+          startPeriod: options.startPeriod || cfg.startPeriod,
+          endPeriod: options.endPeriod || cfg.endPeriod,
+          companyCode: options.companyCode || cfg.companyCode,
+          taxCode: options.taxCode || cfg.taxCode,
+          queryOnly: options.queryOnly,
+        });
+        success(result);
+      } catch (e: any) {
+        error('export_passenger_transport_error', e.message);
+      }
     }
-  });
+  );
 
 program
   .command('export-all')
@@ -643,66 +713,86 @@ program
     'unbilled,input-transfer,output-invoice,vat-prepayment,passenger-transport'
   )
   .option('--query-only', '仅查询不导出', false)
-  .action(async (options: {
-    startPeriod?: string; endPeriod?: string; startDate?: string; endDate?: string;
-    companyCode?: string; taxCode?: string; sellerCode?: string; voidStatus?: string;
-    docStatus?: string; docType?: string; ledgers: string; queryOnly: boolean;
-  }) => {
-    try {
-      const cfg = config.get() as Record<string, string | undefined>;
-      const ledgers = options.ledgers.split(',');
-      const results: Record<string, unknown> = {};
-      const ledgerMap: Record<string, string> = {
-        unbilled: 'exportUnbilledIncomeLedger',
-        'input-transfer': 'exportInputTransferLedger',
-        'output-invoice': 'exportOutputInvoiceLedger',
-        'vat-prepayment': 'exportVatPrepaymentLedger',
-        'passenger-transport': 'exportPassengerTransportLedger',
-      };
-      for (const name of ledgers) {
-        const fnName = ledgerMap[name.trim()];
-        if (!fnName || !((fipTyped as unknown as Record<string, unknown>)[fnName])) {
-          results[name] = { error: 'Unknown ledger' };
-          continue;
-        }
-        let params: Record<string, unknown> = { queryOnly: options.queryOnly };
-        if (name.trim() === 'output-invoice') {
-          params = {
-            ...params,
-            startDate: options.startDate || cfg.startDate,
-            endDate: options.endDate || cfg.endDate,
-            companyCode: options.companyCode || cfg.companyCode,
-            sellerCode: options.sellerCode || cfg.sellerCode,
+  .action(
+    async (options: {
+      startPeriod?: string;
+      endPeriod?: string;
+      startDate?: string;
+      endDate?: string;
+      companyCode?: string;
+      taxCode?: string;
+      sellerCode?: string;
+      voidStatus?: string;
+      docStatus?: string;
+      docType?: string;
+      ledgers: string;
+      queryOnly: boolean;
+    }) => {
+      try {
+        const cfg = config.get() as Record<string, string | undefined>;
+        const ledgers = options.ledgers.split(',');
+        const results: Record<string, unknown> = {};
+        const ledgerMap: Record<string, string> = {
+          unbilled: 'exportUnbilledIncomeLedger',
+          'input-transfer': 'exportInputTransferLedger',
+          'output-invoice': 'exportOutputInvoiceLedger',
+          'vat-prepayment': 'exportVatPrepaymentLedger',
+          'passenger-transport': 'exportPassengerTransportLedger',
+        };
+        for (const name of ledgers) {
+          const fnName = ledgerMap[name.trim()];
+          if (
+            !fnName ||
+            !(fipTyped as unknown as Record<string, unknown>)[fnName]
+          ) {
+            results[name] = { error: 'Unknown ledger' };
+            continue;
+          }
+          let params: Record<string, unknown> = {
+            queryOnly: options.queryOnly,
           };
-        } else {
-          params = {
-            ...params,
-            startPeriod: options.startPeriod || cfg.startPeriod,
-            endPeriod: options.endPeriod || cfg.endPeriod,
-            companyCode: options.companyCode || cfg.companyCode,
-            taxCode: options.taxCode || cfg.taxCode,
-          };
+          if (name.trim() === 'output-invoice') {
+            params = {
+              ...params,
+              startDate: options.startDate || cfg.startDate,
+              endDate: options.endDate || cfg.endDate,
+              companyCode: options.companyCode || cfg.companyCode,
+              sellerCode: options.sellerCode || cfg.sellerCode,
+            };
+          } else {
+            params = {
+              ...params,
+              startPeriod: options.startPeriod || cfg.startPeriod,
+              endPeriod: options.endPeriod || cfg.endPeriod,
+              companyCode: options.companyCode || cfg.companyCode,
+              taxCode: options.taxCode || cfg.taxCode,
+            };
+          }
+          if (name.trim() === 'unbilled')
+            params.voidStatus = options.voidStatus || cfg.voidStatus;
+          if (name.trim() === 'input-transfer')
+            params.docStatus = options.docStatus || cfg.docStatus;
+          if (name.trim() === 'vat-prepayment')
+            params.docType = options.docType || cfg.docType;
+          try {
+            const fn = (fipTyped as unknown as Record<string, unknown>)[fnName];
+            const result = await (
+              fn as (
+                params: Record<string, unknown>
+              ) => Promise<Record<string, unknown>>
+            )(params);
+            results[name] = { success: true, ...result };
+          } catch (e: any) {
+            results[name] = { success: false, error: e.message };
+          }
+          await fipTyped.sleep(2000);
         }
-        if (name.trim() === 'unbilled')
-          params.voidStatus = options.voidStatus || cfg.voidStatus;
-        if (name.trim() === 'input-transfer')
-          params.docStatus = options.docStatus || cfg.docStatus;
-        if (name.trim() === 'vat-prepayment')
-          params.docType = options.docType || cfg.docType;
-        try {
-          const fn = (fipTyped as unknown as Record<string, unknown>)[fnName];
-          const result = await (fn as (params: Record<string, unknown>) => Promise<Record<string, unknown>>)(params);
-          results[name] = { success: true, ...result };
-        } catch (e: any) {
-          results[name] = { success: false, error: e.message };
-        }
-        await fipTyped.sleep(2000);
+        success({ executed: ledgers.length, results });
+      } catch (e: any) {
+        error('export_all_error', e.message);
       }
-      success({ executed: ledgers.length, results });
-    } catch (e: any) {
-      error('export_all_error', e.message);
     }
-  });
+  );
 
 program
   .command('examples')
@@ -765,79 +855,88 @@ program
   .option('--format <type>', '报告格式 (text/json/md)', 'text')
   .option('--output <path>', '报告输出文件路径')
   .option('--keep-open', '审核后不关闭单据', false)
-  .action(async (billId: string | undefined, options: {
-    confirmedAmount?: string; attachmentContract?: string; format: string; output?: string; keepOpen: boolean;
-  }) => {
-    try {
-      await fipTyped.ensureConnection();
-
-      // 1. 如果提供了 billId，先打开单据
-      if (billId) {
-        console.log(`打开单据 ${billId}...`);
-        await fipTyped.openBill(billId);
-        await fipTyped.sleep(3000);
+  .action(
+    async (
+      billId: string | undefined,
+      options: {
+        confirmedAmount?: string;
+        attachmentContract?: string;
+        format: string;
+        output?: string;
+        keepOpen: boolean;
       }
+    ) => {
+      try {
+        await fipTyped.ensureConnection();
 
-      // 2. 提取字段
-      console.log('提取单据字段...');
-      const fields = await fipTyped.extractInvoiceFields();
+        // 1. 如果提供了 billId，先打开单据
+        if (billId) {
+          console.log(`打开单据 ${billId}...`);
+          await fipTyped.openBill(billId);
+          await fipTyped.sleep(3000);
+        }
 
-      if (!fields.invoice_no) {
-        throw new Error(
-          '未能从页面提取到单据编号，请确认当前页面是开票单详情页'
-        );
+        // 2. 提取字段
+        console.log('提取单据字段...');
+        const fields = await fipTyped.extractInvoiceFields();
+
+        if (!fields.invoice_no) {
+          throw new Error(
+            '未能从页面提取到单据编号，请确认当前页面是开票单详情页'
+          );
+        }
+
+        console.log(`提取成功: 单据 ${fields.invoice_no}`);
+
+        // 3. 合并人工输入的参数（转为数字）
+        if (options.confirmedAmount) {
+          fields.confirmed_amount = parseFloat(options.confirmedAmount);
+        }
+        if (options.attachmentContract) {
+          fields.attachment_contract_amount = parseFloat(
+            options.attachmentContract
+          );
+        }
+
+        // 4. 执行审核
+        console.log('执行自动核对...');
+        const result = fipTyped.auditInvoice(fields);
+
+        // 5. 生成报告
+        let report: string;
+        if (options.format === 'json') {
+          report = fipTyped.generateAuditJsonReport(result);
+        } else if (options.format === 'md') {
+          report = fipTyped.generateAuditMarkdownReport(result);
+        } else {
+          report = fipTyped.generateAuditTextReport(result);
+        }
+
+        // 6. 输出到文件或控制台
+        if (options.output) {
+          fs.writeFileSync(options.output, report, 'utf8');
+          console.log(`报告已保存: ${options.output}`);
+        }
+
+        // 7. 关闭单据（除非 --keep-open）
+        if (!options.keepOpen) {
+          console.log('关闭单据...');
+          await fipTyped.closeBill();
+        }
+
+        // 8. 返回结果
+        success({
+          invoice_no: result.invoice_no,
+          stats: result.stats,
+          report: options.output ? null : report,
+          output_file: options.output || null,
+          format: options.format,
+        });
+      } catch (e: any) {
+        error('audit_invoice_error', e.message);
       }
-
-      console.log(`提取成功: 单据 ${fields.invoice_no}`);
-
-      // 3. 合并人工输入的参数（转为数字）
-      if (options.confirmedAmount) {
-        fields.confirmed_amount = parseFloat(options.confirmedAmount);
-      }
-      if (options.attachmentContract) {
-        fields.attachment_contract_amount = parseFloat(
-          options.attachmentContract
-        );
-      }
-
-      // 4. 执行审核
-      console.log('执行自动核对...');
-      const result = fipTyped.auditInvoice(fields);
-
-      // 5. 生成报告
-      let report: string;
-      if (options.format === 'json') {
-        report = fipTyped.generateAuditJsonReport(result);
-      } else if (options.format === 'md') {
-        report = fipTyped.generateAuditMarkdownReport(result);
-      } else {
-        report = fipTyped.generateAuditTextReport(result);
-      }
-
-      // 6. 输出到文件或控制台
-      if (options.output) {
-        fs.writeFileSync(options.output, report, 'utf8');
-        console.log(`报告已保存: ${options.output}`);
-      }
-
-      // 7. 关闭单据（除非 --keep-open）
-      if (!options.keepOpen) {
-        console.log('关闭单据...');
-        await fipTyped.closeBill();
-      }
-
-      // 8. 返回结果
-      success({
-        invoice_no: result.invoice_no,
-        stats: result.stats,
-        report: options.output ? null : report,
-        output_file: options.output || null,
-        format: options.format,
-      });
-    } catch (e: any) {
-      error('audit_invoice_error', e.message);
     }
-  });
+  );
 
 program
   .command('extract-bill [billId]')
@@ -845,50 +944,67 @@ program
   .option('--type <type>', '手动指定单据类型 (SLBX/TBX/CFK/CBX)')
   .option('--output <path>', '输出到 JSON 文件')
   .option('--current-page', '仅提取当前页面，不导航', false)
-  .action(async (billId: string | undefined, options: {
-    type?: string; output?: string; currentPage: boolean;
-  }) => {
-    try {
-      await fipTyped.ensureConnection();
-      verbose('extract-bill: billId=', billId, 'type=', options.type);
-
-      if (!options.currentPage && billId) {
-        verbose(`打开单据 ${billId}...`);
-        await fipTyped.openBill(billId);
-        await fipTyped.sleep(3000);
-        // 打开单据后关闭可能出现的弹窗（如审批提醒）
-        await fipTyped.waitAndDismissDialogs(5000, { waitAfterClose: 1500 });
+  .action(
+    async (
+      billId: string | undefined,
+      options: {
+        type?: string;
+        output?: string;
+        currentPage: boolean;
       }
+    ) => {
+      try {
+        await fipTyped.ensureConnection();
+        verbose('extract-bill: billId=', billId, 'type=', options.type);
 
-      verbose('提取单据字段...');
-      const data = await fipTyped.extractBill(billId || '', options.type || null);
-      debug('extract-bill: extracted keys=', Object.keys(data).join(', '));
-
-      verbose('生成审核提示...');
-      const hints = fipTyped.generateBillAuditHints(data, (data as { _meta?: { bill_type?: string } })._meta?.bill_type || '');
-      (data as Record<string, unknown>).audit_hints = hints;
-
-      if (options.output) {
-        fs.writeFileSync(options.output, JSON.stringify(data, null, 2), 'utf8');
-        console.log(`结果已保存: ${options.output}`);
-      }
-
-      // 如果之前打开了单据，提取完成后关闭
-      if (!options.currentPage && billId) {
-        verbose('关闭单据...');
-        try {
-          await fipTyped.closeBill();
-        } catch (closeErr: any) {
-          // 关闭失败不影响提取结果
-          console.log(`关闭单据跳过: ${closeErr.message}`);
+        if (!options.currentPage && billId) {
+          verbose(`打开单据 ${billId}...`);
+          await fipTyped.openBill(billId);
+          await fipTyped.sleep(3000);
+          // 打开单据后关闭可能出现的弹窗（如审批提醒）
+          await fipTyped.waitAndDismissDialogs(5000, { waitAfterClose: 1500 });
         }
-      }
 
-      success(data);
-    } catch (e: any) {
-      error('extract_bill_error', e.message);
+        verbose('提取单据字段...');
+        const data = await fipTyped.extractBill(
+          billId || '',
+          options.type || null
+        );
+        debug('extract-bill: extracted keys=', Object.keys(data).join(', '));
+
+        verbose('生成审核提示...');
+        const hints = fipTyped.generateBillAuditHints(
+          data,
+          (data as { _meta?: { bill_type?: string } })._meta?.bill_type || ''
+        );
+        (data as Record<string, unknown>).audit_hints = hints;
+
+        if (options.output) {
+          fs.writeFileSync(
+            options.output,
+            JSON.stringify(data, null, 2),
+            'utf8'
+          );
+          console.log(`结果已保存: ${options.output}`);
+        }
+
+        // 如果之前打开了单据，提取完成后关闭
+        if (!options.currentPage && billId) {
+          verbose('关闭单据...');
+          try {
+            await fipTyped.closeBill();
+          } catch (closeErr: any) {
+            // 关闭失败不影响提取结果
+            console.log(`关闭单据跳过: ${closeErr.message}`);
+          }
+        }
+
+        success(data);
+      } catch (e: any) {
+        error('extract_bill_error', e.message);
+      }
     }
-  });
+  );
 
 program
   .command('doctor')

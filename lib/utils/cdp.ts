@@ -1,10 +1,7 @@
 import CDP from 'chrome-remote-interface';
 
 export interface Runtime {
-  evaluate(options: {
-    expression: string;
-    returnByValue?: boolean;
-  }): Promise<{
+  evaluate(options: { expression: string; returnByValue?: boolean }): Promise<{
     result?: {
       value?: unknown;
       type?: string;
@@ -28,8 +25,10 @@ export interface CDPClient {
   close(): Promise<void>;
 }
 
-export async function withCDP<T>(callback: (Runtime: Runtime, Input: Input) => Promise<T>): Promise<T> {
-  const client = await CDP({ port: 9222 }) as CDPClient;
+export async function withCDP<T>(
+  callback: (Runtime: Runtime, Input: Input) => Promise<T>
+): Promise<T> {
+  const client = (await CDP({ port: 9222 })) as CDPClient;
   try {
     return await callback(client.Runtime, client.Input);
   } finally {
@@ -44,10 +43,26 @@ export interface ClickResult {
   reason?: string;
 }
 
-export async function cdpClick(x: number, y: number, sleepMs = 1000): Promise<ClickResult> {
+export async function cdpClick(
+  x: number,
+  y: number,
+  sleepMs = 1000
+): Promise<ClickResult> {
   return withCDP(async (Runtime, Input) => {
-    await Input.dispatchMouseEvent({ type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
-    await Input.dispatchMouseEvent({ type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
+    await Input.dispatchMouseEvent({
+      type: 'mousePressed',
+      x,
+      y,
+      button: 'left',
+      clickCount: 1,
+    });
+    await Input.dispatchMouseEvent({
+      type: 'mouseReleased',
+      x,
+      y,
+      button: 'left',
+      clickCount: 1,
+    });
     await Runtime.evaluate({
       expression: `
         (function() {
@@ -79,8 +94,13 @@ export async function cdpEvaluateAndClick(
   const { sleepMs = 1000, returnKey = 'found', log } = options;
 
   return withCDP(async (Runtime, Input) => {
-    const evalResult = await Runtime.evaluate({ expression, returnByValue: true });
-    const value = evalResult?.result?.value as Record<string, unknown> | undefined;
+    const evalResult = await Runtime.evaluate({
+      expression,
+      returnByValue: true,
+    });
+    const value = evalResult?.result?.value as
+      | Record<string, unknown>
+      | undefined;
 
     if (!value || value[returnKey] !== true) {
       return { clicked: false, reason: 'not_found' };
@@ -91,8 +111,20 @@ export async function cdpEvaluateAndClick(
     }
 
     const { x, y } = value as { x: number; y: number };
-    await Input.dispatchMouseEvent({ type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
-    await Input.dispatchMouseEvent({ type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
+    await Input.dispatchMouseEvent({
+      type: 'mousePressed',
+      x,
+      y,
+      button: 'left',
+      clickCount: 1,
+    });
+    await Input.dispatchMouseEvent({
+      type: 'mouseReleased',
+      x,
+      y,
+      button: 'left',
+      clickCount: 1,
+    });
 
     if (sleepMs > 0) {
       await new Promise((resolve) => setTimeout(resolve, sleepMs));
@@ -115,8 +147,21 @@ export interface FindElementResult {
   y?: number;
 }
 
-export async function cdpFindElementByText(text: string, constraints: { leftMin?: number; leftMax?: number; topMin?: number; topMax?: number } = {}): Promise<FindElementResult> {
-  const { leftMin = 0, leftMax = 9999, topMin = 0, topMax = 9999 } = constraints;
+export async function cdpFindElementByText(
+  text: string,
+  constraints: {
+    leftMin?: number;
+    leftMax?: number;
+    topMin?: number;
+    topMax?: number;
+  } = {}
+): Promise<FindElementResult> {
+  const {
+    leftMin = 0,
+    leftMax = 9999,
+    topMin = 0,
+    topMax = 9999,
+  } = constraints;
   return cdpEvaluate(`
     (function() {
       var all = document.querySelectorAll('*');
@@ -135,7 +180,9 @@ export async function cdpFindElementByText(text: string, constraints: { leftMin?
   `) as Promise<FindElementResult>;
 }
 
-export async function cdpFindPickerButtonByInputId(inputId: string): Promise<FindElementResult & { reason?: string }> {
+export async function cdpFindPickerButtonByInputId(
+  inputId: string
+): Promise<FindElementResult & { reason?: string }> {
   return cdpEvaluate(`
     (function() {
       var allInputs = document.querySelectorAll('input');
@@ -163,7 +210,9 @@ export async function cdpFindPickerButtonByInputId(inputId: string): Promise<Fin
   `) as Promise<FindElementResult & { reason?: string }>;
 }
 
-export async function cdpFindDropdownOption(text: string): Promise<FindElementResult> {
+export async function cdpFindDropdownOption(
+  text: string
+): Promise<FindElementResult> {
   return cdpEvaluate(`
     (function() {
       var items = document.querySelectorAll('.FD26IYC-S-a');
@@ -190,7 +239,10 @@ export async function cdpFindDropdownOption(text: string): Promise<FindElementRe
   `) as Promise<FindElementResult>;
 }
 
-export async function cdpFindPopupElementByText(text: string, constraints: { leftMin?: number; leftMax?: number } = {}): Promise<FindElementResult & { reason?: string }> {
+export async function cdpFindPopupElementByText(
+  text: string,
+  constraints: { leftMin?: number; leftMax?: number } = {}
+): Promise<FindElementResult & { reason?: string }> {
   const { leftMin = 0, leftMax = 9999 } = constraints;
   return cdpEvaluate(`
     (function() {
