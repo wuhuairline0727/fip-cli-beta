@@ -99,7 +99,8 @@ describe('bills/config/index', () => {
         'TBX',
         'CFK',
         'CBX',
-        'YJK'
+        'YJK',
+        'KP'
       );
     });
   });

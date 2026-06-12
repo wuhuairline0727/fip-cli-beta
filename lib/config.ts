@@ -88,7 +88,7 @@ export function saveConfig(config: Record<string, unknown>): void {
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
 }
 
-export function get(key?: string): unknown {
+function _get(key?: string): unknown {
   const config = loadConfig();
   if (key) {
     return config[key];
@@ -99,7 +99,7 @@ export function get(key?: string): unknown {
   };
 }
 
-export function set(key: string, value: unknown): FipConfig {
+function _set(key: string, value: unknown): FipConfig {
   const error = validateConfigValue(key, value);
   if (error) {
     throw new Error(`配置验证失败: ${error}`);
@@ -108,4 +108,38 @@ export function set(key: string, value: unknown): FipConfig {
   config[key] = value;
   saveConfig(config);
   return config;
+}
+
+// 使用 Object.defineProperty 定义导出，使属性可配置（便于测试 stub）
+// 先删除 TypeScript 编译器自动生成的不可配置属性
+try {
+  delete (exports as any).get;
+  Object.defineProperty(exports, 'get', {
+    value: _get,
+    enumerable: true,
+    configurable: true,
+    writable: true,
+  });
+} catch (e) {
+  // 如果删除失败，直接赋值
+  (exports as any).get = _get;
+}
+
+try {
+  delete (exports as any).set;
+  Object.defineProperty(exports, 'set', {
+    value: _set,
+    enumerable: true,
+    configurable: true,
+    writable: true,
+  });
+} catch (e) {
+  // 如果删除失败，直接赋值
+  (exports as any).set = _set;
+}
+
+// 确保 module.exports 也同步
+if (module.exports !== exports) {
+  (module.exports as any).get = _get;
+  (module.exports as any).set = _set;
 }

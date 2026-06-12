@@ -1,8 +1,6 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-
-const utilsPath = require.resolve('../../../lib/utils/index');
-const configPath = require.resolve('../../../lib/config');
+import proxyquire from 'proxyquire';
 
 function createFakeUtils(sinonInstance: typeof sinon) {
   return {
@@ -75,50 +73,33 @@ function createFakeUtils(sinonInstance: typeof sinon) {
 
 describe('ledgers/vat-prepayment', () => {
   let ledger: any;
-  let configStub: sinon.SinonStub;
+  let configGetCalled: boolean;
   let fakeUtils: any;
-  let originalUtilsModule: any;
 
   beforeEach(() => {
-    delete require.cache[
-      require.resolve('../../../lib/ledgers/vat-prepayment')
-    ];
-    delete require.cache[utilsPath];
-    delete require.cache[configPath];
-
-    originalUtilsModule = require.cache[utilsPath];
-
+    configGetCalled = false;
     fakeUtils = createFakeUtils(sinon);
-    require.cache[utilsPath] = {
-      id: utilsPath,
-      filename: utilsPath,
-      loaded: true,
-      exports: fakeUtils,
-    } as any;
 
-    const config = require('../../../lib/config');
-    configStub = sinon.stub(config, 'get').returns({
-      startPeriod: '2026-05',
-      endPeriod: '2026-05',
-      companyCode: '9999999999999999',
-      taxCode: '91110000101107173B',
-      docType: '预缴计算单',
+    ledger = proxyquire('../../../lib/ledgers/vat-prepayment', {
+      '../config': {
+        get: () => {
+          configGetCalled = true;
+          return {
+            startPeriod: '2026-05',
+            endPeriod: '2026-05',
+            companyCode: '9999999999999999',
+            taxCode: '91110000101107173B',
+            docType: '预缴计算单',
+          };
+        },
+        CONFIG_FILE: '/fake/.fiprc.json',
+      },
+      '../utils/index': fakeUtils,
     });
-
-    ledger = require('../../../lib/ledgers/vat-prepayment');
   });
 
   afterEach(() => {
     sinon.restore();
-    if (originalUtilsModule) {
-      require.cache[utilsPath] = originalUtilsModule;
-    } else {
-      delete require.cache[utilsPath];
-    }
-    delete require.cache[configPath];
-    delete require.cache[
-      require.resolve('../../../lib/ledgers/vat-prepayment')
-    ];
   });
 
   it('should export exportVatPrepaymentLedger function', () => {
@@ -127,7 +108,7 @@ describe('ledgers/vat-prepayment', () => {
 
   it('should use config defaults including docType', async () => {
     const result = await ledger.exportVatPrepaymentLedger({ queryOnly: true });
-    expect(configStub.called).to.equal(true);
+    expect(configGetCalled).to.equal(true);
     expect(result.queried).to.equal(true);
     expect(result.options.docType).to.equal('预缴计算单');
   });
@@ -137,7 +118,7 @@ describe('ledgers/vat-prepayment', () => {
       docType: '增值税预缴',
       queryOnly: true,
     });
-    expect(configStub.called).to.equal(true);
+    expect(configGetCalled).to.equal(true);
     expect(result.queried).to.equal(true);
     expect(result.options.docType).to.equal('增值税预缴');
   });

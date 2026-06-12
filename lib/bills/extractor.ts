@@ -159,11 +159,13 @@ export function parseAmount(str: string | null | undefined): number | null {
 
 /**
  * 将正则对象序列化为可在代码字符串中使用的字面量字符串
+ * 注意：toString() 返回的字符串中反斜杠已被转义一次，
+ * 拼接到模板字符串时会被再次处理，因此需要额外转义
  * @param regex - 正则表达式
  * @returns 序列化后的字符串
  */
 function regexToString(regex: RegExp): string {
-  return regex.toString();
+  return regex.toString().replace(/\\/g, '\\\\');
 }
 
 /**
@@ -306,6 +308,23 @@ export function buildExtractionCode(config: BillConfig): string {
       pageText = bestContainer.innerText || '';
     }
   }
+  // 如果仍然太短，收集所有可见元素的 textContent
+  if (pageText.length < 5000) {
+    const allTexts = [];
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    while ((node = walker.nextNode())) {
+      const parent = node.parentElement;
+      if (parent) {
+        const rect = parent.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          const text = node.textContent || '';
+          if (text.trim()) allTexts.push(text.trim());
+        }
+      }
+    }
+    pageText = allTexts.join('\\n');
+  }
 
   // === 1. 基础字段（innerText 正则） ===
   const basePatterns = {
@@ -333,14 +352,25 @@ ${inputFieldsEntries}
         value = el.value || el.textContent || null;
       }
     } else if (spec.byLabel) {
+      // 策略1: 查找标准 label 标签
       const labels = Array.from(document.querySelectorAll('label'));
-      const targetLabel = labels.find(l => {
+      let targetLabel = labels.find(l => {
         const text = (l.textContent || '').replace(/[：:]/g, '').trim();
         // 兼容带 * 前缀的必填标记（如 *报销事由）
-        const textWithoutStar = text.replace(/^\*/, '').trim();
+        const textWithoutStar = text.replace(new RegExp('^\\\\*'), '').trim();
         return text === spec.byLabel || textWithoutStar === spec.byLabel;
       });
+      // 策略2: 查找所有包含标签文本的元素（div, span, td, th 等）
+      if (!targetLabel) {
+        const allEls = Array.from(document.querySelectorAll('*'));
+        targetLabel = allEls.find(el => {
+          const text = (el.textContent || '').replace(/[：:]/g, '').trim();
+          const textWithoutStar = text.replace(new RegExp('^\\\\*'), '').trim();
+          return text === spec.byLabel || textWithoutStar === spec.byLabel;
+        });
+      }
       if (targetLabel) {
+        // 策略A: 在父级链中查找 input/textarea/select
         let parent = targetLabel.parentElement;
         let inputEl = null;
         while (parent && !inputEl) {
@@ -348,6 +378,32 @@ ${inputFieldsEntries}
           if (!inputEl) {
             parent = parent.parentElement;
           }
+        }
+        // 策略B: 如果策略A失败，查找相邻的 input 元素
+        if (!inputEl) {
+          const siblings = Array.from(targetLabel.parentElement?.children || []);
+          const labelIdx = siblings.indexOf(targetLabel);
+          for (let i = labelIdx + 1; i < siblings.length && i < labelIdx + 5; i++) {
+            const sib = siblings[i];
+            const found = sib.querySelector('input, textarea, select') ||
+                          (sib.tagName === 'INPUT' || sib.tagName === 'TEXTAREA' || sib.tagName === 'SELECT' ? sib : null);
+            if (found) {
+              inputEl = found;
+              break;
+            }
+          }
+        }
+        // 策略C: 如果仍然失败，在整个文档中查找 id 或 name 包含标签关键词的 input
+        if (!inputEl) {
+          const keyword = spec.byLabel.replace(new RegExp('^\\\\*'), '').trim();
+          const allInputs = Array.from(document.querySelectorAll('input, textarea, select'));
+          inputEl = allInputs.find(inp => {
+            const id = (inp.id || '').toLowerCase();
+            const name = (inp.getAttribute('name') || '').toLowerCase();
+            const placeholder = (inp.getAttribute('placeholder') || '').toLowerCase();
+            const kw = keyword.toLowerCase();
+            return id.includes(kw) || name.includes(kw) || placeholder.includes(kw);
+          }) || null;
         }
         if (inputEl) {
           value = inputEl.value || inputEl.textContent || null;
@@ -362,8 +418,16 @@ ${inputFieldsEntries}
     ${tablesArray}
   ];
   for (const tableDef of tables) {
+    // 策略1: 先尝试用 GWT 类名前缀查找
     const gwtPrefix = _filterConfig.gwtClassPrefix || 'FD26IYC';
-    const rows = Array.from(document.querySelectorAll('tr[class*="' + gwtPrefix + '"]'));
+    let rows = Array.from(document.querySelectorAll('tr[class*="' + gwtPrefix + '"]'));
+    // 策略2: 如果 GWT 类名没找到，使用所有可见的 tr
+    if (rows.length === 0) {
+      rows = Array.from(document.querySelectorAll('tr')).filter(r => {
+        const rect = r.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      });
+    }
     let matchedRows = [];
     for (const row of rows) {
       const rect = row.getBoundingClientRect();
@@ -548,6 +612,39 @@ ${inputFieldsEntries}
 }
 
 /**
+ * 从当前页面 DOM 中提取单据编号
+ * @returns 单据编号或 null
+ */
+async function detectBillIdFromPage(): Promise<string | null> {
+  const result = await evaluate(`
+    (function() {
+      var all = document.querySelectorAll('*');
+      for (var i = 0; i < all.length; i++) {
+        var text = all[i].textContent.trim();
+        var match = text.match(/(SLBX|CFK|KP|JKD|TBX|CBX|YJK)\\d+/);
+        if (match) {
+          return match[0];
+        }
+      }
+      var inputs = document.querySelectorAll('input');
+      for (var j = 0; j < inputs.length; j++) {
+        var val = inputs[j].value || '';
+        var match2 = val.match(/(SLBX|CFK|KP|JKD|TBX|CBX|YJK)\\d+/);
+        if (match2) {
+          return match2[0];
+        }
+      }
+      var titleMatch = document.title.match(/(SLBX|CFK|KP|JKD|TBX|CBX|YJK)\\d+/);
+      if (titleMatch) {
+        return titleMatch[0];
+      }
+      return null;
+    })()
+  `);
+  return result.data?.value || null;
+}
+
+/**
  * 提取单据数据（主入口）
  * @param billId - 单据编号
  * @param billType - 单据类型（可选，自动识别）
@@ -557,6 +654,15 @@ export async function extractBill(
   billId: string,
   billType?: string | null
 ): Promise<Record<string, unknown>> {
+  // 如果 billId 为空，尝试从当前页面自动提取
+  if (!billId || billId.trim() === '') {
+    const detectedId = await detectBillIdFromPage();
+    if (detectedId) {
+      debug('extractBill: auto-detected billId from page=', detectedId);
+      billId = detectedId;
+    }
+  }
+
   if (!billType) {
     billType = detectBillType(billId);
   }

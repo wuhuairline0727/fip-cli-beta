@@ -1,8 +1,6 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-
-const utilsPath = require.resolve('../../../lib/utils/index');
-const configPath = require.resolve('../../../lib/config');
+import proxyquire from 'proxyquire';
 
 function createFakeUtils(sinonInstance: typeof sinon) {
   return {
@@ -57,49 +55,32 @@ function createFakeUtils(sinonInstance: typeof sinon) {
 
 describe('ledgers/output-invoice', () => {
   let ledger: any;
-  let configStub: sinon.SinonStub;
+  let configGetCalled: boolean;
   let fakeUtils: any;
-  let originalUtilsModule: any;
 
   beforeEach(() => {
-    delete require.cache[
-      require.resolve('../../../lib/ledgers/output-invoice')
-    ];
-    delete require.cache[utilsPath];
-    delete require.cache[configPath];
-
-    originalUtilsModule = require.cache[utilsPath];
-
+    configGetCalled = false;
     fakeUtils = createFakeUtils(sinon);
-    require.cache[utilsPath] = {
-      id: utilsPath,
-      filename: utilsPath,
-      loaded: true,
-      exports: fakeUtils,
-    } as any;
 
-    const config = require('../../../lib/config');
-    configStub = sinon.stub(config, 'get').returns({
-      startDate: '2026-05-01',
-      endDate: '2026-05-31',
-      companyCode: '9999999999999999',
-      sellerCode: '91110000101107173B',
+    ledger = proxyquire('../../../lib/ledgers/output-invoice', {
+      '../config': {
+        get: () => {
+          configGetCalled = true;
+          return {
+            startDate: '2026-05-01',
+            endDate: '2026-05-31',
+            companyCode: '9999999999999999',
+            sellerCode: '91110000101107173B',
+          };
+        },
+        CONFIG_FILE: '/fake/.fiprc.json',
+      },
+      '../utils/index': fakeUtils,
     });
-
-    ledger = require('../../../lib/ledgers/output-invoice');
   });
 
   afterEach(() => {
     sinon.restore();
-    if (originalUtilsModule) {
-      require.cache[utilsPath] = originalUtilsModule;
-    } else {
-      delete require.cache[utilsPath];
-    }
-    delete require.cache[configPath];
-    delete require.cache[
-      require.resolve('../../../lib/ledgers/output-invoice')
-    ];
   });
 
   it('should export exportOutputInvoiceLedger function', () => {
@@ -108,7 +89,7 @@ describe('ledgers/output-invoice', () => {
 
   it('should use config defaults for date range', async () => {
     const result = await ledger.exportOutputInvoiceLedger({ queryOnly: true });
-    expect(configStub.called).to.equal(true);
+    expect(configGetCalled).to.equal(true);
     expect(result.queried).to.equal(true);
     expect(result.options.startDate).to.equal('2026-05-01');
     expect(result.options.endDate).to.equal('2026-05-31');
@@ -124,7 +105,7 @@ describe('ledgers/output-invoice', () => {
       sellerCode: '91110000101638302P',
       queryOnly: true,
     });
-    expect(configStub.called).to.equal(true);
+    expect(configGetCalled).to.equal(true);
     expect(result.queried).to.equal(true);
     expect(result.options.startDate).to.equal('2026-01-01');
     expect(result.options.endDate).to.equal('2026-12-31');

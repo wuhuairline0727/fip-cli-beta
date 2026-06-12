@@ -1,8 +1,6 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-
-const utilsPath = require.resolve('../../../lib/utils/index');
-const configPath = require.resolve('../../../lib/config');
+import proxyquire from 'proxyquire';
 
 function createFakeUtils(sinonInstance: typeof sinon) {
   return {
@@ -57,49 +55,32 @@ function createFakeUtils(sinonInstance: typeof sinon) {
 
 describe('ledgers/passenger-transport', () => {
   let ledger: any;
-  let configStub: sinon.SinonStub;
+  let configGetCalled: boolean;
   let fakeUtils: any;
-  let originalUtilsModule: any;
 
   beforeEach(() => {
-    delete require.cache[
-      require.resolve('../../../lib/ledgers/passenger-transport')
-    ];
-    delete require.cache[utilsPath];
-    delete require.cache[configPath];
-
-    originalUtilsModule = require.cache[utilsPath];
-
+    configGetCalled = false;
     fakeUtils = createFakeUtils(sinon);
-    require.cache[utilsPath] = {
-      id: utilsPath,
-      filename: utilsPath,
-      loaded: true,
-      exports: fakeUtils,
-    } as any;
 
-    const config = require('../../../lib/config');
-    configStub = sinon.stub(config, 'get').returns({
-      startPeriod: '2026-05',
-      endPeriod: '2026-05',
-      companyCode: '9999999999999999',
-      taxCode: '91110000101107173B',
+    ledger = proxyquire('../../../lib/ledgers/passenger-transport', {
+      '../config': {
+        get: () => {
+          configGetCalled = true;
+          return {
+            startPeriod: '2026-05',
+            endPeriod: '2026-05',
+            companyCode: '9999999999999999',
+            taxCode: '91110000101107173B',
+          };
+        },
+        CONFIG_FILE: '/fake/.fiprc.json',
+      },
+      '../utils/index': fakeUtils,
     });
-
-    ledger = require('../../../lib/ledgers/passenger-transport');
   });
 
   afterEach(() => {
     sinon.restore();
-    if (originalUtilsModule) {
-      require.cache[utilsPath] = originalUtilsModule;
-    } else {
-      delete require.cache[utilsPath];
-    }
-    delete require.cache[configPath];
-    delete require.cache[
-      require.resolve('../../../lib/ledgers/passenger-transport')
-    ];
   });
 
   it('should export exportPassengerTransportLedger function', () => {
@@ -110,7 +91,7 @@ describe('ledgers/passenger-transport', () => {
     const result = await ledger.exportPassengerTransportLedger({
       queryOnly: true,
     });
-    expect(configStub.called).to.equal(true);
+    expect(configGetCalled).to.equal(true);
     expect(result.queried).to.equal(true);
     expect(result.options.startPeriod).to.equal('2026-05');
     expect(result.options.endPeriod).to.equal('2026-05');
@@ -126,7 +107,7 @@ describe('ledgers/passenger-transport', () => {
       taxCode: '91110000101638302P',
       queryOnly: true,
     });
-    expect(configStub.called).to.equal(true);
+    expect(configGetCalled).to.equal(true);
     expect(result.queried).to.equal(true);
     expect(result.options.startPeriod).to.equal('2026-01');
     expect(result.options.endPeriod).to.equal('2026-12');

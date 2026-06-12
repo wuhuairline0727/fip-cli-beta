@@ -18,6 +18,11 @@ interface BillTypeMeta {
 
 // === 类型元数据映射 ===
 export const BILL_TYPE_MAP: Record<string, BillTypeMeta> = {
+  KP: {
+    name: '开票申请单',
+    codePrefix: 'KP',
+    configFile: 'invoice-application',
+  },
   SLBX: {
     name: '境内差旅报销单',
     codePrefix: 'SLBX',

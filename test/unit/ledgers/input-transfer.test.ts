@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
+import proxyquire from 'proxyquire';
 
 const utilsPath = require.resolve('../../../lib/utils/index');
 const configPath = require.resolve('../../../lib/config');
@@ -57,55 +58,34 @@ function createFakeUtils(sinonInstance: typeof sinon) {
 
 describe('ledgers/input-transfer', () => {
   let ledger: any;
-  let configStub: sinon.SinonStub;
+  let configGetCalled: boolean;
   let fakeUtils: any;
-  let originalUtilsModule: any;
 
   beforeEach(() => {
-    // 清除缓存
-    delete require.cache[
-      require.resolve('../../../lib/ledgers/input-transfer')
-    ];
-    delete require.cache[utilsPath];
-    delete require.cache[configPath];
-
-    // 保存原始模块
-    originalUtilsModule = require.cache[utilsPath];
-
-    // 创建 fake utils
+    configGetCalled = false;
     fakeUtils = createFakeUtils(sinon);
-    require.cache[utilsPath] = {
-      id: utilsPath,
-      filename: utilsPath,
-      loaded: true,
-      exports: fakeUtils,
-    } as any;
 
-    // 模拟 config
-    const config = require('../../../lib/config');
-    configStub = sinon.stub(config, 'get').returns({
-      startPeriod: '2026-05',
-      endPeriod: '2026-05',
-      companyCode: '9999999999999999',
-      taxCode: '91110000101107173B',
-      docStatus: '审批中',
+    // 使用 proxyquire 模拟 config 和 utils
+    ledger = proxyquire('../../../lib/ledgers/input-transfer', {
+      '../config': {
+        get: () => {
+          configGetCalled = true;
+          return {
+            startPeriod: '2026-05',
+            endPeriod: '2026-05',
+            companyCode: '9999999999999999',
+            taxCode: '91110000101107173B',
+            docStatus: '审批中',
+          };
+        },
+        CONFIG_FILE: '/fake/.fiprc.json',
+      },
+      '../utils/index': fakeUtils,
     });
-
-    ledger = require('../../../lib/ledgers/input-transfer');
   });
 
   afterEach(() => {
     sinon.restore();
-    // 恢复原始模块
-    if (originalUtilsModule) {
-      require.cache[utilsPath] = originalUtilsModule;
-    } else {
-      delete require.cache[utilsPath];
-    }
-    delete require.cache[configPath];
-    delete require.cache[
-      require.resolve('../../../lib/ledgers/input-transfer')
-    ];
   });
 
   it('should export exportInputTransferLedger function', () => {
@@ -114,7 +94,7 @@ describe('ledgers/input-transfer', () => {
 
   it('should use config defaults when no options provided', async () => {
     const result = await ledger.exportInputTransferLedger({ queryOnly: true });
-    expect(configStub.called).to.equal(true);
+    expect(configGetCalled).to.equal(true);
     expect(result.queried).to.equal(true);
     expect(result.options.startPeriod).to.equal('2026-05');
     expect(result.options.endPeriod).to.equal('2026-05');
@@ -132,7 +112,7 @@ describe('ledgers/input-transfer', () => {
       docStatus: '流程结束',
       queryOnly: true,
     });
-    expect(configStub.called).to.equal(true);
+    expect(configGetCalled).to.equal(true);
     expect(result.queried).to.equal(true);
     expect(result.options.startPeriod).to.equal('2026-06');
     expect(result.options.endPeriod).to.equal('2026-06');
