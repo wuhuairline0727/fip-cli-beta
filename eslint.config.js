@@ -6,6 +6,9 @@ const globals = require('globals');
 
 module.exports = [
   {
+    ignores: ['**/*.d.ts', 'node_modules/**', 'dist/**'],
+  },
+  {
     files: ['**/*.js'],
   },
   js.configs.recommended,
@@ -23,7 +26,7 @@ module.exports = [
     rules: {
       ...ts.configs.recommended.rules,
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       // TypeScript 已经通过类型系统检查变量定义，关闭 ESLint 的 no-undef
@@ -44,6 +47,12 @@ module.exports = [
       'no-async-promise-executor': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
       'no-empty': 'off',
+    },
+  },
+  {
+    files: ['test/**/*.test.ts'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' }],
     },
   },
   prettier,

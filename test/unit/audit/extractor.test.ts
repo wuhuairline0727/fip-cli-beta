@@ -1,8 +1,7 @@
 import { expect } from 'chai';
+import * as extractor from '../../../lib/audit/extractor';
 
 describe('audit/extractor', () => {
-  const extractor = require('../../../lib/audit/extractor');
-
   it('should export extractInvoiceFields function', () => {
     expect(extractor.extractInvoiceFields).to.be.a('function');
   });

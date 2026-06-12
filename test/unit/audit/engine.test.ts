@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import * as fs from 'fs';
 
 describe('audit/engine', () => {
   let engine: any;

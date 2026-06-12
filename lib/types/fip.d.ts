@@ -570,4 +570,4 @@ export interface FipAPI {
 }
 
 declare const fip: FipAPI;
-export = fip;
+export default fip;

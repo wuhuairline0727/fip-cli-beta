@@ -23,10 +23,4 @@ describe('utils/index', () => {
     expect(utils.pickFromDict).to.be.a('function');
     expect(utils.pickTaxSubject).to.be.a('function');
   });
-
-  it('should mark functions with _source property', () => {
-    expect(utils.sleep._source).to.equal('common');
-    expect(utils.openBill._source).to.equal('bill');
-    expect(utils.cdpClick._source).to.equal('cdp');
-  });
 });

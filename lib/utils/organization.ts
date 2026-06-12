@@ -18,56 +18,32 @@
 
 import { evaluate } from '../browser';
 import { debug } from '../logger';
+import { GWT, ANT } from '../selectors';
 import {
   addOrganizationRecord,
   findOrganization,
   getCacheStats,
   type OrganizationRecord,
-  type CacheStats,
 } from './organization-cache';
-import type {
-  ClickResult,
-  EvaluateAndClickOptions,
-  FindElementResult,
+import {
+  cdpEvaluate,
+  cdpClick,
+  cdpFindPickerButtonByInputId,
+  cdpFindPopupElementByText,
+  cdpEvaluateAndClick,
 } from './cdp';
-
-// CDP 工具（用于真实鼠标点击）
-interface CDPUtils {
-  cdpEvaluate(expression: string): Promise<unknown>;
-  cdpClick(x: number, y: number, sleepMs?: number): Promise<ClickResult>;
-  cdpFindPickerButtonByInputId(
-    inputId: string
-  ): Promise<FindElementResult & { reason?: string }>;
-  cdpFindPopupElementByText(
-    text: string,
-    constraints?: { leftMin?: number; leftMax?: number }
-  ): Promise<FindElementResult & { reason?: string }>;
-  cdpEvaluateAndClick(
-    expression: string,
-    options?: EvaluateAndClickOptions
-  ): Promise<ClickResult | { clicked: false; reason: string }>;
-}
-
-let cdpUtils: CDPUtils | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  cdpUtils = require('./cdp') as CDPUtils;
-} catch (e) {
-  cdpUtils = null;
-}
 
 const SWITCH_ORG_IMG_SRC = 'qhzz';
 const DIALOG_WRAP_SELECTOR =
-  '.ant-modal-wrap.CscecFormWindow, .ant-modal-wrap.FormWindow';
+  `${ANT.MODAL_WRAP}.CscecFormWindow, ${ANT.MODAL_WRAP}.FormWindow`;
 const DIALOG_SELECTOR =
-  '.ant-modal.CscecFormWindow, .ant-modal.FormWindow, .ant-modal-content';
-const DIALOG_TITLE_SELECTOR = '.ant-modal-title';
-const CLOSE_BTN_SELECTOR = '.ant-modal-close';
+  `${ANT.MODAL}.CscecFormWindow, ${ANT.MODAL}.FormWindow, ${ANT.MODAL_CONTENT}`;
+const DIALOG_TITLE_SELECTOR = ANT.MODAL_TITLE;
+const CLOSE_BTN_SELECTOR = ANT.MODAL_CLOSE;
 
 // 选择弹窗相关 class（经真实浏览器验证）
-const PICKER_POPUP_SELECTOR = '.FD26IYC-a-g';
-const PICKER_BTN_SELECTOR = 'div.FD26IYC-w-l';
-const BUTTON_CLASS = 'FD26IYC-D-d FD26IYC-D-o';
+const PICKER_POPUP_SELECTOR = GWT.POPUP;
+const PICKER_BTN_SELECTOR = GWT.PICKER_BTN;
 
 interface DialogField {
   id: string;
@@ -412,15 +388,11 @@ async function closeSwitchOrgDialog(
 ): Promise<boolean> {
   debug('closeSwitchOrgDialog: action=', action);
 
-  if (!cdpUtils) {
-    throw new Error('CDP 工具不可用，无法关闭对话框');
-  }
-
   const targetText = action === 'cancel' ? '取消' : '确定';
 
   // 使用 CDP 查找对话框中的按钮并真实点击
   // 策略：在对话框区域内查找包含目标文本的元素，选择 y 坐标最大的（最下面的）
-  const btnResult = (await cdpUtils.cdpEvaluate(`
+  const btnResult = (await cdpEvaluate(`
     (function() {
       var modal = document.querySelector('${DIALOG_WRAP_SELECTOR}');
       if (!modal) return { found: false, reason: 'dialog_not_found' };
@@ -451,7 +423,7 @@ async function closeSwitchOrgDialog(
     btnResult.x !== undefined &&
     btnResult.y !== undefined
   ) {
-    await cdpUtils.cdpClick(btnResult.x, btnResult.y, 3000);
+    await cdpClick(btnResult.x, btnResult.y, 3000);
     debug(
       'closeSwitchOrgDialog: clicked',
       targetText,
@@ -519,17 +491,13 @@ async function queryAndSelectInPopup(
 ): Promise<{ selected: boolean; field: string; value: string }> {
   debug(`queryAndSelectInPopup: field=${fieldLabel}, query=${queryText}`);
 
-  if (!cdpUtils) {
-    throw new Error('CDP 工具不可用，无法自动选择');
-  }
-
   // 1. 点击字段旁边的蓝色按钮打开弹窗
   let btnResult: CDPBtnResult;
   if (inputId) {
-    btnResult = await cdpUtils.cdpFindPickerButtonByInputId(inputId);
+    btnResult = await cdpFindPickerButtonByInputId(inputId);
   } else {
     // 通过标签文本查找按钮
-    btnResult = (await cdpUtils.cdpEvaluate(`
+    btnResult = (await cdpEvaluate(`
       (function() {
         var modal = document.querySelector('${DIALOG_WRAP_SELECTOR}');
         if (!modal) modal = document.body;
@@ -580,7 +548,7 @@ async function queryAndSelectInPopup(
     throw new Error(`未找到 ${fieldLabel} 的按钮坐标`);
   }
 
-  await cdpUtils.cdpClick(btnResult.x, btnResult.y, 2000);
+  await cdpClick(btnResult.x, btnResult.y, 2000);
   debug(`已点击 ${fieldLabel} 按钮，等待弹窗打开...`);
 
   // 2. 在弹窗查询框中输入查询关键字
@@ -603,8 +571,8 @@ async function queryAndSelectInPopup(
       if (!input) return { found: false, reason: 'input_not_found' };
       
       input.focus();
-      input.value = '${queryText.replace(/'/g, "\\'")}';
-      input.setAttribute('value', '${queryText.replace(/'/g, "\\'")}');
+      input.value = ${JSON.stringify(queryText)};
+      input.setAttribute('value', ${JSON.stringify(queryText)});
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
       input.blur();
@@ -621,9 +589,9 @@ async function queryAndSelectInPopup(
   await new Promise((r) => setTimeout(r, 500));
 
   // 3. 点击弹窗中的查询按钮
-  const queryBtn = await cdpUtils.cdpFindPopupElementByText('查询');
+  const queryBtn = await cdpFindPopupElementByText('查询');
   if (queryBtn?.found && queryBtn.x !== undefined && queryBtn.y !== undefined) {
-    await cdpUtils.cdpClick(queryBtn.x, queryBtn.y, 2000);
+    await cdpClick(queryBtn.x, queryBtn.y, 2000);
     debug('已点击弹窗查询按钮');
   }
 
@@ -638,7 +606,7 @@ async function queryAndSelectInPopup(
         if (!popup) return { found: false, reason: 'popup_closed' };
         var rows = popup.querySelectorAll('tr');
         for (var i = 0; i < rows.length; i++) {
-          if (rows[i].textContent.indexOf('${queryText.replace(/'/g, "\\'")}') >= 0) {
+          if (rows[i].textContent.indexOf(${JSON.stringify(queryText)}) >= 0) {
             return { found: true };
           }
         }
@@ -656,7 +624,7 @@ async function queryAndSelectInPopup(
   }
 
   // 5. 使用 CDP 真实鼠标点击目标行
-  const selectResult = await cdpUtils.cdpEvaluateAndClick(
+  const selectResult = await cdpEvaluateAndClick(
     `
     (function() {
       var popup = ${getVisiblePopupCode()};
@@ -664,7 +632,7 @@ async function queryAndSelectInPopup(
       
       var rows = popup.querySelectorAll('tr');
       for (var i = 0; i < rows.length; i++) {
-        if (rows[i].textContent.indexOf('${queryText.replace(/'/g, "\\'")}') >= 0) {
+        if (rows[i].textContent.indexOf(${JSON.stringify(queryText)}) >= 0) {
           var rect = rows[i].getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0) {
             return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
@@ -684,13 +652,13 @@ async function queryAndSelectInPopup(
   debug(`已选择 ${fieldLabel}: ${queryText}`);
 
   // 6. 点击确定按钮关闭弹窗
-  const confirmBtn = await cdpUtils.cdpFindPopupElementByText('确定');
+  const confirmBtn = await cdpFindPopupElementByText('确定');
   if (
     confirmBtn?.found &&
     confirmBtn.x !== undefined &&
     confirmBtn.y !== undefined
   ) {
-    await cdpUtils.cdpClick(confirmBtn.x, confirmBtn.y, 1500);
+    await cdpClick(confirmBtn.x, confirmBtn.y, 1500);
     debug('已点击弹窗确定按钮');
   }
 
@@ -704,11 +672,7 @@ async function queryAndSelectInPopup(
 async function clickRefreshButton(): Promise<boolean> {
   debug('clickRefreshButton');
 
-  if (!cdpUtils) {
-    throw new Error('CDP 工具不可用');
-  }
-
-  const btnResult = (await cdpUtils.cdpEvaluate(`
+  const btnResult = (await cdpEvaluate(`
     (function() {
       var modal = document.querySelector('${DIALOG_WRAP_SELECTOR}');
       if (!modal) return { found: false, reason: 'dialog_not_found' };
@@ -737,7 +701,7 @@ async function clickRefreshButton(): Promise<boolean> {
     btnResult.x !== undefined &&
     btnResult.y !== undefined
   ) {
-    await cdpUtils.cdpClick(btnResult.x, btnResult.y, 2000);
+    await cdpClick(btnResult.x, btnResult.y, 2000);
     debug('已点击刷新按钮');
     return true;
   }
@@ -751,10 +715,6 @@ async function clickRefreshButton(): Promise<boolean> {
 async function clickSystemConfirm(): Promise<boolean> {
   debug('clickSystemConfirm');
 
-  if (!cdpUtils) {
-    throw new Error('CDP 工具不可用');
-  }
-
   // 等待系统提示弹窗出现
   let attempts = 0;
   let confirmBtn: CDPBtnResult | null = null;
@@ -762,7 +722,7 @@ async function clickSystemConfirm(): Promise<boolean> {
     await new Promise((r) => setTimeout(r, 500));
 
     // 查找所有包含"确定"文本的可见元素，选择 y 坐标最小的（最上面的，通常是系统提示的）
-    const result = (await cdpUtils.cdpEvaluate(`
+    const result = (await cdpEvaluate(`
       (function() {
         var all = document.querySelectorAll('*');
         var candidates = [];
@@ -795,7 +755,7 @@ async function clickSystemConfirm(): Promise<boolean> {
   }
 
   if (confirmBtn && confirmBtn.x !== undefined && confirmBtn.y !== undefined) {
-    await cdpUtils.cdpClick(confirmBtn.x, confirmBtn.y, 2000);
+    await cdpClick(confirmBtn.x, confirmBtn.y, 2000);
     debug('clickSystemConfirm: clicked at', confirmBtn.x, confirmBtn.y);
     return true;
   }
@@ -901,7 +861,7 @@ async function switchOrganization(
       | AutoSelectResult
       | { error: string; partial: AutoSelectResult }
       | null = null;
-    if (options.autoSelect && cdpUtils) {
+    if (options.autoSelect) {
       selectionResult = await tryAutoSelect(dialog.fields || {}, options);
 
       // 自动选择完成后，点击对话框"确定"完成切换
@@ -945,12 +905,8 @@ async function switchOrganization(
 async function selectFirstDepartment(): Promise<string | null> {
   debug('selectFirstDepartment');
 
-  if (!cdpUtils) {
-    throw new Error('CDP 工具不可用');
-  }
-
   // 1. 打开部门弹窗
-  const btnResult = await cdpUtils.cdpFindPickerButtonByInputId(
+  const btnResult = await cdpFindPickerButtonByInputId(
     'DataSetFieldComboBox2-input'
   );
   if (!btnResult?.found) {
@@ -961,7 +917,7 @@ async function selectFirstDepartment(): Promise<string | null> {
     throw new Error('未找到部门按钮坐标');
   }
 
-  await cdpUtils.cdpClick(btnResult.x, btnResult.y, 2000);
+  await cdpClick(btnResult.x, btnResult.y, 2000);
   debug('已打开部门弹窗');
 
   // 2. 等待弹窗加载，读取部门列表
@@ -1010,7 +966,7 @@ async function selectFirstDepartment(): Promise<string | null> {
   const firstDeptName = popupData.departments[0];
   debug('选择第一个部门:', firstDeptName);
 
-  const selectResult = await cdpUtils.cdpEvaluateAndClick(
+  const selectResult = await cdpEvaluateAndClick(
     `
     (function() {
       var popup = ${getVisiblePopupCode()};
@@ -1038,13 +994,13 @@ async function selectFirstDepartment(): Promise<string | null> {
   }
 
   // 4. 点击确定按钮
-  const confirmBtn = await cdpUtils.cdpFindPopupElementByText('确定');
+  const confirmBtn = await cdpFindPopupElementByText('确定');
   if (
     confirmBtn?.found &&
     confirmBtn.x !== undefined &&
     confirmBtn.y !== undefined
   ) {
-    await cdpUtils.cdpClick(confirmBtn.x, confirmBtn.y, 1500);
+    await cdpClick(confirmBtn.x, confirmBtn.y, 1500);
     debug('已点击部门弹窗确定');
   }
 

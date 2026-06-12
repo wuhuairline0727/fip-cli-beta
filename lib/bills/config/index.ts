@@ -3,17 +3,30 @@
  * 负责类型识别、配置加载和合并
  */
 
-import * as path from 'path';
 import {
   COMMON_BASE_PATTERNS,
   COMMON_INPUT_FIELDS,
   FILTER_CONFIG,
 } from './common';
+import * as domesticTravel from './domestic-travel';
+import * as externalPayment from './external-payment';
+import * as generalExpense from './general-expense';
+import * as travelExpense from './travel-expense';
+import * as yjk from './yjk';
+import * as invoiceApplication from './invoice-application';
 
 interface BillTypeMeta {
   name: string;
   codePrefix: string;
-  configFile: string;
+  configModule: {
+    basePatterns?: Record<string, RegExp>;
+    inputFields?: Record<string, { byLabel?: string; byId?: string; byIdPrefix?: string }>;
+    tables?: Array<{
+      name: string;
+      identifyBy: { headerText: string };
+      columns: Array<{ header: string; field: string; type?: string }>;
+    }>;
+  };
 }
 
 // === 类型元数据映射 ===
@@ -21,32 +34,32 @@ export const BILL_TYPE_MAP: Record<string, BillTypeMeta> = {
   KP: {
     name: '开票申请单',
     codePrefix: 'KP',
-    configFile: 'invoice-application',
+    configModule: invoiceApplication,
   },
   SLBX: {
     name: '境内差旅报销单',
     codePrefix: 'SLBX',
-    configFile: 'domestic-travel',
+    configModule: domesticTravel,
   },
   TBX: {
     name: '通用报销单',
     codePrefix: 'TBX',
-    configFile: 'general-expense',
+    configModule: generalExpense,
   },
   CFK: {
     name: '对外成本费用付款申请',
     codePrefix: 'CFK',
-    configFile: 'external-payment',
+    configModule: externalPayment,
   },
   CBX: {
     name: '差旅费报销',
     codePrefix: 'CBX',
-    configFile: 'travel-expense',
+    configModule: travelExpense,
   },
   YJK: {
     name: '预缴计算单',
     codePrefix: 'YJK',
-    configFile: 'yjk',
+    configModule: yjk,
   },
 };
 
@@ -74,19 +87,6 @@ export function detectBillType(
   return null;
 }
 
-interface SpecificConfig {
-  basePatterns?: Record<string, RegExp>;
-  inputFields?: Record<
-    string,
-    { byLabel?: string; byId?: string; byIdPrefix?: string }
-  >;
-  tables?: Array<{
-    name: string;
-    identifyBy: { headerText: string };
-    columns: Array<{ header: string; field: string; type?: string }>;
-  }>;
-}
-
 /**
  * 加载指定类型的完整配置
  * 合并通用配置和特定类型配置
@@ -106,16 +106,7 @@ export function getBillConfig(
     return null;
   }
 
-  // 尝试加载特定类型配置（如果存在）
-  let specificConfig: SpecificConfig = {};
-
-  try {
-    const specificPath = path.join(__dirname, meta.configFile);
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    specificConfig = require(specificPath) as SpecificConfig;
-  } catch {
-    // 特定类型配置不存在，仅使用通用配置
-  }
+  const specificConfig = meta.configModule;
 
   return {
     name: meta.name,

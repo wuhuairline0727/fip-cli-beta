@@ -3,13 +3,12 @@ import sinon from 'sinon';
 const http = require('http');
 
 describe('utils/dialog', () => {
-  let httpRequestStub: sinon.SinonStub;
   let dialog: any;
 
   beforeEach(() => {
-    httpRequestStub = sinon
+    sinon
       .stub(http, 'request')
-      .callsFake((options: any, callback: any) => {
+      .callsFake((_options: any, _callback: any) => {
         const req: any = {
           write: sinon.stub(),
           end: sinon.stub(),

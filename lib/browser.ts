@@ -3,7 +3,6 @@ import { debug } from './logger';
 import type {
   WebBridgeRequest,
   WebBridgeResponse,
-  TabInfo,
 } from './types/webbridge';
 
 const BASE_URL = 'http://127.0.0.1:10086/command';
@@ -41,7 +40,7 @@ function rawRequest(
             const result = JSON.parse(body) as WebBridgeResponse;
             debug('rawRequest: action=', action, 'ok=', result.ok);
             resolve(result);
-          } catch (e) {
+          } catch (_e) {
             resolve({
               ok: false,
               error: { code: 'parse_error', message: body },
@@ -69,7 +68,7 @@ export async function checkConnection(): Promise<boolean> {
   try {
     const result = await rawRequest('list_tabs');
     return result.ok === true;
-  } catch (e) {
+  } catch (_e) {
     return false;
   }
 }
@@ -104,6 +103,7 @@ export async function request(
   }
   const connectionOk = await connectionCheckPromise;
   if (!connectionOk) {
+    connectionCheckPromise = null; // 重置，下次重新检查连接
     throw new Error(
       'Kimi WebBridge 未连接。请执行: C:/Users/40427/.kimi-webbridge/bin/kimi-webbridge.exe start'
     );

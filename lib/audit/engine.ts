@@ -57,14 +57,28 @@ export interface AuditResult {
 }
 
 let RULES: Rules | null = null;
+let rulesMtime: number | null = null;
 
 export function loadRules(): Rules {
-  if (RULES) return RULES;
   const rulesPath = path.join(__dirname, 'rules.json');
+
+  // 检查文件是否修改，自动刷新缓存
+  try {
+    const stats = fs.statSync(rulesPath);
+    if (rulesMtime !== null && stats.mtimeMs > rulesMtime) {
+      RULES = null; // 文件已修改，强制重新加载
+    }
+    rulesMtime = stats.mtimeMs;
+  } catch (_e) {
+    // 文件不存在，保持 rulesMtime 为 null
+    rulesMtime = null;
+  }
+
+  if (RULES) return RULES;
   let fileRules: Rules | null = null;
   try {
     fileRules = JSON.parse(fs.readFileSync(rulesPath, 'utf8')) as Rules;
-  } catch (e) {
+  } catch (_e) {
     // rules.json 不存在或损坏，使用内建 fallback
   }
 
@@ -104,6 +118,12 @@ export function loadRules(): Rules {
     RULES.expected_approver = userApprover;
   }
   return RULES;
+}
+
+export function refreshRules(): Rules {
+  RULES = null;
+  rulesMtime = null;
+  return loadRules();
 }
 
 export function parseAmount(amountStr: string | null | undefined): number {

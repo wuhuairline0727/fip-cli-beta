@@ -1,7 +1,7 @@
 import { expect } from 'chai';
+import * as ledger from '../../../lib/ledgers/unbilled-income';
 
 describe('ledgers/unbilled-income', () => {
-  const ledger = require('../../../lib/ledgers/unbilled-income');
 
   describe('periodToDateRange()', () => {
     it('should convert 2026-04 to date range starting from Jan 1', () => {

@@ -1,0 +1,15 @@
+{
+  "all": true,
+  "src": ["lib", "bin"],
+  "exclude": [
+    "**/*.d.ts",
+    "test/**",
+    "node_modules/**",
+    "scripts/**",
+    "lib/types/**",
+    "lib/selectors.ts"
+  ],
+  "extension": [".js", ".ts"],
+  "reporter": ["text", "html", "lcov"],
+  "check-coverage": false
+}

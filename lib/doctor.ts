@@ -142,7 +142,7 @@ export async function checkCdpPort(): Promise<DiagnosticCheck> {
         status: 'ok',
         message: `端口 ${CDP_PORT} 已开启（Chrome ${(version as CDPVersionResponse).Browser?.split('/')[1] || '未知版本'}）`,
       };
-    } catch (e) {
+    } catch (_e) {
       return {
         name: 'Chrome 远程调试',
         status: 'ok',
@@ -241,7 +241,7 @@ export function checkGitHubCli(): DiagnosticCheck {
       status: 'ok',
       message: `已安装（${line}）`,
     };
-  } catch (e) {
+  } catch (_e) {
     return {
       name: 'GitHub CLI',
       status: 'warn',
@@ -298,7 +298,7 @@ function webBridgeRequest(action: string): Promise<WebBridgeResponse> {
         res.on('end', () => {
           try {
             resolve(JSON.parse(body));
-          } catch (e) {
+          } catch (_e) {
             reject(new Error('解析响应失败'));
           }
         });

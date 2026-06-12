@@ -4,13 +4,12 @@ import type { ClientRequest } from 'http';
 const http = require('http');
 
 describe('utils/attachment', () => {
-  let httpRequestStub: sinon.SinonStub;
   let attachment: any;
 
   beforeEach(() => {
-    httpRequestStub = sinon
+    sinon
       .stub(http, 'request')
-      .callsFake((options: any, callback: any) => {
+      .callsFake((_options: any, _callback: any) => {
         const req = {
           write: sinon.stub(),
           end: sinon.stub(),

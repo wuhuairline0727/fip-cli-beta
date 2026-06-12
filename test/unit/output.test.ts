@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import * as fs from 'fs';
 
 describe('output', () => {
   let output: any;
@@ -50,7 +49,7 @@ describe('output', () => {
       output.setScreenshotOptions({ screenshotOnError: false });
       try {
         await output.error('TEST_ERROR', 'something went wrong');
-      } catch (e) {
+      } catch (_e) {
         // error() 会抛出异常
       }
       expect(consoleLogStub.calledOnce).to.equal(true);

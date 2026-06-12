@@ -38,7 +38,7 @@ export function loadCache(): CacheData {
   try {
     const data = fs.readFileSync(getCacheFile(), 'utf8');
     return JSON.parse(data) as CacheData;
-  } catch (e) {
+  } catch (_e) {
     return {
       version: 1,
       organizations: [],
@@ -50,7 +50,7 @@ export function loadCache(): CacheData {
 export function saveCache(cache: CacheData): void {
   try {
     fs.writeFileSync(getCacheFile(), JSON.stringify(cache, null, 2), 'utf8');
-  } catch (e) {
+  } catch (_e) {
     // 忽略写入错误
   }
 }

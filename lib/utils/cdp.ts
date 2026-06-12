@@ -1,4 +1,5 @@
 import CDP from 'chrome-remote-interface';
+import { GWT } from '../selectors';
 
 export interface Runtime {
   evaluate(options: { expression: string; returnByValue?: boolean }): Promise<{
@@ -162,11 +163,12 @@ export async function cdpFindElementByText(
     topMin = 0,
     topMax = 9999,
   } = constraints;
+  const safeText = JSON.stringify(text);
   return cdpEvaluate(`
     (function() {
       var all = document.querySelectorAll('*');
       for (var i = 0; i < all.length; i++) {
-        if (all[i].textContent.trim() === '${text}') {
+        if (all[i].textContent.trim() === ${safeText}) {
           var rect = all[i].getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0 && rect.left > 0 &&
               rect.left >= ${leftMin} && rect.left <= ${leftMax} &&
@@ -198,7 +200,7 @@ export async function cdpFindPickerButtonByInputId(
       }
       if (!input) return { found: false, reason: 'input_not_found' };
       var parent = input.parentElement;
-      var btns = parent.querySelectorAll('.FD26IYC-w-l');
+      var btns = parent.querySelectorAll('${GWT.PICKER_BTN}');
       for (var i = 0; i < btns.length; i++) {
         var rect = btns[i].getBoundingClientRect();
         if (rect.width > 0 && rect.height > 0) {
@@ -213,11 +215,12 @@ export async function cdpFindPickerButtonByInputId(
 export async function cdpFindDropdownOption(
   text: string
 ): Promise<FindElementResult> {
+  const safeText = JSON.stringify(text);
   return cdpEvaluate(`
     (function() {
-      var items = document.querySelectorAll('.FD26IYC-S-a');
+      var items = document.querySelectorAll('${GWT.DROPDOWN_ITEM}');
       for (var i = 0; i < items.length; i++) {
-        if (items[i].textContent.trim() === '${text}') {
+        if (items[i].textContent.trim() === ${safeText}) {
           var rect = items[i].getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0 && rect.left > 0) {
             return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
@@ -227,7 +230,7 @@ export async function cdpFindDropdownOption(
       var all = document.querySelectorAll('*');
       for (var i = 0; i < all.length; i++) {
         if (all[i].tagName === 'INPUT') continue;
-        if (all[i].textContent.trim() === '${text}') {
+        if (all[i].textContent.trim() === ${safeText}) {
           var rect = all[i].getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0 && rect.left > 0) {
             return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
@@ -244,9 +247,10 @@ export async function cdpFindPopupElementByText(
   constraints: { leftMin?: number; leftMax?: number } = {}
 ): Promise<FindElementResult & { reason?: string }> {
   const { leftMin = 0, leftMax = 9999 } = constraints;
+  const safeText = JSON.stringify(text);
   return cdpEvaluate(`
     (function() {
-      var popups = document.querySelectorAll('.FD26IYC-a-g, .gwt-DialogBox, [class*=DialogBox]');
+      var popups = document.querySelectorAll('${GWT.POPUP}, ${GWT.DIALOG_BOX}, ${GWT.DIALOG_BOX_FUZZY}');
       var visiblePopup = null;
       for (var i = 0; i < popups.length; i++) {
         var rect = popups[i].getBoundingClientRect();
@@ -258,7 +262,7 @@ export async function cdpFindPopupElementByText(
       if (!visiblePopup) return { found: false, reason: 'popup_not_found' };
       var all = visiblePopup.querySelectorAll('*');
       for (var i = 0; i < all.length; i++) {
-        if (all[i].textContent.trim() === '${text}') {
+        if (all[i].textContent.trim() === ${safeText}) {
           var rect = all[i].getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0 && rect.left >= ${leftMin} && rect.left <= ${leftMax}) {
             return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2 };

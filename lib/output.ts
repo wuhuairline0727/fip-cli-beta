@@ -4,6 +4,41 @@ import { screenshot } from './browser';
 
 let screenshotOnError = true;
 let screenshotDir = path.join(process.cwd(), 'screenshots');
+const MAX_SCREENSHOTS = 50;
+const SCREENSHOT_MAX_AGE_DAYS = 30;
+
+function cleanupScreenshots(): void {
+  try {
+    if (!fs.existsSync(screenshotDir)) return;
+    const files = fs
+      .readdirSync(screenshotDir)
+      .filter((f) => f.endsWith('.png'))
+      .map((f) => {
+        const filepath = path.join(screenshotDir, f);
+        return { name: f, path: filepath, mtime: fs.statSync(filepath).mtimeMs };
+      })
+      .sort((a, b) => a.mtime - b.mtime);
+
+    const now = Date.now();
+    const maxAgeMs = SCREENSHOT_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+
+    // Delete old files by age
+    for (const file of files) {
+      if (now - file.mtime > maxAgeMs) {
+        fs.unlinkSync(file.path);
+      }
+    }
+
+    // Delete oldest if still over limit
+    const remaining = files.filter((f) => fs.existsSync(f.path));
+    while (remaining.length > MAX_SCREENSHOTS) {
+      const oldest = remaining.shift();
+      if (oldest) fs.unlinkSync(oldest.path);
+    }
+  } catch (_e) {
+    // Silently fail on cleanup error
+  }
+}
 
 export interface ScreenshotOptions {
   screenshotOnError?: boolean;
@@ -28,6 +63,7 @@ export async function takeErrorScreenshot(
   errorCode: string
 ): Promise<string | null> {
   if (!screenshotOnError) return null;
+  cleanupScreenshots();
   try {
     const result = (await screenshot('png')) as ScreenshotResult;
     if (!result.ok || !result.data) return null;
@@ -52,7 +88,7 @@ export async function takeErrorScreenshot(
       fs.writeFileSync(filepath, Buffer.from(result.data.data, 'base64'));
       return filepath;
     }
-  } catch (e) {
+  } catch (_e) {
     // Silently fail on screenshot error
   }
   return null;

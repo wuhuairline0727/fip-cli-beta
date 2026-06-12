@@ -2,9 +2,6 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import proxyquire from 'proxyquire';
 
-const utilsPath = require.resolve('../../../lib/utils/index');
-const configPath = require.resolve('../../../lib/config');
-
 function createFakeUtils(sinonInstance: typeof sinon) {
   return {
     sleep: sinonInstance.stub().resolves(),

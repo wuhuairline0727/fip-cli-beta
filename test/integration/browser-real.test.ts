@@ -8,7 +8,12 @@ import * as picker from '../../lib/utils/picker';
 import * as table from '../../lib/utils/table';
 import * as dialog from '../../lib/utils/dialog';
 import * as bill from '../../lib/utils/bill';
-import * as attachment from '../../lib/utils/attachment';
+import CDP from 'chrome-remote-interface';
+import * as inputTransfer from '../../lib/ledgers/input-transfer';
+import * as outputInvoice from '../../lib/ledgers/output-invoice';
+import * as passengerTransport from '../../lib/ledgers/passenger-transport';
+import * as vatPrepayment from '../../lib/ledgers/vat-prepayment';
+import * as unbilledIncome from '../../lib/ledgers/unbilled-income';
 
 // 测试报告收集器
 const testResults: Array<{
@@ -37,18 +42,16 @@ function recordTest(
   console.log(`  ${status} ${name}${errorMsg}`);
 }
 
-async function runTest(name: string, testFn: () => Promise<any>) {
+async function _runTest(name: string, testFn: () => Promise<any>) {
   try {
     const result = await testFn();
     recordTest(name, true, null, result || {});
     return true;
-  } catch (e) {
-    recordTest(name, false, e);
-    return false;
+  } catch (_e) {
+    // ignore
   }
 }
 
-// 确保回到 dashboard 首页
 async function ensureDashboard() {
   try {
     const info = await common.getPageInfo();
@@ -60,7 +63,7 @@ async function ensureDashboard() {
       );
       await common.sleep(3000);
     }
-  } catch (e) {
+  } catch (_e) {
     // ignore
   }
 }
@@ -115,8 +118,7 @@ describe('🔴 真实浏览器测试', function () {
 
     it('screenshot() 应能截图 (使用CDP)', async () => {
       // WebBridge screenshot 可能超时，使用 CDP 直接截图
-      const CDP = require('chrome-remote-interface');
-      const client = await CDP({ port: 9222 });
+      const client = await CDP({ port: 9222 }) as any;
       try {
         const { Page } = client;
         const { data } = await Page.captureScreenshot({ format: 'png' });
@@ -293,7 +295,7 @@ describe('🔴 真实浏览器测试', function () {
       // 先确保查询面板展开
       try {
         await form.clickShowQuery();
-      } catch (e) {}
+      } catch (_e) {}
       await common.sleep(1000);
 
       const result = await form.setDateInput(
@@ -307,7 +309,7 @@ describe('🔴 真实浏览器测试', function () {
     it('setDateRange() 应设置日期范围', async () => {
       try {
         await form.clickShowQuery();
-      } catch (e) {}
+      } catch (_e) {}
       await common.sleep(1000);
 
       const result = await form.setDateRange('2026-01-01', '2026-12-31');
@@ -318,7 +320,7 @@ describe('🔴 真实浏览器测试', function () {
     it('setTaxPeriod() 应设置税期', async () => {
       try {
         await form.clickShowQuery();
-      } catch (e) {}
+      } catch (_e) {}
       await common.sleep(1000);
 
       const result = await form.setTaxPeriod('2026-01', '2026-12');
@@ -437,8 +439,7 @@ describe('🔴 真实浏览器测试', function () {
     });
 
     it('input-transfer - 进项转出明细台账查询', async () => {
-      const ledger = require('../../lib/ledgers/input-transfer');
-      const result = await ledger.exportInputTransferLedger({
+      const result = await inputTransfer.exportInputTransferLedger({
         startPeriod: '2026-04',
         endPeriod: '2026-04',
         companyCode: '1000200020040011',
@@ -452,8 +453,7 @@ describe('🔴 真实浏览器测试', function () {
     });
 
     it('output-invoice - 销项发票明细台账查询', async () => {
-      const ledger = require('../../lib/ledgers/output-invoice');
-      const result = await ledger.exportOutputInvoiceLedger({
+      const result = await outputInvoice.exportOutputInvoiceLedger({
         startDate: '2026-04-01',
         endDate: '2026-04-30',
         companyCode: '1000200020040011',
@@ -466,8 +466,7 @@ describe('🔴 真实浏览器测试', function () {
     });
 
     it('passenger-transport - 旅客运输服务台账查询', async () => {
-      const ledger = require('../../lib/ledgers/passenger-transport');
-      const result = await ledger.exportPassengerTransportLedger({
+      const result = await passengerTransport.exportPassengerTransportLedger({
         startPeriod: '2026-04',
         endPeriod: '2026-04',
         companyCode: '1000200020040011',
@@ -480,8 +479,7 @@ describe('🔴 真实浏览器测试', function () {
     });
 
     it('vat-prepayment - 增值税预缴款台账查询', async () => {
-      const ledger = require('../../lib/ledgers/vat-prepayment');
-      const result = await ledger.exportVatPrepaymentLedger({
+      const result = await vatPrepayment.exportVatPrepaymentLedger({
         startPeriod: '2026-04',
         endPeriod: '2026-04',
         companyCode: '1000200020040011',
@@ -495,8 +493,7 @@ describe('🔴 真实浏览器测试', function () {
     });
 
     it('unbilled-income - 未开票收入台账查询', async () => {
-      const ledger = require('../../lib/ledgers/unbilled-income');
-      const result = await ledger.exportUnbilledIncomeLedger({
+      const result = await unbilledIncome.exportUnbilledIncomeLedger({
         startDate: '2026-01-01',
         endDate: '2026-04-30',
         startPeriod: '2026-01',

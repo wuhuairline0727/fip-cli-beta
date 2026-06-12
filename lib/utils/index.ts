@@ -9,30 +9,19 @@ import * as attachment from './attachment';
 import * as dialog from './dialog';
 import * as organization from './organization';
 
-type UtilsModule = {
-  [K in keyof (typeof common &
-    typeof navigation &
-    typeof form &
-    typeof picker &
-    typeof bill &
-    typeof cdp &
-    typeof table &
-    typeof attachment &
-    typeof dialog &
-    typeof organization)]: (typeof common &
-    typeof navigation &
-    typeof form &
-    typeof picker &
-    typeof bill &
-    typeof cdp &
-    typeof table &
-    typeof attachment &
-    typeof dialog &
-    typeof organization)[K] & {
-    _source?: string;
-  };
-};
+// 重导出所有子模块的命名导出
+export * from './common';
+export * from './navigation';
+export * from './form';
+export * from './picker';
+export * from './bill';
+export * from './cdp';
+export * from './table';
+export * from './attachment';
+export * from './dialog';
+export * from './organization';
 
+// 动态合并所有模块（用于默认导出和运行时检测命名冲突）
 const modules = [
   common,
   navigation,
@@ -73,5 +62,4 @@ for (let i = 0; i < modules.length; i++) {
   }
 }
 
-const _exported: UtilsModule = exported as unknown as UtilsModule;
-export = _exported;
+export default exported as Record<string, unknown>;

@@ -50,14 +50,16 @@ export async function exportOutputInvoiceLedger(
   await utils.clickDrawerItem('销项发票台账');
   await utils.sleep(2000);
 
-  // 2. 检查页面是否已有查询表单（避免重复选择单选按钮）
-  const hasQueryForm = await utils.cdpEvaluate<boolean>(`
+  // 2. 检查当前是否已经在销项发票明细台账页面（避免重复选择单选按钮）
+  const isDetailLedgerPage = await utils.cdpEvaluate<boolean>(`
     (function() {
-      return !!document.getElementById('JINX_IPT_START-input');
+      var activeTab = document.querySelector('.ant-tabs-tab-active');
+      if (activeTab && activeTab.textContent.includes('销项发票明细台账')) return true;
+      return false;
     })()
   `);
 
-  if (!hasQueryForm) {
+  if (!isDetailLedgerPage) {
     // 页面没有查询表单，需要选择单选按钮
     console.log('4. 选择销项发票明细台账...');
     const radioResult = (await utils.cdpEvaluate(`
@@ -140,7 +142,7 @@ export async function exportOutputInvoiceLedger(
       console.log('警告: 未找到弹窗查询按钮');
     }
   } else {
-    console.log('4. 页面已有查询表单，跳过单选按钮选择');
+    console.log('4. 当前已在销项发票明细台账页面，跳过单选按钮选择');
   }
 
   // 3. 展开查询条件
@@ -170,7 +172,7 @@ export async function exportOutputInvoiceLedger(
       var radios = document.querySelectorAll('input[type="radio"]');
       for (var i = 0; i < radios.length; i++) {
         var rect = radios[i].getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0 && rect.left > 1800) {
+        if (rect.width > 0 && rect.height > 0 && rect.left > 1600) {
           return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2, id: radios[i].id };
         }
       }
@@ -261,7 +263,7 @@ export async function exportOutputInvoiceLedger(
       for (var i = 0; i < all.length; i++) {
         if (all[i].textContent.trim() === '查询') {
           var rect = all[i].getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0 && rect.left > 1700) {
+          if (rect.width > 0 && rect.height > 0 && rect.left > 1500) {
             candidates.push({ x: rect.left + rect.width/2, y: rect.top + rect.height/2, top: rect.top });
           }
         }

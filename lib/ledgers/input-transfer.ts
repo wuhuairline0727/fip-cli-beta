@@ -1,5 +1,6 @@
 import * as utils from '../utils/index';
 import * as config from '../config';
+import { GWT, FIP_ID } from '../selectors';
 
 export interface InputTransferOptions {
   startPeriod?: string;
@@ -50,20 +51,16 @@ export async function exportInputTransferLedger(
   await utils.clickDrawerItem('进项转出台账');
   await utils.sleep(2000);
 
-  const hasQueryForm = await utils.cdpEvaluate<boolean>(`
+  // 检查当前是否已经在进项转出明细台账页面（避免重复选择单选按钮）
+  const isDetailLedgerPage = await utils.cdpEvaluate<boolean>(`
     (function() {
-      var allInputs = document.querySelectorAll('input');
-      for (var i = 0; i < allInputs.length; i++) {
-        if (allInputs[i].id === 'FormDateFieldYM2-input') {
-          var rect = allInputs[i].getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0) return true;
-        }
-      }
+      var activeTab = document.querySelector('.ant-tabs-tab-active');
+      if (activeTab && activeTab.textContent.includes('进项转出明细台账')) return true;
       return false;
     })()
   `);
 
-  if (!hasQueryForm) {
+  if (!isDetailLedgerPage) {
     console.log('4. 选择进项转出明细台账...');
     const radioResult = await utils.cdpEvaluate<{
       success: boolean;
@@ -106,7 +103,7 @@ export async function exportInputTransferLedger(
     const popupQueryResult = await utils.cdpEvaluateAndClick(
       `
       (function() {
-        var popups = document.querySelectorAll('.FD26IYC-a-g, .gwt-DialogBox, [class*=DialogBox]');
+        var popups = document.querySelectorAll('${GWT.POPUP}, ${GWT.DIALOG_BOX}, ${GWT.DIALOG_BOX_FUZZY}');
         var visiblePopup = null;
         for (var i = 0; i < popups.length; i++) {
           var rect = popups[i].getBoundingClientRect();
@@ -136,7 +133,7 @@ export async function exportInputTransferLedger(
       );
     }
   } else {
-    console.log('4. 页面已有查询表单，跳过单选按钮选择');
+    console.log('4. 当前已在进项转出明细台账页面，跳过单选按钮选择');
   }
 
   console.log('5. 展开查询条件...');
@@ -169,7 +166,7 @@ export async function exportInputTransferLedger(
       var radios = document.querySelectorAll('input[type="radio"]');
       for (var i = 0; i < radios.length; i++) {
         var rect = radios[i].getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0 && rect.left > 1800) {
+        if (rect.width > 0 && rect.height > 0 && rect.left > 1600) {
           return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2, id: radios[i].id };
         }
       }
@@ -235,7 +232,7 @@ export async function exportInputTransferLedger(
         for (var i = 0; i < all.length; i++) {
           if (all[i].textContent.trim() === '${opts.docStatus}') {
             var rect = all[i].getBoundingClientRect();
-            if (rect.width > 0 && rect.height > 0 && rect.top > 300 && rect.top < 500 && rect.left > 1700) {
+            if (rect.width > 0 && rect.height > 0 && rect.top > 300 && rect.top < 500 && rect.left > 1500) {
               return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
             }
           }
@@ -352,7 +349,7 @@ export async function exportInputTransferLedger(
       for (var i = 0; i < all.length; i++) {
         if (all[i].textContent.trim() === '查询') {
           var rect = all[i].getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0 && rect.left > 1700) {
+          if (rect.width > 0 && rect.height > 0 && rect.left > 1500) {
             candidates.push({ x: rect.left + rect.width/2, y: rect.top + rect.height/2, top: rect.top });
           }
         }

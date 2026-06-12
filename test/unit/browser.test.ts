@@ -4,15 +4,13 @@ import type { ClientRequest } from 'http';
 const http = require('http');
 
 describe('browser', () => {
-  let httpRequestStub: sinon.SinonStub;
-
   beforeEach(() => {
     // 清除可能由其他测试注入的模块缓存
     delete require.cache[require.resolve('../../lib/browser')];
     // 模拟 http.request 在未连接时抛出错误
-    httpRequestStub = sinon
+    sinon
       .stub(http, 'request')
-      .callsFake((options, callback) => {
+      .callsFake((_options, _callback) => {
         const req = {
           write: sinon.stub(),
           end: sinon.stub(),

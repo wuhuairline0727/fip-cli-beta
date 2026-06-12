@@ -5,13 +5,15 @@ require('tsx/cjs');
 
 import { program } from 'commander';
 import type { FipAPI } from '../lib/types/fip';
-import { navigate, evaluate, screenshot } from '../lib/browser';
+import { navigate, screenshot } from '../lib/browser';
 import { success, error, setScreenshotOptions } from '../lib/output';
 import * as config from '../lib/config';
-const fip = require('../lib/fip');
+import fip from '../lib/fip';
 const fipTyped = fip as FipAPI;
 import * as fs from 'fs';
 import { debug, verbose, setDebug, setVerbose } from '../lib/logger';
+import * as organizationCache from '../lib/utils/organization-cache';
+import * as doctor from '../lib/doctor';
 
 program
   .name('fip-cli')
@@ -77,7 +79,7 @@ program
   .description('导航到指定页面')
   .action(async (url: string) => {
     try {
-      const result = await navigate(url, false);
+      await navigate(url, false);
       success({ navigated: true, url });
     } catch (e: any) {
       error('navigate_error', e.message);
@@ -242,15 +244,10 @@ program
       try {
         // 查看缓存模式
         if (options.list) {
-          const {
-            listAllRecords,
-            getCacheStats,
-            CACHE_FILE,
-          } = require('../lib/utils/organization-cache');
-          const records = listAllRecords();
-          const stats = getCacheStats();
+          const records = organizationCache.listAllRecords();
+          const stats = organizationCache.getCacheStats();
           success({
-            cache_file: CACHE_FILE,
+            cache_file: organizationCache.CACHE_FILE,
             total_records: stats.totalRecords,
             last_updated: stats.lastUpdated,
             unique_organizations: stats.uniqueOrganizations,
@@ -1013,7 +1010,6 @@ program
   )
   .option('--json', '输出 JSON 格式报告')
   .action(async (options: { json?: boolean }) => {
-    const doctor = require('../lib/doctor') as typeof import('../lib/doctor');
     try {
       verbose('运行 doctor 诊断...');
       const checks = await doctor.runDiagnostics();

@@ -52,10 +52,25 @@ export async function exportPassengerTransportLedger(
 
   // 2. 点击显示查询按钮
   console.log('4. 展开查询条件...');
-  const showQueryBtn = await utils.cdpFindElementByText('显示查询');
-  if (showQueryBtn?.found) {
-    await utils.cdpClick(showQueryBtn.x!, showQueryBtn.y!, 1500);
+  const showQueryResult = await utils.cdpEvaluateAndClick(
+    `(function() {
+      var all = document.querySelectorAll('*');
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].textContent.trim() === '显示查询') {
+          var rect = all[i].getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
+          }
+        }
+      }
+      return { found: false };
+    })()`,
+    { sleepMs: 2000 }
+  );
+  if (!showQueryResult.clicked) {
+    console.log('未找到显示查询按钮，可能已展开');
   }
+  await utils.sleep(1000);
 
   // 3. 设置所属税期
   console.log('5. 设置所属税期:', opts.startPeriod, '至', opts.endPeriod);
@@ -199,7 +214,7 @@ export async function exportPassengerTransportLedger(
       for (var i = 0; i < all.length; i++) {
         if (all[i].textContent.trim() === '查询') {
           var rect = all[i].getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0 && rect.left > 1700) {
+          if (rect.width > 0 && rect.height > 0 && rect.left > 1500) {
             candidates.push({ x: rect.left + rect.width/2, y: rect.top + rect.height/2, top: rect.top });
           }
         }

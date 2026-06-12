@@ -159,13 +159,11 @@ export function parseAmount(str: string | null | undefined): number | null {
 
 /**
  * 将正则对象序列化为可在代码字符串中使用的字面量字符串
- * 注意：toString() 返回的字符串中反斜杠已被转义一次，
- * 拼接到模板字符串时会被再次处理，因此需要额外转义
  * @param regex - 正则表达式
  * @returns 序列化后的字符串
  */
 function regexToString(regex: RegExp): string {
-  return regex.toString().replace(/\\/g, '\\\\');
+  return regex.toString();
 }
 
 /**
@@ -178,7 +176,6 @@ export function buildExtractionCode(config: BillConfig): string {
     basePatterns = {},
     inputFields = {},
     tables = [],
-    auditHints = [],
     filterConfig = {},
   } = config;
 
@@ -342,39 +339,86 @@ ${inputFieldsEntries}
   for (const [key, spec] of Object.entries(inputFields)) {
     let value = null;
     if (spec.byId) {
-      const el = document.getElementById(spec.byId);
+      // GWT 经常重复渲染同一 id（隐藏模板 + 可见实例），优先选视口内有尺寸的那个
+      let el = document.getElementById(spec.byId);
       if (el) {
+        const all = document.querySelectorAll('#' + spec.byId.replace(/[\\[\\]\\.]/g, '\\\\$&'));
+        const visible = Array.from(all).find(e => {
+          const r = e.getBoundingClientRect();
+          return r.width > 0 && r.height > 0;
+        });
+        el = visible || el;
         value = el.value || el.textContent || null;
       }
     } else if (spec.byIdPrefix) {
-      const el = document.querySelector('[id^="' + spec.byIdPrefix + '"]');
+      // 同样过滤：取第一个视口内可见的
+      const cands = document.querySelectorAll('[id^="' + spec.byIdPrefix + '"]');
+      const visible = Array.from(cands).find(e => {
+        const r = e.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      });
+      const el = visible || cands[0];
       if (el) {
         value = el.value || el.textContent || null;
       }
     } else if (spec.byLabel) {
       // 策略1: 查找标准 label 标签
       const labels = Array.from(document.querySelectorAll('label'));
+      // 优先选视口内（width>0 && height>0）的 label，GWT 经常留下多个隐藏模板
       let targetLabel = labels.find(l => {
         const text = (l.textContent || '').replace(/[：:]/g, '').trim();
-        // 兼容带 * 前缀的必填标记（如 *报销事由）
-        const textWithoutStar = text.replace(new RegExp('^\\\\*'), '').trim();
-        return text === spec.byLabel || textWithoutStar === spec.byLabel;
+        const textWithoutStar = text.replace(/^\\*/, '').trim();
+        const textNormalized = textWithoutStar.replace(/\u3000/g, '');
+        if (text !== spec.byLabel && textWithoutStar !== spec.byLabel && textNormalized !== spec.byLabel) {
+          return false;
+        }
+        const r = l.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
       });
+      // 退化：找不到可见的，再用任意一个匹配
+      if (!targetLabel) {
+        targetLabel = labels.find(l => {
+          const text = (l.textContent || '').replace(/[：:]/g, '').trim();
+          const textWithoutStar = text.replace(/^\\*/, '').trim();
+          const textNormalized = textWithoutStar.replace(/\u3000/g, '');
+          return text === spec.byLabel || textWithoutStar === spec.byLabel || textNormalized === spec.byLabel;
+        });
+      }
       // 策略2: 查找所有包含标签文本的元素（div, span, td, th 等）
       if (!targetLabel) {
         const allEls = Array.from(document.querySelectorAll('*'));
         targetLabel = allEls.find(el => {
           const text = (el.textContent || '').replace(/[：:]/g, '').trim();
-          const textWithoutStar = text.replace(new RegExp('^\\\\*'), '').trim();
-          return text === spec.byLabel || textWithoutStar === spec.byLabel;
+          const textWithoutStar = text.replace(/^\\*/, '').trim();
+          const textNormalized = textWithoutStar.replace(/\u3000/g, '');
+          if (text !== spec.byLabel && textWithoutStar !== spec.byLabel && textNormalized !== spec.byLabel) {
+            return false;
+          }
+          const r = el.getBoundingClientRect();
+          return r.width > 0 && r.height > 0;
+        });
+      }
+      if (!targetLabel) {
+        const allEls = Array.from(document.querySelectorAll('*'));
+        targetLabel = allEls.find(el => {
+          const text = (el.textContent || '').replace(/[：:]/g, '').trim();
+          const textWithoutStar = text.replace(/^\\*/, '').trim();
+          const textNormalized = textWithoutStar.replace(/\u3000/g, '');
+          return text === spec.byLabel || textWithoutStar === spec.byLabel || textNormalized === spec.byLabel;
         });
       }
       if (targetLabel) {
-        // 策略A: 在父级链中查找 input/textarea/select
+        // 策略A: 在父级链中查找可见的 input/textarea/select
+        // GWT ComboBox 经常把模板 input（width=0,height=0）和实际 input 都放在 DOM 中，
+        // 必须优先选视口内有尺寸的那个
         let parent = targetLabel.parentElement;
         let inputEl = null;
         while (parent && !inputEl) {
-          inputEl = parent.querySelector('input, textarea, select');
+          const candidates = Array.from(parent.querySelectorAll('input, textarea, select'));
+          inputEl = candidates.find(inp => {
+            const r = inp.getBoundingClientRect();
+            return r.width > 0 && r.height > 0;
+          }) || null;
           if (!inputEl) {
             parent = parent.parentElement;
           }
@@ -395,7 +439,7 @@ ${inputFieldsEntries}
         }
         // 策略C: 如果仍然失败，在整个文档中查找 id 或 name 包含标签关键词的 input
         if (!inputEl) {
-          const keyword = spec.byLabel.replace(new RegExp('^\\\\*'), '').trim();
+          const keyword = spec.byLabel.replace(/^\\*/, '').trim();
           const allInputs = Array.from(document.querySelectorAll('input, textarea, select'));
           inputEl = allInputs.find(inp => {
             const id = (inp.id || '').toLowerCase();
@@ -407,6 +451,20 @@ ${inputFieldsEntries}
         }
         if (inputEl) {
           value = inputEl.value || inputEl.textContent || null;
+          // 回退策略：input.value 为空时（GWT ComboBox 显示值存储在 ghost 元素中），
+          // 查找同一 GWT 字段容器内的 FD26IYC-zb-d ghost 元素
+          if (!value) {
+            // 向上找到 GWT 字段容器（FD26IYC-B-b 或 FD26IYC-B-a）
+            let fieldContainer = inputEl.closest('[class*="FD26IYC-B"]') || inputEl.parentElement;
+            // 在字段容器中查找 ghost 显示元素
+            const ghost = fieldContainer && fieldContainer.querySelector('[class*="FD26IYC-zb-d"]');
+            if (ghost) {
+              const ghostText = (ghost.textContent || '').trim();
+              if (ghostText) {
+                value = ghostText;
+              }
+            }
+          }
         }
       }
     }
@@ -618,26 +676,28 @@ ${inputFieldsEntries}
 async function detectBillIdFromPage(): Promise<string | null> {
   const result = await evaluate(`
     (function() {
-      var all = document.querySelectorAll('*');
-      for (var i = 0; i < all.length; i++) {
-        var text = all[i].textContent.trim();
-        var match = text.match(/(SLBX|CFK|KP|JKD|TBX|CBX|YJK)\\d+/);
-        if (match) {
-          return match[0];
+      // 优先从 "单据编号" 标签旁边的 input 读取（最准确）
+      var labels = document.querySelectorAll('label');
+      for (var i = 0; i < labels.length; i++) {
+        var text = (labels[i].textContent || '').replace(/[：:]/g, '').trim();
+        if (text === '单据编号' || text === '*单据编号') {
+          var parent = labels[i].parentElement;
+          while (parent && !parent.querySelector('input')) {
+            parent = parent.parentElement;
+          }
+          if (parent) {
+            var inp = parent.querySelector('input');
+            if (inp && inp.value) return inp.value;
+          }
         }
       }
-      var inputs = document.querySelectorAll('input');
-      for (var j = 0; j < inputs.length; j++) {
-        var val = inputs[j].value || '';
-        var match2 = val.match(/(SLBX|CFK|KP|JKD|TBX|CBX|YJK)\\d+/);
-        if (match2) {
-          return match2[0];
-        }
-      }
-      var titleMatch = document.title.match(/(SLBX|CFK|KP|JKD|TBX|CBX|YJK)\\d+/);
-      if (titleMatch) {
-        return titleMatch[0];
-      }
+      // 退化：从 FormTextInputDJBH-input 读取
+      var djbh = document.getElementById('FormTextInputDJBH-input');
+      if (djbh && djbh.value) return djbh.value;
+      // 再退化：从 URL hash 提取
+      var hash = location.hash || '';
+      var hashMatch = hash.match(/(SLBX|CFK|KP|JKD|TBX|CBX|YJK)\\d+/);
+      if (hashMatch) return hashMatch[0];
       return null;
     })()
   `);

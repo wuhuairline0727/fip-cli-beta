@@ -1,4 +1,4 @@
-import type { AuditResult, CheckResult, AuditStats } from './engine';
+import type { AuditResult } from './engine';
 
 const CHECK_ORDER = [
   'profit_center',

@@ -78,8 +78,7 @@ async function buildOrgCache() {
   try {
     await ensureConnection();
     log('浏览器连接正常');
-  } catch (e) {
-    error('浏览器未连接，请先启动 WebBridge 并登录系统');
+  } catch {
     process.exit(1);
   }
 

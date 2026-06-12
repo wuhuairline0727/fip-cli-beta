@@ -1,5 +1,6 @@
 import * as utils from '../utils/index';
 import * as config from '../config';
+import { GWT } from '../selectors';
 
 export function periodToDateRange(
   period: string | null | undefined
@@ -224,13 +225,13 @@ export async function exportUnbilledIncomeLedger(
   await utils.cdpEvaluateAndClick(
     `
     (function() {
-      var popup = document.querySelector('.FD26IYC-a-g');
+      var popup = document.querySelector('${GWT.POPUP}');
       if (!popup) return { found: false };
       var allDivs = popup.querySelectorAll('div');
       var target = null;
       for (var i = 0; i < allDivs.length; i++) {
         var el = allDivs[i];
-        if (el.className && el.className.indexOf('FD26IYC-D-d') !== -1 && el.className.indexOf('FD26IYC-D-o') !== -1) {
+        if (el.className && el.className.indexOf('${GWT.BUTTON_PRIMARY}') !== -1 && el.className.indexOf('${GWT.BUTTON_SECONDARY}') !== -1) {
           if (el.textContent.trim() === '导出') {
             var rect = el.getBoundingClientRect();
             if (rect.width > 0 && rect.height > 0) {

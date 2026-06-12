@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 import { evaluate } from '../browser';
 import { sleep } from './common';
 import { cdpClick } from './cdp';
@@ -124,7 +125,7 @@ export async function downloadAttachments(
 ): Promise<DownloadResult> {
   const defaultChromeDir = fs.existsSync('D:/下载')
     ? 'D:/下载'
-    : path.join(require('os').homedir(), 'Downloads');
+    : path.join(os.homedir(), 'Downloads');
   const { downloadDir = './downloads', chromeDownloadDir = defaultChromeDir } =
     options;
 
@@ -199,7 +200,7 @@ export async function downloadAttachments(
     const row = rows[idx];
     if (!row.name) continue;
 
-    const selectResult = await evaluate(`
+    await evaluate(`
       (function() {
         var popups = document.querySelectorAll('.FD26IYC-a-g, .gwt-DialogBox, [class*=DialogBox]');
         var visiblePopup = null;
@@ -360,7 +361,6 @@ export async function waitForDownload(
 
   let lastSize = -1;
   let stableCount = 0;
-  let candidateFile: string | null = null;
 
   while (Date.now() - startTime < timeoutMs) {
     try {
@@ -395,10 +395,9 @@ export async function waitForDownload(
         } else {
           lastSize = newest.stat.size;
           stableCount = 0;
-          candidateFile = newest.name;
         }
       }
-    } catch (e) {
+    } catch (_e) {
       // Directory might not exist yet
     }
 

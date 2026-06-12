@@ -2,12 +2,7 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-
-// 使用临时缓存文件进行测试
-const TEST_CACHE_FILE = path.join(os.tmpdir(), '.fip-orgs-test.json');
-
-// 加载模块并注入临时缓存文件路径
-const {
+import {
   loadCache,
   saveCache,
   addOrganizationRecord,
@@ -16,7 +11,10 @@ const {
   clearCache,
   listAllRecords,
   setCacheFile,
-} = require('../../../lib/utils/organization-cache');
+} from '../../../lib/utils/organization-cache';
+
+// 使用临时缓存文件进行测试
+const TEST_CACHE_FILE = path.join(os.tmpdir(), '.fip-orgs-test.json');
 
 // 注入临时缓存文件路径
 setCacheFile(TEST_CACHE_FILE);
@@ -31,7 +29,7 @@ describe('utils/organization-cache', () => {
     // 清理测试文件
     try {
       fs.unlinkSync(TEST_CACHE_FILE);
-    } catch (e) {
+    } catch (_e) {
       // 忽略清理错误
     }
   });
@@ -41,7 +39,7 @@ describe('utils/organization-cache', () => {
       // 先删除测试缓存文件
       try {
         fs.unlinkSync(TEST_CACHE_FILE);
-      } catch (e) {
+      } catch (_e) {
         // 文件可能不存在
       }
       const cache = loadCache();
@@ -54,7 +52,7 @@ describe('utils/organization-cache', () => {
     it('should save and load cache correctly', () => {
       const testCache = {
         version: 1,
-        organizations: [{ organization: '测试公司', project: '测试项目' }],
+        organizations: [{ organization: '测试公司', project: '测试项目', department: '测试部门' }],
         lastUpdated: '2026-01-01T00:00:00Z',
       };
       saveCache(testCache);

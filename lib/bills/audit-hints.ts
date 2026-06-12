@@ -36,7 +36,7 @@ export function extractKeywords(
  */
 export function generateAuditHints(
   data: Record<string, unknown>,
-  billType: string
+  _billType: string
 ): AuditHint[] {
   const hints: AuditHint[] = [];
 

@@ -3,8 +3,6 @@ import {
   openSwitchOrgDialog,
   closeSwitchOrgDialog,
   switchOrganization,
-  queryAndSelectInPopup,
-  readDialogFields,
 } from '../../lib/utils/organization';
 import { navigate } from '../../lib/browser';
 

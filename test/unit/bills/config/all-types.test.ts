@@ -1,17 +1,22 @@
 import { expect } from 'chai';
+import * as domesticTravel from '../../../../lib/bills/config/domestic-travel';
+import * as generalExpense from '../../../../lib/bills/config/general-expense';
+import * as externalPayment from '../../../../lib/bills/config/external-payment';
+import * as travelExpense from '../../../../lib/bills/config/travel-expense';
+import * as yjk from '../../../../lib/bills/config/yjk';
 
 describe('bills/config/* - 各单据类型配置结构验证', () => {
   const configs = [
-    { type: 'SLBX', file: 'domestic-travel', name: '境内差旅报销单' },
-    { type: 'TBX', file: 'general-expense', name: '通用报销单' },
-    { type: 'CFK', file: 'external-payment', name: '对外成本费用付款申请' },
-    { type: 'CBX', file: 'travel-expense', name: '差旅费报销' },
-    { type: 'YJK', file: 'yjk', name: '预缴计算单' },
+    { type: 'SLBX', module: domesticTravel, name: '境内差旅报销单' },
+    { type: 'TBX', module: generalExpense, name: '通用报销单' },
+    { type: 'CFK', module: externalPayment, name: '对外成本费用付款申请' },
+    { type: 'CBX', module: travelExpense, name: '差旅费报销' },
+    { type: 'YJK', module: yjk, name: '预缴计算单' },
   ];
 
-  for (const { type, file, name } of configs) {
+  for (const { type, module, name } of configs) {
     describe(`${type} (${name})`, () => {
-      const config = require(`../../../../lib/bills/config/${file}`);
+      const config = module;
 
       it('should export a config object', () => {
         expect(config).to.be.an('object');

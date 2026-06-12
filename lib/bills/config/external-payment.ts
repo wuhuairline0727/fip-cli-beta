@@ -9,11 +9,23 @@ export const basePatterns: Record<string, RegExp> = {
   payment_amount: /付款金额[：:]\s*([0-9,]+\.?[0-9]*)/,
 };
 
-export const inputFields: Record<string, { byLabel: string }> = {
-  payment_reason: { byLabel: '事由' },
-  has_contract: { byLabel: '是否有合同' },
-  counterparty: { byLabel: '客商名称' },
-  payment_amount: { byLabel: '付款金额' },
+export const inputFields: Record<
+  string,
+  { byId?: string; byIdPrefix?: string; byLabel?: string }
+> = {
+  // CFK 的"事由"在 GWT 视口外，且 byLabel 会被子表"事由摘要"列头抢先匹配，
+  // 直接 byId 绑定到 FormTextInput2-input
+  payment_reason: { byId: 'FormTextInput2-input' },
+  // CFK 的"币种"label 不在可见 DOM 中，byId 绑定到 BZ-input
+  currency: { byId: 'DataSetFieldComboBoxBZ-input' },
+  // CFK 字段名是"计税方式"，对应 HelpComboBox1-input
+  tax_mode: { byId: 'HelpComboBox1-input' },
+  has_paper_attachment: { byId: 'FormComboBox6-input' },
+  has_contract: { byId: 'FormComboBox3-input' },
+  counterparty: { byId: 'FormCustomHelpField6-input' },
+  // CFK 叫"成本费用属性"
+  reimbursement_type: { byId: 'DataSetFieldComboBox6-input' },
+  // CFK 基本信息中没有"预算类别"字段（仅在子表中），不要顶层提取
 };
 
 export const tables: Array<{
