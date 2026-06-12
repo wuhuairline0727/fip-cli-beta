@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import pkg from '../package.json';
+import pkg from '../../package.json';
 
 describe('FIP CLI Basic', () => {
   it('should load package.json', () => {
