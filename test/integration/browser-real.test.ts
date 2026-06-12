@@ -118,7 +118,7 @@ describe('🔴 真实浏览器测试', function () {
 
     it('screenshot() 应能截图 (使用CDP)', async () => {
       // WebBridge screenshot 可能超时，使用 CDP 直接截图
-      const client = await CDP({ port: 9222 }) as any;
+      const client = (await CDP({ port: 9222 })) as any;
       try {
         const { Page } = client;
         const { data } = await Page.captureScreenshot({ format: 'png' });

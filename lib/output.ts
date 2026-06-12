@@ -15,7 +15,11 @@ function cleanupScreenshots(): void {
       .filter((f) => f.endsWith('.png'))
       .map((f) => {
         const filepath = path.join(screenshotDir, f);
-        return { name: f, path: filepath, mtime: fs.statSync(filepath).mtimeMs };
+        return {
+          name: f,
+          path: filepath,
+          mtime: fs.statSync(filepath).mtimeMs,
+        };
       })
       .sort((a, b) => a.mtime - b.mtime);
 

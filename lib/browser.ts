@@ -1,9 +1,6 @@
 import * as http from 'http';
 import { debug } from './logger';
-import type {
-  WebBridgeRequest,
-  WebBridgeResponse,
-} from './types/webbridge';
+import type { WebBridgeRequest, WebBridgeResponse } from './types/webbridge';
 
 const BASE_URL = 'http://127.0.0.1:10086/command';
 const SESSION = 'fip';

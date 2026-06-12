@@ -52,7 +52,13 @@ describe('utils/organization-cache', () => {
     it('should save and load cache correctly', () => {
       const testCache = {
         version: 1,
-        organizations: [{ organization: '测试公司', project: '测试项目', department: '测试部门' }],
+        organizations: [
+          {
+            organization: '测试公司',
+            project: '测试项目',
+            department: '测试部门',
+          },
+        ],
         lastUpdated: '2026-01-01T00:00:00Z',
       };
       saveCache(testCache);

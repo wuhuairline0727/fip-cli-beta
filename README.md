@@ -40,32 +40,32 @@ fip-cli export-input-transfer --start-period 2026-04 --query-only
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `doctor` | 环境诊断：检查 Node.js、依赖、WebBridge、CDP、FIP 登录 |
-| `login-status` | 检查 FIP 登录状态 |
-| `extract-bill <编号>` | 自动打开单据、提取字段、关闭 |
-| `audit-invoice <编号>` | 开票单审核并生成报告 |
-| `export-input-transfer` | 进项转出明细台账查询 |
-| `export-output-invoice` | 销项发票明细台账查询 |
-| `export-vat-prepayment` | 增值税预缴款台账查询 |
-| `export-passenger-transport` | 旅客运输服务台账查询 |
-| `export-unbilled` | 未开票收入台账查询 |
-| `export-all` | 批量导出多个台账 |
-| `config <key> [value]` | 查看/设置配置项 |
+| Command                      | Description                                            |
+| ---------------------------- | ------------------------------------------------------ |
+| `doctor`                     | 环境诊断：检查 Node.js、依赖、WebBridge、CDP、FIP 登录 |
+| `login-status`               | 检查 FIP 登录状态                                      |
+| `extract-bill <编号>`        | 自动打开单据、提取字段、关闭                           |
+| `audit-invoice <编号>`       | 开票单审核并生成报告                                   |
+| `export-input-transfer`      | 进项转出明细台账查询                                   |
+| `export-output-invoice`      | 销项发票明细台账查询                                   |
+| `export-vat-prepayment`      | 增值税预缴款台账查询                                   |
+| `export-passenger-transport` | 旅客运输服务台账查询                                   |
+| `export-unbilled`            | 未开票收入台账查询                                     |
+| `export-all`                 | 批量导出多个台账                                       |
+| `config <key> [value]`       | 查看/设置配置项                                        |
 
 完整命令参考：`fip-cli --help`
 
 ## Supported Bill Types
 
-| Type | Name | Module |
-|------|------|--------|
-| `SLBX` | 境内差旅报销单 | 报账系统 |
-| `TBX` | 通用报销单 | 报账系统 |
-| `CFK` | 对外成本费用付款申请 | 报账系统 |
-| `CBX` | 差旅费报销 | 报账系统 |
-| `YJK` | 预缴计算单 | 税务系统 |
-| `KP` | 建筑施工开票单 | 税务系统 |
+| Type   | Name                 | Module   |
+| ------ | -------------------- | -------- |
+| `SLBX` | 境内差旅报销单       | 报账系统 |
+| `TBX`  | 通用报销单           | 报账系统 |
+| `CFK`  | 对外成本费用付款申请 | 报账系统 |
+| `CBX`  | 差旅费报销           | 报账系统 |
+| `YJK`  | 预缴计算单           | 税务系统 |
+| `KP`   | 建筑施工开票单       | 税务系统 |
 
 ## Configuration
 

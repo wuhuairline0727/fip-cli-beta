@@ -1,6 +1,6 @@
 import * as utils from '../utils/index';
 import * as config from '../config';
-import { GWT, FIP_ID } from '../selectors';
+import { GWT } from '../selectors';
 
 export interface InputTransferOptions {
   startPeriod?: string;

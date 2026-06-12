@@ -20,7 +20,10 @@ interface BillTypeMeta {
   codePrefix: string;
   configModule: {
     basePatterns?: Record<string, RegExp>;
-    inputFields?: Record<string, { byLabel?: string; byId?: string; byIdPrefix?: string }>;
+    inputFields?: Record<
+      string,
+      { byLabel?: string; byId?: string; byIdPrefix?: string }
+    >;
     tables?: Array<{
       name: string;
       identifyBy: { headerText: string };

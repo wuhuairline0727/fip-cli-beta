@@ -28,5 +28,6 @@ return el.textContent.trim() === '${opts.voidStatus}';
 P1 — 建议修复（低危但需预防）
 
 ---
-*扫描时间*: 2026-06-11 23:29 (Asia/Shanghai)
-*扫描来源*: fip-cli 系统性 bug 扫描
+
+_扫描时间_: 2026-06-11 23:29 (Asia/Shanghai)
+_扫描来源_: fip-cli 系统性 bug 扫描

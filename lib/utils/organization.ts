@@ -34,10 +34,8 @@ import {
 } from './cdp';
 
 const SWITCH_ORG_IMG_SRC = 'qhzz';
-const DIALOG_WRAP_SELECTOR =
-  `${ANT.MODAL_WRAP}.CscecFormWindow, ${ANT.MODAL_WRAP}.FormWindow`;
-const DIALOG_SELECTOR =
-  `${ANT.MODAL}.CscecFormWindow, ${ANT.MODAL}.FormWindow, ${ANT.MODAL_CONTENT}`;
+const DIALOG_WRAP_SELECTOR = `${ANT.MODAL_WRAP}.CscecFormWindow, ${ANT.MODAL_WRAP}.FormWindow`;
+const DIALOG_SELECTOR = `${ANT.MODAL}.CscecFormWindow, ${ANT.MODAL}.FormWindow, ${ANT.MODAL_CONTENT}`;
 const DIALOG_TITLE_SELECTOR = ANT.MODAL_TITLE;
 const CLOSE_BTN_SELECTOR = ANT.MODAL_CLOSE;
 

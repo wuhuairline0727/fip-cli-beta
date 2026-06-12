@@ -27,11 +27,16 @@ export { extractBill };
 export { generateAuditHints };
 export { ensureConnection, checkConnection };
 
-export const exportUnbilledIncomeLedger = unbilledIncome.exportUnbilledIncomeLedger;
-export const exportInputTransferLedger = inputTransfer.exportInputTransferLedger;
-export const exportOutputInvoiceLedger = outputInvoice.exportOutputInvoiceLedger;
-export const exportVatPrepaymentLedger = vatPrepayment.exportVatPrepaymentLedger;
-export const exportPassengerTransportLedger = passengerTransport.exportPassengerTransportLedger;
+export const exportUnbilledIncomeLedger =
+  unbilledIncome.exportUnbilledIncomeLedger;
+export const exportInputTransferLedger =
+  inputTransfer.exportInputTransferLedger;
+export const exportOutputInvoiceLedger =
+  outputInvoice.exportOutputInvoiceLedger;
+export const exportVatPrepaymentLedger =
+  vatPrepayment.exportVatPrepaymentLedger;
+export const exportPassengerTransportLedger =
+  passengerTransport.exportPassengerTransportLedger;
 export const auditInvoice = audit;
 export const generateAuditTextReport = generateTextReport;
 export const generateAuditJsonReport = generateJsonReport;
@@ -55,7 +60,8 @@ const fip = {
   exportInputTransferLedger: inputTransfer.exportInputTransferLedger,
   exportOutputInvoiceLedger: outputInvoice.exportOutputInvoiceLedger,
   exportVatPrepaymentLedger: vatPrepayment.exportVatPrepaymentLedger,
-  exportPassengerTransportLedger: passengerTransport.exportPassengerTransportLedger,
+  exportPassengerTransportLedger:
+    passengerTransport.exportPassengerTransportLedger,
   extractInvoiceFields,
   auditInvoice: audit,
   generateAuditTextReport: generateTextReport,

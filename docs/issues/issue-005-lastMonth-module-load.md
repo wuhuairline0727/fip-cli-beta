@@ -5,10 +5,10 @@
 `lib/config.ts` 第 25 行在模块加载时计算 `lastMonth`：
 
 ```javascript
-const lastMonth = getLastMonthRange();   // ← 模块加载时算一次
+const lastMonth = getLastMonthRange(); // ← 模块加载时算一次
 
 const DEFAULTS = {
-  startDate: lastMonth.startDate,        // ← 冻结在启动时刻
+  startDate: lastMonth.startDate, // ← 冻结在启动时刻
   endDate: lastMonth.endDate,
   startPeriod: lastMonth.startPeriod,
   endPeriod: lastMonth.endPeriod,
@@ -28,9 +28,9 @@ const DEFAULTS = {
 
 ```javascript
 function get() {
-  const lastMonth = getLastMonthRange();  // ← 运行时计算
+  const lastMonth = getLastMonthRange(); // ← 运行时计算
   return {
-    ...DEFAULTS,  // 不含日期字段的静态默认值
+    ...DEFAULTS, // 不含日期字段的静态默认值
     startDate: lastMonth.startDate,
     endDate: lastMonth.endDate,
     startPeriod: lastMonth.startPeriod,

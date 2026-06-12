@@ -107,14 +107,17 @@ async function buildOrgCache() {
     await sleep(500);
 
     // 确定要遍历的组织机构数量
-    const orgsToProcess = maxOrgs > 0 ? orgList.items.slice(0, maxOrgs) : orgList.items;
+    const orgsToProcess =
+      maxOrgs > 0 ? orgList.items.slice(0, maxOrgs) : orgList.items;
     log(`将处理 ${orgsToProcess.length} 个组织机构`);
 
     // 第3步：遍历每个组织机构
     for (const org of orgsToProcess) {
       orgCount++;
       log(`\n----------------------------------------`);
-      log(`[${orgCount}/${orgsToProcess.length}] 处理组织机构: ${org.name} (${org.code})`);
+      log(
+        `[${orgCount}/${orgsToProcess.length}] 处理组织机构: ${org.name} (${org.code})`
+      );
 
       try {
         // 选择组织机构
@@ -187,7 +190,9 @@ async function buildOrgCache() {
               const isNew = addOrganizationRecord(record);
               totalRecords++;
               if (debugMode || isNew) {
-                log(`    记录: ${org.name} → ${project.name} → ${record.department || '(空)'} ${isNew ? '[新]' : '[已存在]'}`);
+                log(
+                  `    记录: ${org.name} → ${project.name} → ${record.department || '(空)'} ${isNew ? '[新]' : '[已存在]'}`
+                );
               }
             } else {
               for (const dept of deptList.items) {
@@ -205,7 +210,9 @@ async function buildOrgCache() {
                 const isNew = addOrganizationRecord(record);
                 totalRecords++;
                 if (debugMode || isNew) {
-                  log(`    记录: ${org.name} → ${project.name} → ${dept.name} ${isNew ? '[新]' : '[已存在]'}`);
+                  log(
+                    `    记录: ${org.name} → ${project.name} → ${dept.name} ${isNew ? '[新]' : '[已存在]'}`
+                  );
                 }
               }
             }

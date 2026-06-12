@@ -61,6 +61,7 @@ fip-cli/
 ## 常用 CLI 命令速查
 
 ### 状态检查
+
 ```bash
 fip-cli login-status
 fip-cli page-info
@@ -69,6 +70,7 @@ fip-cli doctor --json                   # JSON格式输出
 ```
 
 ### Dashboard 操作
+
 ```bash
 fip-cli tab "已办结"
 fip-cli tab "待办"
@@ -80,6 +82,7 @@ fip-cli table-data --max-rows 50
 ```
 
 ### 单据操作
+
 ```bash
 fip-cli open-bill <单据编号>
 fip-cli close-bill
@@ -91,6 +94,7 @@ fip-cli download-attachments --dir ./downloads
 ```
 
 ### 台账查询
+
 ```bash
 fip-cli export-input-transfer --start-period 2026-04 --end-period 2026-04 --query-only
 fip-cli export-output-invoice --start-date 2026-04-01 --end-date 2026-04-30 --query-only
@@ -101,6 +105,7 @@ fip-cli export-all --ledgers input-transfer,output-invoice --query-only
 ```
 
 ### 开票单审核
+
 ```bash
 fip-cli extract-invoice <单据编号>
 fip-cli audit-invoice <单据编号>
@@ -156,6 +161,7 @@ curl http://127.0.0.1:9222/json/version
 ## 关键修复记录
 
 ### 2026-06-10 YJK 提单日期提取修复
+
 - **问题**: `bill_date`（提单日期）提取为 null
   - 根因: 提单日期值不在 innerText 中，而是在 `FormDateField1-input` 的 value 属性中；该 ID 有多个实例，第一个对应涉税报告到期时间
   - 解决: 使用 `byLabel: '提单日期'` 策略，通过 label 向上遍历父元素链定位正确的 input
@@ -163,6 +169,7 @@ curl http://127.0.0.1:9222/json/version
 - **验证**: `bill_date` = `2026-06-10` ✅
 
 ### 2026-06-10 弹窗检测与 closeBill 双重修复
+
 - **问题1**: `extract-bill` CLI 执行后弹窗未关闭
   - 根因: `dialog.ts` 策略4只查找 `x-tool` 类名，但 GWT 审批提醒弹窗关闭按钮类名为 `FD26IYC-jb-a`
   - 解决: 策略4新增备选选择器 `.FD26IYC-jb-a, [class*="jb-a"]`
@@ -173,11 +180,13 @@ curl http://127.0.0.1:9222/json/version
   - 文件: `lib/utils/bill.ts`
 
 ### 2026-06-10 YJK 提取器开发
+
 - 新增 `lib/bills/config/yjk.ts` — 31 个 input 字段 + 2 个子表
 - 引擎增强 `byIdPrefix` 策略 + 分包发票表头检测
 - `postProcessYjk` 自动计算附加税费税率
 
 ### 2026-06-10 表头行过滤
+
 - 问题: `expense_items` 混入表头文本（"发票状态"、"验真状态"等）
 - 解决: 添加 `headerTexts` 过滤和 `isInvoiceRow` 过滤
 - 文件: `lib/bills/extractor.ts`

@@ -23,6 +23,7 @@ async function error(code, message) {
 ```
 
 **实际行为不一致**：
+
 - `tab` 等简单命令：因 `error()` 的 throw 变成 unhandled rejection，**EXIT_CODE=1** ✅
 - `export-all` 等命令：错误被封装在 JSON 结果中返回，**EXIT_CODE=0** ❌
 
@@ -40,6 +41,7 @@ $ fip-cli export-all --ledgers foo
 ## 修复方向（二选一）
 
 **方案 A**：`error()` 不 throw，直接 `process.exit(1)`
+
 ```javascript
 async function error(code, message) {
   // ... 输出 JSON ...
@@ -48,6 +50,7 @@ async function error(code, message) {
 ```
 
 **方案 B**：commander action 的 catch 中设置退出码
+
 ```javascript
 } catch (e) {
   error('tab_switch_error', e.message);
