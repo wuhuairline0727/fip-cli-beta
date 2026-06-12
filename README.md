@@ -87,11 +87,28 @@ fip-cli config endPeriod     2026-04
 
 ## Tech Stack
 
-- **TypeScript** — 全项目 TypeScript 化，`strict: true`，零 `any` 类型泄漏
+- **TypeScript** — 全项目 TypeScript 化，`strict: true`，零 `.js` 源文件
 - **tsx** — Node.js 运行时 TS 加载（CJS 模式）
-- **Mocha + Chai + Sinon** — 单元测试框架
+- **Mocha + Chai + Sinon** — 单元测试框架（测试文件全部 `.ts`）
 - **Kimi WebBridge** — 浏览器自动化（HTTP API + CDP）
 - **Commander.js** — CLI 命令解析
+
+## Development
+
+```bash
+# 安装依赖
+npm install
+
+# 类型检查
+npm run typecheck
+
+# 运行测试
+npm test
+
+# 代码检查
+npm run lint
+npm run format:check
+```
 
 ## License
 
