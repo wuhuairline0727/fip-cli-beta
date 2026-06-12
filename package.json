@@ -1,6 +1,6 @@
 {
   "name": "@wuhuairline0727/fip-cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "FIP 一体化平台自动化 CLI - 支持中国建筑司库一体化平台(fip.cscec.com)的单据提取、台账查询、开票单审核",
   "main": "bin/fip-cli.js",
   "bin": {
