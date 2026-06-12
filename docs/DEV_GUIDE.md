@@ -9,46 +9,46 @@ description: FIP CLI 开发速查手册 — 目录结构、配置key、CLI命令
 ```
 fip-cli/
 ├── bin/
-│   └── fip-cli.js              # CLI 命令入口（45+ 个命令）
+│   └── fip-cli.ts              # CLI 命令入口（45+ 个命令）
 ├── lib/
-│   ├── browser.js                # WebBridge 客户端封装（端口 10086）
-│   ├── fip.js                    # 主入口（聚合导出所有功能）
-│   ├── output.js                 # 输出格式化 + 自动截图
-│   ├── config.js                 # ~/.fiprc.json 配置管理
-│   ├── doctor.js                 # 环境诊断模块（2026-06-10新增）
+│   ├── browser.ts                # WebBridge 客户端封装（端口 10086）
+│   ├── fip.ts                    # 主入口（聚合导出所有功能）
+│   ├── output.ts                 # 输出格式化 + 自动截图
+│   ├── config.ts                 # ~/.fiprc.json 配置管理
+│   ├── doctor.ts                 # 环境诊断模块（2026-06-10新增）
 │   ├── audit/                    # 税务系统 - 开票单审核（KP）
-│   │   ├── extractor.js          # 开票单字段提取器
-│   │   ├── engine.js             # 审核引擎
-│   │   ├── reporter.js           # 报告生成器（text/json/md）
+│   │   ├── extractor.ts          # 开票单字段提取器
+│   │   ├── engine.ts             # 审核引擎
+│   │   ├── reporter.ts           # 报告生成器（text/json/md）
 │   │   └── rules.json            # 审核规则配置
 │   ├── bills/                    # 报账系统 + 税务系统 - 通用单据提取
-│   │   ├── extractor.js          # 通用提取引擎（支持 byIdPrefix 策略）
-│   │   ├── audit-hints.js        # 审核提示生成器
+│   │   ├── extractor.ts          # 通用提取引擎（支持 byIdPrefix 策略）
+│   │   ├── audit-hints.ts        # 审核提示生成器
 │   │   └── config/
-│   │       ├── index.js          # 配置注册表（类型识别）
-│   │       ├── common.js         # 通用字段 + 过滤配置
-│   │       ├── domestic-travel.js # SLBX 配置（境内差旅报销单）
-│   │       ├── general-expense.js # TBX 配置（通用报销单）
-│   │       ├── external-payment.js # CFK 配置（对外成本费用付款申请）
-│   │       ├── travel-expense.js  # CBX 配置（差旅费报销）
-│   │       └── yjk.js            # YJK 配置（预缴计算单，税务模块）
+│   │       ├── index.ts          # 配置注册表（类型识别）
+│   │       ├── common.ts         # 通用字段 + 过滤配置
+│   │       ├── domestic-travel.ts # SLBX 配置（境内差旅报销单）
+│   │       ├── general-expense.ts # TBX 配置（通用报销单）
+│   │       ├── external-payment.ts # CFK 配置（对外成本费用付款申请）
+│   │       ├── travel-expense.ts  # CBX 配置（差旅费报销）
+│   │       └── yjk.ts            # YJK 配置（预缴计算单，税务模块）
 │   ├── ledgers/                  # 税务系统 - 台账查询
-│   │   ├── unbilled-income.js    # 未开票收入台账
-│   │   ├── input-transfer.js     # 进项转出明细台账
-│   │   ├── output-invoice.js     # 销项发票明细台账
-│   │   ├── vat-prepayment.js     # 增值税预缴款台账
-│   │   └── passenger-transport.js # 旅客运输服务台账
+│   │   ├── unbilled-income.ts    # 未开票收入台账
+│   │   ├── input-transfer.ts     # 进项转出明细台账
+│   │   ├── output-invoice.ts     # 销项发票明细台账
+│   │   ├── vat-prepayment.ts     # 增值税预缴款台账
+│   │   └── passenger-transport.ts # 旅客运输服务台账
 │   └── utils/                    # 通用工具
-│       ├── index.js              # utils 聚合导出
-│       ├── cdp.js                # CDP 抽象层（真实点击，端口 9222）
-│       ├── common.js             # 通用 DOM 操作
-│       ├── dialog.js             # 弹窗检测与自动关闭
-│       ├── form.js               # 表单操作
-│       ├── picker.js             # Picker 弹窗操作
-│       ├── navigation.js         # 导航操作
-│       ├── bill.js               # 单据操作（openBill/closeBill）
-│       ├── table.js              # 表格数据读取
-│       └── attachment.js         # 附件列表/下载
+│       ├── index.ts              # utils 聚合导出
+│       ├── cdp.ts                # CDP 抽象层（真实点击，端口 9222）
+│       ├── common.ts             # 通用 DOM 操作
+│       ├── dialog.ts             # 弹窗检测与自动关闭
+│       ├── form.ts               # 表单操作
+│       ├── picker.ts             # Picker 弹窗操作
+│       ├── navigation.ts         # 导航操作
+│       ├── bill.ts               # 单据操作（openBill/closeBill）
+│       ├── table.ts              # 表格数据读取
+│       └── attachment.ts         # 附件列表/下载
 ├── docs/
 │   ├── CHANGELOG.md              # 开发进度时间线
 │   ├── DEV_GUIDE.md              # 本文件
@@ -159,25 +159,25 @@ curl http://127.0.0.1:9222/json/version
 - **问题**: `bill_date`（提单日期）提取为 null
   - 根因: 提单日期值不在 innerText 中，而是在 `FormDateField1-input` 的 value 属性中；该 ID 有多个实例，第一个对应涉税报告到期时间
   - 解决: 使用 `byLabel: '提单日期'` 策略，通过 label 向上遍历父元素链定位正确的 input
-  - 文件: `lib/bills/config/yjk.js`
+  - 文件: `lib/bills/config/yjk.ts`
 - **验证**: `bill_date` = `2026-06-10` ✅
 
 ### 2026-06-10 弹窗检测与 closeBill 双重修复
 - **问题1**: `extract-bill` CLI 执行后弹窗未关闭
-  - 根因: `dialog.js` 策略4只查找 `x-tool` 类名，但 GWT 审批提醒弹窗关闭按钮类名为 `FD26IYC-jb-a`
+  - 根因: `dialog.ts` 策略4只查找 `x-tool` 类名，但 GWT 审批提醒弹窗关闭按钮类名为 `FD26IYC-jb-a`
   - 解决: 策略4新增备选选择器 `.FD26IYC-jb-a, [class*="jb-a"]`
-  - 文件: `lib/utils/dialog.js`
+  - 文件: `lib/utils/dialog.ts`
 - **问题2**: `closeBill()` 错误地将 `FLOW_Pending` 当作"已返回首页"
   - 根因: URL 验证条件 `url.includes('FLOW_Pending')` 误匹配
   - 解决: 首页验证改为 `(url.includes('#/dashboard') || url.includes('CSCPortal.jsp')) && !url.includes('FLOW_')`
-  - 文件: `lib/utils/bill.js`
+  - 文件: `lib/utils/bill.ts`
 
 ### 2026-06-10 YJK 提取器开发
-- 新增 `lib/bills/config/yjk.js` — 31 个 input 字段 + 2 个子表
+- 新增 `lib/bills/config/yjk.ts` — 31 个 input 字段 + 2 个子表
 - 引擎增强 `byIdPrefix` 策略 + 分包发票表头检测
 - `postProcessYjk` 自动计算附加税费税率
 
 ### 2026-06-10 表头行过滤
 - 问题: `expense_items` 混入表头文本（"发票状态"、"验真状态"等）
 - 解决: 添加 `headerTexts` 过滤和 `isInvoiceRow` 过滤
-- 文件: `lib/bills/extractor.js`
+- 文件: `lib/bills/extractor.ts`

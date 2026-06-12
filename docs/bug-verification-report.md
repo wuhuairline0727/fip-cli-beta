@@ -1,5 +1,8 @@
 # 🐛 Bug 验证报告
 
+> **注意**：本文档记录的是 JavaScript 版本时期的 bug 验证结果，当前项目已迁移至 TypeScript。
+
+
 **验证时间**: 2026-06-11 22:30 (Asia/Shanghai)
 **验证方式**: 静态代码审查 + 实际运行验证
 **验证人**: Agent (systematic-debugging)
