@@ -10,5 +10,8 @@ bin/fip-cli.js linguist-generated=true
 # 构建脚本标记为 generated
 scripts/build-org-cache.js linguist-generated=true
 
+# 覆盖率报告文件标记为 generated，不计入语言统计
+coverage/*.js linguist-generated=true
+
 # 配置文件标记为 generated
 eslint.config.js linguist-generated=true
