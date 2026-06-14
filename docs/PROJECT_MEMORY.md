@@ -13,51 +13,54 @@ description: Phase 2功能开发进度、测试结果、部署状态
 
 ## 一、已通过测试并部署的功能 (20个+)
 
-| 命令 | 功能 | 测试状态 | 备注 |
-|------|------|----------|------|
-| `login-status` | 检查登录状态 | ✅ 通过 | 基础功能 |
-| `page-info` | 获取页面URL/标题 | ✅ 通过 | 基础功能 |
-| `tab` | 切换Dashboard子标签 | ✅ 通过 | 替代旧版switch-tab |
-| `query` | 点击查询按钮 | ✅ 通过 | - |
-| `rows` | 获取表格行数 | ✅ 通过 | - |
-| `table-data` | 读取表格数据 | ✅ 恢复 | 2026-06-08从experiments恢复 |
-| `open-bill` | 跨标签页打开单据 | ✅ 通过 | 替代旧版search-bill |
-| `close-bill` | 关闭单据返回Dashboard | ✅ 通过 | 2026-06-10修复URL验证bug |
-| `list-attachments` | 列出附件 | ✅ 恢复 | 2026-06-08从experiments恢复 |
-| `download-attachments` | 下载附件 | ✅ 恢复 | 2026-06-08从experiments恢复 |
-| `export-input-transfer` | 进项转出明细台账查询/导出 | ✅ 通过 | 2026-06-08测试，12条记录 |
-| `export-output-invoice` | 销项发票明细台账查询/导出 | ✅ 通过 | 2026-06-08测试，17条记录 |
-| `export-passenger-transport` | 旅客运输服务台账查询/导出 | ✅ 通过 | 2026-06-08测试，20条记录 |
-| `export-vat-prepayment` | 增值税预缴款台账查询/导出 | ✅ 通过 | 2026-06-08测试，23条记录 |
-| `export-unbilled` | 未开票收入台账查询/导出 | ✅ 通过 | 2026-06-09测试，14条记录 |
-| `export-all` | 批量导出多个台账 | ✅ 恢复 | 2026-06-08恢复 |
-| `extract-bill` | 通用单据字段提取 | ✅ 通过 | 2026-06-10修复弹窗+关闭bug |
-| `doctor` | 环境诊断检查 | ✅ 通过 | 2026-06-10新增，检查6项环境指标 |
+| 命令                         | 功能                      | 测试状态 | 备注                            |
+| ---------------------------- | ------------------------- | -------- | ------------------------------- |
+| `login-status`               | 检查登录状态              | ✅ 通过  | 基础功能                        |
+| `page-info`                  | 获取页面URL/标题          | ✅ 通过  | 基础功能                        |
+| `tab`                        | 切换Dashboard子标签       | ✅ 通过  | 替代旧版switch-tab              |
+| `query`                      | 点击查询按钮              | ✅ 通过  | -                               |
+| `rows`                       | 获取表格行数              | ✅ 通过  | -                               |
+| `table-data`                 | 读取表格数据              | ✅ 恢复  | 2026-06-08从experiments恢复     |
+| `open-bill`                  | 跨标签页打开单据          | ✅ 通过  | 替代旧版search-bill             |
+| `close-bill`                 | 关闭单据返回Dashboard     | ✅ 通过  | 2026-06-10修复URL验证bug        |
+| `list-attachments`           | 列出附件                  | ✅ 恢复  | 2026-06-08从experiments恢复     |
+| `download-attachments`       | 下载附件                  | ✅ 恢复  | 2026-06-08从experiments恢复     |
+| `export-input-transfer`      | 进项转出明细台账查询/导出 | ✅ 通过  | 2026-06-08测试，12条记录        |
+| `export-output-invoice`      | 销项发票明细台账查询/导出 | ✅ 通过  | 2026-06-08测试，17条记录        |
+| `export-passenger-transport` | 旅客运输服务台账查询/导出 | ✅ 通过  | 2026-06-08测试，20条记录        |
+| `export-vat-prepayment`      | 增值税预缴款台账查询/导出 | ✅ 通过  | 2026-06-08测试，23条记录        |
+| `export-unbilled`            | 未开票收入台账查询/导出   | ✅ 通过  | 2026-06-09测试，14条记录        |
+| `export-all`                 | 批量导出多个台账          | ✅ 恢复  | 2026-06-08恢复                  |
+| `extract-bill`               | 通用单据字段提取          | ✅ 通过  | 2026-06-10修复弹窗+关闭bug      |
+| `doctor`                     | 环境诊断检查              | ✅ 通过  | 2026-06-10新增，检查6项环境指标 |
 
 ---
 
 ## 基础设施完善状态 (P0 + P1)
 
 ### P0 已完成 ✅
-| 项目 | 状态 | 文件 |
-|------|------|------|
-| ESLint v10 + Prettier | ✅ | `eslint.config.js`, `.prettierrc` |
-| GitHub Actions CI | ✅ | `.github/workflows/ci.yml`, `release.yml` |
-| 测试框架 (mocha + chai) | ✅ | `test/unit/*.test.js` |
-| 单元测试覆盖 | ✅ | 165 passing (24 个测试文件，覆盖 32 个 lib/ 模块) |
+
+| 项目                    | 状态 | 文件                                              |
+| ----------------------- | ---- | ------------------------------------------------- |
+| ESLint v10 + Prettier   | ✅   | `eslint.config.js`, `.prettierrc`                 |
+| GitHub Actions CI       | ✅   | `.github/workflows/ci.yml`, `release.yml`         |
+| 测试框架 (mocha + chai) | ✅   | `test/unit/*.test.js`                             |
+| 单元测试覆盖            | ✅   | 165 passing (24 个测试文件，覆盖 32 个 lib/ 模块) |
 
 ### P1 已完成 ✅
-| 项目 | 状态 | 文件 |
-|------|------|------|
-| Debug / Verbose 日志 | ✅ | `lib/logger.js`, `--debug`, `--verbose` |
-| npm 发布准备 | ✅ | `package.json` 完善，`npm pack` 验证 |
-| 配置 Schema 验证 | ✅ | `lib/config-schema.js` |
+
+| 项目                 | 状态 | 文件                                    |
+| -------------------- | ---- | --------------------------------------- |
+| Debug / Verbose 日志 | ✅   | `lib/logger.js`, `--debug`, `--verbose` |
+| npm 发布准备         | ✅   | `package.json` 完善，`npm pack` 验证    |
+| 配置 Schema 验证     | ✅   | `lib/config-schema.js`                  |
 
 **测试统计**: 165 passing (browser/doctor/extractor/config-schema + ledgers/utils/bills/audit)
 **Lint**: 0 errors, 42 warnings
 **npm pack**: 37 files, 61.9 kB
 
 **已废弃功能（有替代）**：
+
 - `explore-dashboard` → 用 `page-info` + `tab` + `rows` 替代
 - `switch-tab` → 用 `tab` 替代
 - `search-bill` → 用 `open-bill` 替代
@@ -74,33 +77,36 @@ description: Phase 2功能开发进度、测试结果、部署状态
 ## 三、Audit 模块状态
 
 ### 开票单审核（已验收）
-| 文件 | 功能 | 状态 |
-|------|------|------|
+
+| 文件                     | 功能       | 状态                |
+| ------------------------ | ---------- | ------------------- |
 | `lib/audit/extractor.js` | 字段提取器 | ✅ 已验收，生产可用 |
-| `lib/audit/engine.js` | 审核引擎 | ✅ 已验收，生产可用 |
-| `lib/audit/reporter.js` | 报告生成器 | ✅ 已验收，生产可用 |
-| `lib/audit/rules.json` | 审核规则 | ✅ 已验收，生产可用 |
-| `extract-invoice` | 提取命令 | ✅ 已测试，生产可用 |
-| `audit-invoice` | 审核命令 | ✅ 已测试，生产可用 |
+| `lib/audit/engine.js`    | 审核引擎   | ✅ 已验收，生产可用 |
+| `lib/audit/reporter.js`  | 报告生成器 | ✅ 已验收，生产可用 |
+| `lib/audit/rules.json`   | 审核规则   | ✅ 已验收，生产可用 |
+| `extract-invoice`        | 提取命令   | ✅ 已测试，生产可用 |
+| `audit-invoice`          | 审核命令   | ✅ 已测试，生产可用 |
 
 > **系统归属**: KP（建筑施工开票单）属于**税务系统**发票管理模块，非司库系统。
 
 ### 通用单据提取（已验收）
-| 文件 | 功能 | 状态 |
-|------|------|------|
-| `lib/bills/extractor.js` | 通用提取引擎 | ✅ 已验收，生产可用 |
-| `lib/bills/audit-hints.js` | 审核提示生成器 | ✅ 已验收，规则测试通过 |
-| `lib/bills/config/index.js` | 配置注册表 | ✅ 已验收 |
-| `lib/bills/config/common.js` | 通用字段配置 | ✅ 已验收 |
-| `lib/bills/config/domestic-travel.js` | SLBX配置 | ✅ 已验收 |
-| `lib/bills/config/general-expense.js` | TBX配置 | ✅ 已验收 |
-| `lib/bills/config/external-payment.js` | CFK配置 | ✅ 已验收 |
-| `lib/bills/config/travel-expense.js` | CBX配置 | ✅ 已验收 |
-| `lib/bills/config/yjk.js` | YJK配置 | ✅ 已验收，2026-06-10 |
-| `extract-bill` | 通用提取CLI命令 | ✅ 已验收，2026-06-10修复弹窗+关闭bug |
+
+| 文件                                   | 功能            | 状态                                  |
+| -------------------------------------- | --------------- | ------------------------------------- |
+| `lib/bills/extractor.js`               | 通用提取引擎    | ✅ 已验收，生产可用                   |
+| `lib/bills/audit-hints.js`             | 审核提示生成器  | ✅ 已验收，规则测试通过               |
+| `lib/bills/config/index.js`            | 配置注册表      | ✅ 已验收                             |
+| `lib/bills/config/common.js`           | 通用字段配置    | ✅ 已验收                             |
+| `lib/bills/config/domestic-travel.js`  | SLBX配置        | ✅ 已验收                             |
+| `lib/bills/config/general-expense.js`  | TBX配置         | ✅ 已验收                             |
+| `lib/bills/config/external-payment.js` | CFK配置         | ✅ 已验收                             |
+| `lib/bills/config/travel-expense.js`   | CBX配置         | ✅ 已验收                             |
+| `lib/bills/config/yjk.js`              | YJK配置         | ✅ 已验收，2026-06-10                 |
+| `extract-bill`                         | 通用提取CLI命令 | ✅ 已验收，2026-06-10修复弹窗+关闭bug |
 
 **开发分支**: `feature/bill-extractor`
 **测试记录** (2026-06-09):
+
 - 测试单据: SLBX2004202605003766（境内差旅报销单）
 - 自动识别: 通过单据编号前缀正确识别为 SLBX
 - 字段提取: 成功提取单据编号、提单人、项目、部门、计税模式、事前申请单号等
@@ -108,6 +114,7 @@ description: Phase 2功能开发进度、测试结果、部署状态
 - **待优化**: 部分字段（报销事由、状态、子表数据）提取为null，需根据真实DOM结构调整正则和label匹配策略
 
 **验收测试记录** (2026-06-09):
+
 - 测试单据: KP20002026060500211
 - 字段提取: 完整提取基本信息、金额、合同、开票明细、预缴信息、销方/收票信息
 - 审核引擎: 3项通过，4项需人工核对（合同金额核对、累计确权额核对、审批人、附件完整性）
@@ -116,6 +123,7 @@ description: Phase 2功能开发进度、测试结果、部署状态
 - 自动关闭: 审核结束后自动关闭单据（支持 `--keep-open` 保持打开）
 
 **YJK（预缴计算单）验收记录** (2026-06-10):
+
 - 测试单据: YJK20042026061003638（税务模块-预缴计算单）
 - 自动识别: 通过单据编号前缀正确识别为 YJK
 - 基础信息: 单据编号、提单人、公司名称、纳税人识别号、项目名称、计税方式、预缴分类、涉税事项报告
@@ -127,6 +135,7 @@ description: Phase 2功能开发进度、测试结果、部署状态
 - 验证结果: ✅ 全部字段准确，税率计算正确
 
 **extract-bill CLI修复记录** (2026-06-10):
+
 - 测试单据: TBX2004202606004064（通用报销单）
 - 问题1: 弹窗未关闭 — `dialog.js` 策略4未匹配 `FD26IYC-jb-a` 类名
 - 修复1: 策略4新增备选选择器 `.FD26IYC-jb-a, [class*="jb-a"]`
@@ -149,6 +158,7 @@ description: Phase 2功能开发进度、测试结果、部署状态
 ## 五、部署状态
 
 **生产环境（master分支）已部署功能：**
+
 - 五个ledger查询（input-transfer/output-invoice/passenger-transport/vat-prepayment/unbilled-income）
 - 表格数据读取（table-data）
 - 附件操作（list-attachments/download-attachments）
@@ -168,6 +178,7 @@ description: Phase 2功能开发进度、测试结果、部署状态
 **原因**: 原README过于冗长（439行），不符合成熟CLI仓库的简洁风格
 **调研对象**: sindresorhus/execa, netlify/cli, oclif, vercel, cli/cli (GitHub CLI)
 **重写要点**:
+
 - 顶部一句话tagline（blockquote突出）
 - 正文控制在~100行，500-1500字
 - Install章节前置，仅一行命令
@@ -175,7 +186,7 @@ description: Phase 2功能开发进度、测试结果、部署状态
 - Features用5-10个bullet points
 - Commands用表格，简短描述
 - 详细内容外链到docs/目录
-**拆分文档**:
+  **拆分文档**:
 - `README.md` — 精简入口（~100行）
 - `docs/GUIDE.md` — 完整使用指南（原README详细内容）
 - `docs/DEVELOPMENT.md` — 开发文档（项目结构、测试、发布流程）
@@ -212,11 +223,11 @@ description: Phase 2功能开发进度、测试结果、部署状态
 
 **当前仓库完整度**: 必备文件 100% 覆盖，推荐文件 80%+ 覆盖
 
-
 **日期**: 2026-06-10
 **原因**: 原README过于冗长（439行），不符合成熟CLI仓库的简洁风格
 **调研对象**: sindresorhus/execa, netlify/cli, oclif, vercel, cli/cli (GitHub CLI)
 **重写要点**:
+
 - 顶部一句话tagline（blockquote突出）
 - 正文控制在~100行，500-1500字
 - Install章节前置，仅一行命令
@@ -224,12 +235,11 @@ description: Phase 2功能开发进度、测试结果、部署状态
 - Features用5-10个bullet points
 - Commands用表格，简短描述
 - 详细内容外链到docs/目录
-**拆分文档**:
+  **拆分文档**:
 - `README.md` — 精简入口（~100行）
 - `docs/GUIDE.md` — 完整使用指南（原README详细内容）
 - `docs/DEVELOPMENT.md` — 开发文档（项目结构、测试、发布流程）
 - `docs/CHANGELOG.md` — 更新日志
-
 
 ```
 lib/

@@ -7,16 +7,16 @@
 
 ## 一、差距总览
 
-| 维度 | 大厂 CLI | FIP CLI | 优先级 |
-|------|----------|---------|--------|
-| 测试体系 | 单元测试 + 集成测试 + E2E 测试 | 仅 1 个基础测试文件 | 🔴 高 |
-| 代码质量 | ESLint + Prettier + TypeScript | 无 | 🔴 高 |
-| CI/CD | GitHub Actions 自动化测试/发布 | 无 | 🔴 高 |
-| 发布流程 | npm publish + 预编译二进制 + 包管理器 | 仅 GitHub 仓库 | 🟡 中 |
-| 开发体验 | npm link、build:watch、本地调试 | 无 | 🟡 中 |
-| 文档体系 | 安装指南、贡献指南、API 文档 | README + docs/ | 🟢 低 |
-| 错误处理 | 错误码体系、debug 模式、日志 | 基础错误处理 | 🟡 中 |
-| 配置管理 | 配置文件验证、JSON Schema | 简单 JSON 配置 | 🟡 中 |
+| 维度     | 大厂 CLI                              | FIP CLI             | 优先级 |
+| -------- | ------------------------------------- | ------------------- | ------ |
+| 测试体系 | 单元测试 + 集成测试 + E2E 测试        | 仅 1 个基础测试文件 | 🔴 高  |
+| 代码质量 | ESLint + Prettier + TypeScript        | 无                  | 🔴 高  |
+| CI/CD    | GitHub Actions 自动化测试/发布        | 无                  | 🔴 高  |
+| 发布流程 | npm publish + 预编译二进制 + 包管理器 | 仅 GitHub 仓库      | 🟡 中  |
+| 开发体验 | npm link、build:watch、本地调试       | 无                  | 🟡 中  |
+| 文档体系 | 安装指南、贡献指南、API 文档          | README + docs/      | 🟢 低  |
+| 错误处理 | 错误码体系、debug 模式、日志          | 基础错误处理        | 🟡 中  |
+| 配置管理 | 配置文件验证、JSON Schema             | 简单 JSON 配置      | 🟡 中  |
 
 ---
 
@@ -25,17 +25,20 @@
 ### 1. 测试体系（🔴 高优先级）
 
 **GitHub CLI**:
+
 - 单元测试覆盖每个命令
 - 集成测试模拟 GitHub API
 - E2E 测试验证完整工作流
 
 **Vercel CLI**:
+
 - `vitest` 单元测试
 - `test-e2e-node-all-versions` 多版本 Node 测试
 - `test-dev` 开发环境测试
 - `coverage` 代码覆盖率（codecov 集成）
 
 **Firebase CLI**:
+
 - `mocha` 测试框架 + `nyc` 覆盖率
 - 大量集成测试脚本：
   - `test:emulator` — 模拟器测试
@@ -44,11 +47,13 @@
   - `test:storage-deploy` — 存储部署测试
 
 **FIP CLI 现状**:
+
 ```json
 "scripts": {
   "test": "node test/basic.test.js"
 }
 ```
+
 只有一个基础测试文件，无覆盖率、无集成测试。
 
 **影响**: 每次修改后无法自动验证是否破坏现有功能，依赖人工测试。
@@ -58,6 +63,7 @@
 ### 2. 代码质量工具（🔴 高优先级）
 
 **Firebase CLI**:
+
 ```json
 "scripts": {
   "lint": "npm run lint:ts && npm run lint:other",
@@ -69,11 +75,13 @@
 ```
 
 **Vercel CLI**:
+
 - `type-check`: `tsc --noEmit`
 - `build`: 编译 + 打包
 - `lint`: 代码检查
 
 **FIP CLI 现状**:
+
 - 无 ESLint
 - 无 Prettier
 - 无 TypeScript
@@ -86,17 +94,20 @@
 ### 3. CI/CD（🔴 高优先级）
 
 **GitHub CLI**:
+
 - `.github/workflows/` 目录
 - 自动化测试、构建、发布
 - Build Provenance Attestation（构建来源证明）
 - 多平台发布（macOS/Windows/Linux）
 
 **Firebase CLI**:
+
 - GitHub Actions 运行大量集成测试
 - 自动发布到 npm
 - 覆盖率报告
 
 **FIP CLI 现状**:
+
 - 无 `.github/workflows/`
 - 无自动化测试
 - 无自动发布
@@ -108,16 +119,19 @@
 ### 4. 发布流程（🟡 中优先级）
 
 **GitHub CLI**:
+
 - 预编译二进制文件（releases 页面）
 - 多种安装方式：Homebrew、WinGet、apt、yum、手动下载
 - 签名验证（Sigstore/cosign）
 
 **Vercel CLI**:
+
 - `npm publish`
 - `build-binary` 打包为独立可执行文件
 - `smoke-binary` 二进制冒烟测试
 
 **FIP CLI 现状**:
+
 - 仅通过 GitHub 仓库分发
 - 无 npm 发布
 - 无预编译二进制
@@ -129,6 +143,7 @@
 ### 5. 开发体验（🟡 中优先级）
 
 **Vercel CLI**:
+
 ```json
 "scripts": {
   "dev": "pnpm build && node ./dist/vc.js",
@@ -137,6 +152,7 @@
 ```
 
 **Firebase CLI**:
+
 ```bash
 npm link          # 全局链接本地代码
 npm run build:watch  # 监听变更自动重建
@@ -144,6 +160,7 @@ firebase <command> --debug  # debug 模式
 ```
 
 **FIP CLI 现状**:
+
 - 无 `npm link` 开发指南
 - 无 `build:watch`
 - 无 `--debug` 模式
@@ -155,15 +172,18 @@ firebase <command> --debug  # debug 模式
 ### 6. 错误处理（🟡 中优先级）
 
 **Firebase CLI**:
+
 - 详细的错误码体系
 - `--debug` 标志输出详细日志
 - `firebase-debug.log` 文件记录
 
 **GitHub CLI**:
+
 - 结构化的错误输出
 - 环境诊断命令
 
 **FIP CLI 现状**:
+
 - 基础错误处理（`error('code', message)`）
 - 无 debug 模式
 - 无日志文件
@@ -175,15 +195,18 @@ firebase <command> --debug  # debug 模式
 ### 7. 配置管理（🟡 中优先级）
 
 **Firebase CLI**:
+
 - `.firebaserc` 配置文件
 - JSON Schema 验证
 - 多 profile 支持（staging/production）
 
 **Vercel CLI**:
+
 - `vercel.json` 配置
 - 环境变量管理
 
 **FIP CLI 现状**:
+
 - `~/.fiprc.json` 简单 JSON
 - 无 Schema 验证
 - 无多环境配置
@@ -203,6 +226,7 @@ npm install --save-dev eslint prettier eslint-config-prettier
 ```
 
 创建 `.eslintrc.js`:
+
 ```javascript
 module.exports = {
   env: { node: true, es2021: true },
@@ -216,6 +240,7 @@ module.exports = {
 ```
 
 创建 `.prettierrc`:
+
 ```json
 {
   "semi": true,
@@ -226,6 +251,7 @@ module.exports = {
 ```
 
 更新 `package.json`:
+
 ```json
 "scripts": {
   "test": "node test/basic.test.js",
@@ -239,6 +265,7 @@ module.exports = {
 #### 1.2 添加 GitHub Actions CI
 
 创建 `.github/workflows/ci.yml`:
+
 ```yaml
 name: CI
 
@@ -270,6 +297,7 @@ jobs:
 #### 1.3 完善测试体系
 
 创建 `test/` 目录结构:
+
 ```
 test/
 ├── unit/
@@ -288,11 +316,13 @@ test/
 ```
 
 使用 `mocha` + `chai` 测试框架:
+
 ```bash
 npm install --save-dev mocha chai
 ```
 
 更新 `package.json`:
+
 ```json
 "scripts": {
   "test": "mocha 'test/**/*.test.js' --timeout 10000",
@@ -319,6 +349,7 @@ npm install --save-dev mocha chai
 #### 2.2 添加 Debug 模式
 
 在 `bin/fip-cli.js` 中添加 `--debug` 选项:
+
 ```javascript
 program
   .option('--debug', '输出详细调试信息')
@@ -326,6 +357,7 @@ program
 ```
 
 创建 `lib/logger.js`:
+
 ```javascript
 let debugMode = false;
 
@@ -349,6 +381,7 @@ module.exports = { setDebug, debug, log };
 #### 2.3 添加日志文件
 
 创建 `lib/logger.js` 扩展:
+
 ```javascript
 const fs = require('fs');
 const path = require('path');
@@ -371,6 +404,7 @@ module.exports = { writeLog };
 #### 3.1 npm 发布准备
 
 更新 `package.json`:
+
 ```json
 {
   "name": "@wuhuairline0727/fip-cli",
@@ -381,22 +415,11 @@ module.exports = { writeLog };
     "fip-cli": "./bin/fip-cli.js",
     "fip": "./bin/fip-cli.js"
   },
-  "files": [
-    "bin/",
-    "lib/",
-    "README.md",
-    "LICENSE"
-  ],
+  "files": ["bin/", "lib/", "README.md", "LICENSE"],
   "engines": {
     "node": ">=16.0.0"
   },
-  "keywords": [
-    "fip",
-    "cscec",
-    "automation",
-    "cli",
-    "webbridge"
-  ],
+  "keywords": ["fip", "cscec", "automation", "cli", "webbridge"],
   "author": "wuhuairline0727",
   "license": "MIT",
   "repository": {
@@ -413,6 +436,7 @@ module.exports = { writeLog };
 #### 3.2 GitHub Actions 自动发布
 
 创建 `.github/workflows/release.yml`:
+
 ```yaml
 name: Release
 
@@ -444,6 +468,7 @@ jobs:
 #### 4.1 配置文件 Schema 验证
 
 创建 `lib/config-schema.js`:
+
 ```javascript
 const CONFIG_SCHEMA = {
   companyCode: { type: 'string', required: false },
@@ -483,7 +508,7 @@ fip-cli config --env staging companyCode 1000200020040012
 
 #### 5.1 添加 CONTRIBUTING.md
 
-```markdown
+````markdown
 # 贡献指南
 
 ## 开发环境设置
@@ -494,6 +519,7 @@ cd fip-cli
 npm install
 npm link
 ```
+````
 
 ## 代码风格
 
@@ -513,11 +539,13 @@ npm run test:unit   # 仅单元测试
 ## 提交规范
 
 使用 [Conventional Commits](https://www.conventionalcommits.org/):
+
 - `feat:` 新功能
 - `fix:` 修复
 - `docs:` 文档
 - `test:` 测试
 - `refactor:` 重构
+
 ```
 
 #### 5.2 添加 CHANGELOG.md（标准化）
@@ -553,3 +581,4 @@ npm run test:unit   # 仅单元测试
 ---
 
 *报告生成时间: 2026-06-10*
+```

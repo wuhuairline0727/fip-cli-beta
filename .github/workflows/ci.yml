@@ -2,9 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [master, typescript-migration]
   pull_request:
     branches: [master]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -43,6 +44,9 @@ jobs:
             echo "No 'format:check' script found in package.json, skipping."
           fi
         shell: bash
+
+      - name: Type check
+        run: npm run typecheck
 
       - name: Run tests
         run: npm test

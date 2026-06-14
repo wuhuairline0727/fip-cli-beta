@@ -1,7 +1,7 @@
 {
   "name": "@wuhuairline0727/fip-cli",
-  "version": "1.0.0",
-  "description": "FIP 一体化平台自动化 CLI - 支持中国建筑司库一体化平台(fip.cscec.com)的单据提取、台账查询、开票单审核",
+  "version": "1.1.0",
+  "description": "FIP 一体化平台自动化 CLI (Beta) - 支持中国建筑司库一体化平台(fip.cscec.com)的单据提取、台账查询、开票单审核。当前为测试版本，功能可能随时调整。",
   "main": "bin/fip-cli.js",
   "bin": {
     "fip-cli": "./bin/fip-cli.js",
@@ -14,13 +14,15 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "mocha \"test/unit/**/*.test.js\" --timeout 10000",
-    "test:unit": "mocha \"test/unit/**/*.test.js\" --timeout 10000",
-    "test:integration": "mocha \"test/integration/**/*.test.js\" --timeout 300000",
-    "lint": "eslint lib/ bin/",
-    "lint:fix": "eslint lib/ bin/ --fix",
-    "format": "prettier --write \"lib/**/*.js\" \"bin/**/*.js\"",
-    "format:check": "prettier --check \"lib/**/*.js\" \"bin/**/*.js\""
+    "test": "ts-mocha \"test/unit/**/*.test.ts\" --timeout 10000",
+    "test:unit": "ts-mocha \"test/unit/**/*.test.ts\" --timeout 10000",
+    "test:integration": "ts-mocha \"test/integration/**/*.test.ts\" --timeout 300000",
+    "lint": "eslint lib/ bin/ test/",
+    "lint:fix": "eslint lib/ bin/ test/ --fix",
+    "format": "prettier --write \"lib/**/*.{js,ts}\" \"bin/**/*.{js,ts}\" \"test/**/*.{js,ts}\"",
+    "format:check": "prettier --check \"lib/**/*.{js,ts}\" \"bin/**/*.{js,ts}\" \"test/**/*.{js,ts}\"",
+    "test:coverage": "c8 --reporter=text --reporter=html --reporter=lcov node ./node_modules/mocha/bin/mocha.js --require tsx/cjs \"test/unit/**/*.test.ts\" --timeout 10000",
+    "typecheck": "tsc --noEmit"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -52,13 +54,24 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.9.3",
+    "@types/sinon": "^21.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
+    "c8": "^11.0.0",
     "chai": "^6.2.2",
     "eslint": "^10.4.1",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.6.0",
     "mocha": "^11.7.6",
     "prettier": "^3.8.4",
-    "sinon": "^22.0.0"
+    "proxyquire": "^2.1.3",
+    "sinon": "^22.0.0",
+    "ts-mocha": "^11.1.0",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
   },
   "overrides": {
     "serialize-javascript": "^7.0.5"

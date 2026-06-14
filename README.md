@@ -1,4 +1,7 @@
-# FIP CLI
+# FIP CLI (Beta)
+
+> ⚠️ **测试版本声明（Beta / Demo）**  
+> 本项目目前处于**测试与演示阶段**，功能、接口、命令格式及输出结构可能随时调整。不建议用于生产环境或关键业务流程，欢迎试用并反馈问题。
 
 > 中国建筑司库一体化平台(fip.cscec.com)的自动化命令行工具 — 单据提取、台账查询、开票审核，一键完成。
 
@@ -9,6 +12,8 @@
 FIP CLI 通过 [Kimi WebBridge](https://www.kimi.com/zh-cn/features/webbridge) 控制浏览器，自动完成中国建筑司库一体化平台的单据处理、税务台账查询和开票单审核，无需手动复制粘贴。
 
 ## Install
+
+> ⚠️ 当前为 **Beta / 测试版本**，请阅读 README 顶部「测试版本声明」后再安装使用。
 
 ```bash
 npm install -g fip-cli
@@ -40,32 +45,32 @@ fip-cli export-input-transfer --start-period 2026-04 --query-only
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `doctor` | 环境诊断：检查 Node.js、依赖、WebBridge、CDP、FIP 登录 |
-| `login-status` | 检查 FIP 登录状态 |
-| `extract-bill <编号>` | 自动打开单据、提取字段、关闭 |
-| `audit-invoice <编号>` | 开票单审核并生成报告 |
-| `export-input-transfer` | 进项转出明细台账查询 |
-| `export-output-invoice` | 销项发票明细台账查询 |
-| `export-vat-prepayment` | 增值税预缴款台账查询 |
-| `export-passenger-transport` | 旅客运输服务台账查询 |
-| `export-unbilled` | 未开票收入台账查询 |
-| `export-all` | 批量导出多个台账 |
-| `config <key> [value]` | 查看/设置配置项 |
+| Command                      | Description                                            |
+| ---------------------------- | ------------------------------------------------------ |
+| `doctor`                     | 环境诊断：检查 Node.js、依赖、WebBridge、CDP、FIP 登录 |
+| `login-status`               | 检查 FIP 登录状态                                      |
+| `extract-bill <编号>`        | 自动打开单据、提取字段、关闭                           |
+| `audit-invoice <编号>`       | 开票单审核并生成报告                                   |
+| `export-input-transfer`      | 进项转出明细台账查询                                   |
+| `export-output-invoice`      | 销项发票明细台账查询                                   |
+| `export-vat-prepayment`      | 增值税预缴款台账查询                                   |
+| `export-passenger-transport` | 旅客运输服务台账查询                                   |
+| `export-unbilled`            | 未开票收入台账查询                                     |
+| `export-all`                 | 批量导出多个台账                                       |
+| `config <key> [value]`       | 查看/设置配置项                                        |
 
 完整命令参考：`fip-cli --help`
 
 ## Supported Bill Types
 
-| Type | Name | Module |
-|------|------|--------|
-| `SLBX` | 境内差旅报销单 | 报账系统 |
-| `TBX` | 通用报销单 | 报账系统 |
-| `CFK` | 对外成本费用付款申请 | 报账系统 |
-| `CBX` | 差旅费报销 | 报账系统 |
-| `YJK` | 预缴计算单 | 税务系统 |
-| `KP` | 建筑施工开票单 | 税务系统 |
+| Type   | Name                 | Module   |
+| ------ | -------------------- | -------- |
+| `SLBX` | 境内差旅报销单       | 报账系统 |
+| `TBX`  | 通用报销单           | 报账系统 |
+| `CFK`  | 对外成本费用付款申请 | 报账系统 |
+| `CBX`  | 差旅费报销           | 报账系统 |
+| `YJK`  | 预缴计算单           | 税务系统 |
+| `KP`   | 建筑施工开票单       | 税务系统 |
 
 ## Configuration
 
@@ -82,8 +87,33 @@ fip-cli config endPeriod     2026-04
 ## Documentation
 
 - [完整使用指南](docs/GUIDE.md) — 所有命令详解、配置说明、故障排查
-- [开发文档](docs/DEVELOPMENT.md) — 项目结构、测试、代码规范
+- [开发文档](docs/DEVELOPMENT.md) — 项目结构、测试、代码规范、TypeScript 类型系统
 - [更新日志](docs/CHANGELOG.md) — 版本历史
+
+## Tech Stack
+
+- **TypeScript** — 全项目 TypeScript 化，`strict: true`，零 `.js` 源文件
+- **tsx** — Node.js 运行时 TS 加载（CJS 模式）
+- **Mocha + Chai + Sinon** — 单元测试框架（测试文件全部 `.ts`）
+- **Kimi WebBridge** — 浏览器自动化（HTTP API + CDP）
+- **Commander.js** — CLI 命令解析
+
+## Development
+
+```bash
+# 安装依赖
+npm install
+
+# 类型检查
+npm run typecheck
+
+# 运行测试
+npm test
+
+# 代码检查
+npm run lint
+npm run format:check
+```
 
 ## License
 
