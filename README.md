@@ -1,4 +1,7 @@
-# FIP CLI
+# FIP CLI (Beta)
+
+> ⚠️ **测试版本声明（Beta / Demo）**  
+> 本项目目前处于**测试与演示阶段**，功能、接口、命令格式及输出结构可能随时调整。不建议用于生产环境或关键业务流程，欢迎试用并反馈问题。
 
 > 中国建筑司库一体化平台(fip.cscec.com)的自动化命令行工具 — 单据提取、台账查询、开票审核，一键完成。
 
@@ -9,6 +12,8 @@
 FIP CLI 通过 [Kimi WebBridge](https://www.kimi.com/zh-cn/features/webbridge) 控制浏览器，自动完成中国建筑司库一体化平台的单据处理、税务台账查询和开票单审核，无需手动复制粘贴。
 
 ## Install
+
+> ⚠️ 当前为 **Beta / 测试版本**，请阅读 README 顶部「测试版本声明」后再安装使用。
 
 ```bash
 npm install -g fip-cli
