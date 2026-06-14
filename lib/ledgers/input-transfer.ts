@@ -229,16 +229,16 @@ export async function exportInputTransferLedger(
       }
       if (start) {
         start.removeAttribute('readonly');
-        start.value = '${opts.startPeriod}';
-        start.setAttribute('value', '${opts.startPeriod}');
+        start.value = '${utils.escapeJsString(opts.startPeriod as string)}';
+        start.setAttribute('value', '${utils.escapeJsString(opts.startPeriod as string)}');
         start.dispatchEvent(new Event('input', { bubbles: true }));
         start.dispatchEvent(new Event('change', { bubbles: true }));
         start.setAttribute('readonly', '');
       }
       if (end) {
         end.removeAttribute('readonly');
-        end.value = '${opts.endPeriod}';
-        end.setAttribute('value', '${opts.endPeriod}');
+        end.value = '${utils.escapeJsString(opts.endPeriod as string)}';
+        end.setAttribute('value', '${utils.escapeJsString(opts.endPeriod as string)}');
         end.dispatchEvent(new Event('input', { bubbles: true }));
         end.dispatchEvent(new Event('change', { bubbles: true }));
         end.setAttribute('readonly', '');
@@ -270,7 +270,7 @@ export async function exportInputTransferLedger(
       (function() {
         var all = document.querySelectorAll('*');
         for (var i = 0; i < all.length; i++) {
-          if (all[i].textContent.trim() === '${opts.docStatus}') {
+          if (all[i].textContent.trim() === '${utils.escapeJsString(opts.docStatus as string)}') {
             var rect = all[i].getBoundingClientRect();
             if (rect.width > 0 && rect.height > 0 && rect.top > 300 && rect.top < 500 && rect.left > 1500) {
               return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
@@ -300,8 +300,8 @@ export async function exportInputTransferLedger(
       if (!popup) return { found: false };
       var input = popup.querySelector('#FormTextInput1-input');
       if (input) {
-        input.value = '${opts.taxCode}';
-        input.setAttribute('value', '${opts.taxCode}');
+        input.value = '${utils.escapeJsString(opts.taxCode as string)}';
+        input.setAttribute('value', '${utils.escapeJsString(opts.taxCode as string)}');
         input.dispatchEvent(new Event('input', { bubbles: true }));
         input.dispatchEvent(new Event('change', { bubbles: true }));
         return { found: true };

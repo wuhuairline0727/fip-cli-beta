@@ -59,6 +59,11 @@ export interface AuditResult {
 let RULES: Rules | null = null;
 let rulesMtime: number | null = null;
 
+export function resetRules(): void {
+  RULES = null;
+  rulesMtime = null;
+}
+
 export function loadRules(): Rules {
   const rulesPath = path.join(__dirname, 'rules.json');
 

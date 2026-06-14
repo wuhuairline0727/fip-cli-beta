@@ -85,7 +85,9 @@ export function loadConfig(): FipConfig {
 }
 
 export function saveConfig(config: Record<string, unknown>): void {
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+  const tmpFile = CONFIG_FILE + '.tmp';
+  fs.writeFileSync(tmpFile, JSON.stringify(config, null, 2));
+  fs.renameSync(tmpFile, CONFIG_FILE);
 }
 
 function _get(key?: string): unknown {

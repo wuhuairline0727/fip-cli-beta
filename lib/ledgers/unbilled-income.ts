@@ -34,16 +34,6 @@ export interface UnbilledIncomeResult {
   options?: Record<string, unknown>;
 }
 
-function escapeJsString(str: string): string {
-  return str
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r')
-    .replace(/\t/g, '\\t');
-}
-
 export async function exportUnbilledIncomeLedger(
   options: UnbilledIncomeOptions = {}
 ): Promise<UnbilledIncomeResult> {
@@ -157,7 +147,7 @@ export async function exportUnbilledIncomeLedger(
     (function() {
       var allDivs = document.querySelectorAll('div');
       var options = Array.from(allDivs).filter(function(el) {
-        return el.textContent.trim() === '${escapeJsString(opts.voidStatus as string)}';
+        return el.textContent.trim() === '${utils.escapeJsString(opts.voidStatus as string)}';
       });
       var target = options.find(function(el) {
         var left = el.getBoundingClientRect().left;

@@ -736,6 +736,15 @@ program
           'vat-prepayment': 'exportVatPrepaymentLedger',
           'passenger-transport': 'exportPassengerTransportLedger',
         };
+        const validLedgers = Object.keys(ledgerMap);
+        const invalidLedgers = ledgers.filter(
+          (name) => !validLedgers.includes(name.trim())
+        );
+        if (invalidLedgers.length > 0) {
+          throw new Error(
+            `Invalid ledger(s): ${invalidLedgers.join(', ')}. Valid options: ${validLedgers.join(', ')}`
+          );
+        }
         for (const name of ledgers) {
           const fnName = ledgerMap[name.trim()];
           if (
@@ -795,7 +804,7 @@ program
   .command('examples')
   .description('显示使用示例')
   .action(() => {
-    console.log(`
+    console.error(`
 FIP CLI 使用示例
 ================
 
@@ -1015,9 +1024,11 @@ program
       const checks = await doctor.runDiagnostics();
       debug('doctor: checks count=', checks.length);
       if (options.json) {
-        console.log(JSON.stringify(doctor.generateJsonReport(checks), null, 2));
+        console.error(
+          JSON.stringify(doctor.generateJsonReport(checks), null, 2)
+        );
       } else {
-        console.log(doctor.generateReport(checks));
+        console.error(doctor.generateReport(checks));
       }
       // 如果有错误，退出码非零
       const hasError = checks.some((c) => c.status === 'error');

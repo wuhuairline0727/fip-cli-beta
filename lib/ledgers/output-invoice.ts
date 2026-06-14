@@ -228,16 +228,16 @@ export async function exportOutputInvoiceLedger(
       var end = document.getElementById('JINX_IPT_END-input');
       if (start) {
         start.removeAttribute('readonly');
-        start.value = '${opts.startDate}';
-        start.setAttribute('value', '${opts.startDate}');
+        start.value = '${utils.escapeJsString(opts.startDate as string)}';
+        start.setAttribute('value', '${utils.escapeJsString(opts.startDate as string)}');
         start.dispatchEvent(new Event('input', { bubbles: true }));
         start.dispatchEvent(new Event('change', { bubbles: true }));
         start.setAttribute('readonly', '');
       }
       if (end) {
         end.removeAttribute('readonly');
-        end.value = '${opts.endDate}';
-        end.setAttribute('value', '${opts.endDate}');
+        end.value = '${utils.escapeJsString(opts.endDate as string)}';
+        end.setAttribute('value', '${utils.escapeJsString(opts.endDate as string)}');
         end.dispatchEvent(new Event('input', { bubbles: true }));
         end.dispatchEvent(new Event('change', { bubbles: true }));
         end.setAttribute('readonly', '');
