@@ -156,27 +156,62 @@ export async function exportInputTransferLedger(
   );
 
   console.log('5. 选择转出税期...');
-  const taxPeriodResult = await utils.cdpEvaluate<{
+  // 先找到"转出税期"文本，然后找它旁边的 radio
+  const taxPeriodRadioResult = await utils.cdpEvaluate<{
     found: boolean;
     x?: number;
     y?: number;
     id?: string;
+    reason?: string;
   }>(`
     (function() {
-      var radios = document.querySelectorAll('input[type="radio"]');
-      for (var i = 0; i < radios.length; i++) {
-        var rect = radios[i].getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0 && rect.left > 1600) {
-          return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2, id: radios[i].id };
+      var all = document.querySelectorAll('*');
+      var label = null;
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].textContent.trim() === '转出税期') {
+          var rect = all[i].getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0 && rect.left > 400) {
+            label = all[i];
+            break;
+          }
         }
       }
-      return { found: false };
+      if (!label) return { found: false, reason: 'label_not_found' };
+      var labelRect = label.getBoundingClientRect();
+      var labelCenterX = labelRect.left + labelRect.width/2;
+      var labelCenterY = labelRect.top + labelRect.height/2;
+
+      // 找 label 附近的 radio（在 label 左侧或上方）
+      var radios = document.querySelectorAll('input[type="radio"]');
+      var closestRadio = null;
+      var minDistance = Infinity;
+      for (var i = 0; i < radios.length; i++) {
+        var rect = radios[i].getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          var radioCenterX = rect.left + rect.width/2;
+          var radioCenterY = rect.top + rect.height/2;
+          var distance = Math.sqrt(Math.pow(radioCenterX - labelCenterX, 2) + Math.pow(radioCenterY - labelCenterY, 2));
+          if (distance < minDistance && distance < 200) {
+            minDistance = distance;
+            closestRadio = radios[i];
+          }
+        }
+      }
+      if (!closestRadio) return { found: false, reason: 'radio_not_found' };
+      var rect = closestRadio.getBoundingClientRect();
+      return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2, id: closestRadio.id };
     })()
   `);
 
-  if (taxPeriodResult?.found) {
-    await utils.cdpClick(taxPeriodResult.x!, taxPeriodResult.y!, 1000);
-    console.log('已点击转出税期单选按钮:', taxPeriodResult.id);
+  if (taxPeriodRadioResult?.found) {
+    await utils.cdpClick(
+      taxPeriodRadioResult.x!,
+      taxPeriodRadioResult.y!,
+      1000
+    );
+    console.log('已点击转出税期单选按钮:', taxPeriodRadioResult.id);
+  } else {
+    console.log('警告: 未找到转出税期单选按钮:', taxPeriodRadioResult?.reason);
   }
 
   console.log('6. 设置转出税期:', opts.startPeriod, '至', opts.endPeriod);
@@ -193,17 +228,22 @@ export async function exportInputTransferLedger(
         }
       }
       if (start) {
+        start.removeAttribute('readonly');
         start.value = '${opts.startPeriod}';
         start.setAttribute('value', '${opts.startPeriod}');
         start.dispatchEvent(new Event('input', { bubbles: true }));
         start.dispatchEvent(new Event('change', { bubbles: true }));
+        start.setAttribute('readonly', '');
       }
       if (end) {
+        end.removeAttribute('readonly');
         end.value = '${opts.endPeriod}';
         end.setAttribute('value', '${opts.endPeriod}');
         end.dispatchEvent(new Event('input', { bubbles: true }));
         end.dispatchEvent(new Event('change', { bubbles: true }));
+        end.setAttribute('readonly', '');
       }
+      return { startFound: !!start, endFound: !!end };
     })()
   `);
   await utils.sleep(500);

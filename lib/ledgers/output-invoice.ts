@@ -165,24 +165,58 @@ export async function exportOutputInvoiceLedger(
     { sleepMs: 1500 }
   );
 
-  // 4. 选择"开票日期"单选按钮（使用 CDP 真实点击）
+  // 4. 选择"开票日期"单选按钮（先找到文本再找附近的 radio）
   console.log('6. 选择开票日期...');
   const dateRadioResult = (await utils.cdpEvaluate(`
     (function() {
-      var radios = document.querySelectorAll('input[type="radio"]');
-      for (var i = 0; i < radios.length; i++) {
-        var rect = radios[i].getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0 && rect.left > 1600) {
-          return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2, id: radios[i].id };
+      var all = document.querySelectorAll('*');
+      var label = null;
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].textContent.trim() === '开票日期') {
+          var rect = all[i].getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0 && rect.left > 400) {
+            label = all[i];
+            break;
+          }
         }
       }
-      return { found: false };
+      if (!label) return { found: false, reason: 'label_not_found' };
+      var labelRect = label.getBoundingClientRect();
+      var labelCenterX = labelRect.left + labelRect.width/2;
+      var labelCenterY = labelRect.top + labelRect.height/2;
+
+      var radios = document.querySelectorAll('input[type="radio"]');
+      var closestRadio = null;
+      var minDistance = Infinity;
+      for (var i = 0; i < radios.length; i++) {
+        var rect = radios[i].getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          var radioCenterX = rect.left + rect.width/2;
+          var radioCenterY = rect.top + rect.height/2;
+          var distance = Math.sqrt(Math.pow(radioCenterX - labelCenterX, 2) + Math.pow(radioCenterY - labelCenterY, 2));
+          if (distance < minDistance && distance < 200) {
+            minDistance = distance;
+            closestRadio = radios[i];
+          }
+        }
+      }
+      if (!closestRadio) return { found: false, reason: 'radio_not_found' };
+      var rect = closestRadio.getBoundingClientRect();
+      return { found: true, x: rect.left + rect.width/2, y: rect.top + rect.height/2, id: closestRadio.id };
     })()
-  `)) as { found: boolean; x?: number; y?: number; id?: string };
+  `)) as {
+    found: boolean;
+    x?: number;
+    y?: number;
+    id?: string;
+    reason?: string;
+  };
 
   if (dateRadioResult?.found) {
     await utils.cdpClick(dateRadioResult.x!, dateRadioResult.y!, 1000);
     console.log('已点击开票日期单选按钮:', dateRadioResult.id);
+  } else {
+    console.log('警告: 未找到开票日期单选按钮:', dateRadioResult?.reason);
   }
   await utils.sleep(1000);
 
@@ -193,17 +227,22 @@ export async function exportOutputInvoiceLedger(
       var start = document.getElementById('JINX_IPT_START-input');
       var end = document.getElementById('JINX_IPT_END-input');
       if (start) {
+        start.removeAttribute('readonly');
         start.value = '${opts.startDate}';
         start.setAttribute('value', '${opts.startDate}');
         start.dispatchEvent(new Event('input', { bubbles: true }));
         start.dispatchEvent(new Event('change', { bubbles: true }));
+        start.setAttribute('readonly', '');
       }
       if (end) {
+        end.removeAttribute('readonly');
         end.value = '${opts.endDate}';
         end.setAttribute('value', '${opts.endDate}');
         end.dispatchEvent(new Event('input', { bubbles: true }));
         end.dispatchEvent(new Event('change', { bubbles: true }));
+        end.setAttribute('readonly', '');
       }
+      return { startFound: !!start, endFound: !!end };
     })()
   `);
   await utils.sleep(500);

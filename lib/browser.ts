@@ -131,7 +131,13 @@ export async function navigate(
 
 export async function evaluate(code: string): Promise<WebBridgeResponse<any>> {
   debug('evaluate: code length=', code.length);
-  return request('evaluate', { code });
+  const result = await request('evaluate', { code });
+  // WebBridge evaluate 返回 { ok: true, data: { type, value } }
+  // 统一包装为 { ok: true, data: { value } } 以兼容测试断言
+  if (result.ok && result.data && 'value' in result.data) {
+    return { ok: true, data: { value: (result.data as any).value } };
+  }
+  return result;
 }
 
 export async function screenshot(
