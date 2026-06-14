@@ -17,6 +17,7 @@
  *         iii. 记录 组织+项目+部门 完整组合
  */
 
+require('tsx/cjs');
 const { ensureConnection } = require('../lib/browser');
 const {
   openSwitchOrgDialog,

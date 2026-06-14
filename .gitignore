@@ -6,6 +6,7 @@ screenshots/
 
 # Runtime data / user cache
 data/
+downloads/
 
 # Docs and guides
 CONTRIBUTING.md
