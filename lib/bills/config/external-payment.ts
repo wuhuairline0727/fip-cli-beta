@@ -23,10 +23,10 @@ export const inputFields: Record<
   has_paper_attachment: { byId: 'FormComboBox6-input' },
   has_contract: { byId: 'FormComboBox3-input' },
   counterparty: { byId: 'FormCustomHelpField6-input' },
-  // CFK 叫"成本费用属性"
+  // CFK 的"成本费用属性"在基本info中对应 reimbursement_type
   reimbursement_type: { byId: 'DataSetFieldComboBox6-input' },
-  // CFK 基本信息中没有"预算类别"字段（仅在子表中），不要顶层提取
-  budget_category: {},
+  // CFK 基本信息中没有"预算类别"字段（仅在子表中），使用子表推导
+  budget_category: { byId: 'DataSetFieldComboBox6-input' }, // 回退到成本费用属性，在提取后处理中修正
 };
 
 export const tables: Array<{

@@ -167,6 +167,107 @@ function regexToString(regex: RegExp): string {
 }
 
 /**
+ * 通用后处理：修正 budget_category 并统一金额字段
+ * @param data - 提取的原始数据
+ * @param billType - 单据类型
+ * @returns 处理后数据
+ */
+export function postProcessCommon(
+  data: Record<string, unknown>,
+  billType: string
+): Record<string, unknown> {
+  const result = { ...data };
+
+  // 1. 修正 budget_category：如果为 null，从子表推导
+  if (!result.budget_category) {
+    const expenseDetails = result.expense_details as
+      | Array<Record<string, unknown>>
+      | undefined;
+    const expenseAllocation = result.expense_allocation as
+      | Array<Record<string, unknown>>
+      | undefined;
+    const expenseSummary = result.expense_summary as
+      | Array<Record<string, unknown>>
+      | undefined;
+
+    if (Array.isArray(expenseDetails) && expenseDetails.length > 0) {
+      const attr =
+        expenseDetails[0].expense_attribute || expenseDetails[0].expense_item;
+      if (attr) {
+        result.budget_category = attr;
+      }
+    } else if (
+      Array.isArray(expenseAllocation) &&
+      expenseAllocation.length > 0
+    ) {
+      const item =
+        expenseAllocation[0].budget_item || expenseAllocation[0].expense_item;
+      if (item) {
+        result.budget_category = item;
+      }
+    } else if (Array.isArray(expenseSummary) && expenseSummary.length > 0) {
+      const dept = expenseSummary[0].department;
+      if (dept) {
+        result.budget_category = '部门通用预算';
+      }
+    }
+  }
+
+  // 2. 统一 total_amount 字段
+  let totalAmount: number | null = null;
+
+  if (billType === 'SLBX' || billType === 'TBX') {
+    const allocation = result.expense_allocation as
+      | Array<Record<string, unknown>>
+      | undefined;
+    if (Array.isArray(allocation) && allocation.length > 0) {
+      totalAmount = parseAmount(
+        allocation[0].budget_amount_with_tax as string | null | undefined
+      );
+    }
+  } else if (billType === 'CBX') {
+    const summary = result.expense_summary as
+      | Array<Record<string, unknown>>
+      | undefined;
+    const allocation = result.expense_allocation as
+      | Array<Record<string, unknown>>
+      | undefined;
+    if (Array.isArray(summary) && summary.length > 0) {
+      totalAmount = parseAmount(
+        summary[0].actual_pay_amount as string | null | undefined
+      );
+    }
+    if (
+      totalAmount === null &&
+      Array.isArray(allocation) &&
+      allocation.length > 0
+    ) {
+      totalAmount = parseAmount(
+        allocation[0].budget_amount_with_tax as string | null | undefined
+      );
+    }
+  } else if (billType === 'CFK') {
+    const details = result.expense_details as
+      | Array<Record<string, unknown>>
+      | undefined;
+    if (Array.isArray(details) && details.length > 0) {
+      totalAmount = parseAmount(
+        details[0].amount_with_tax as string | null | undefined
+      );
+    }
+  } else if (billType === 'YJK') {
+    totalAmount = parseAmount(
+      result.vat_prepayment_6 as string | null | undefined
+    );
+  }
+
+  if (totalAmount !== null) {
+    result.total_amount = totalAmount;
+  }
+
+  return result;
+}
+/**
  * 构建在浏览器中执行的提取代码字符串
  * @param config - 单据配置
  * @returns 浏览器端执行代码字符串
@@ -759,6 +860,9 @@ export async function extractBill(
   if (billType === 'YJK') {
     extractedData = postProcessYjk(extractedData);
   }
+
+  // 统一后处理：修正 budget_category 和统一金额字段
+  extractedData = postProcessCommon(extractedData, billType);
 
   const result = {
     _meta: {
