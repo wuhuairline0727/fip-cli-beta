@@ -1,5 +1,5 @@
 import { evaluate } from '../browser';
-import { sleep } from './common';
+import { sleep, escapeJsString } from './common';
 import CDP from 'chrome-remote-interface';
 
 export async function clickShowQuery(): Promise<boolean> {
@@ -85,7 +85,7 @@ export async function setDateInput(
       var allInputs = document.querySelectorAll('input');
       var input = null;
       for (var i = 0; i < allInputs.length; i++) {
-        if (allInputs[i].id === '${inputId}') {
+        if (allInputs[i].id === '${escapeJsString(inputId)}') {
           var rect = allInputs[i].getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0) {
             input = allInputs[i];
@@ -95,8 +95,8 @@ export async function setDateInput(
       }
       if (!input) return { found: false, reason: 'visible_input_not_found' };
       input.removeAttribute('readonly');
-      input.value = '${dateStr}';
-      input.setAttribute('value', '${dateStr}');
+      input.value = '${escapeJsString(dateStr)}';
+      input.setAttribute('value', '${escapeJsString(dateStr)}');
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
       input.setAttribute('readonly', '');
@@ -138,7 +138,7 @@ export async function setTaxPeriod(
         if (inp.id === 'FormDateFieldYM1-input' || inp.id === 'FormDateFieldYM2-input') {
           var rect = inp.getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0) {
-            var value = inp.id === 'FormDateFieldYM1-input' ? '${startPeriod}' : '${endPeriod}';
+            var value = inp.id === 'FormDateFieldYM1-input' ? '${escapeJsString(startPeriod)}' : '${escapeJsString(endPeriod)}';
             inp.value = value;
             inp.setAttribute('value', value);
             inp.dispatchEvent(new Event('input', { bubbles: true }));
