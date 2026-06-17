@@ -1,5 +1,6 @@
 import CDP from 'chrome-remote-interface';
 import { GWT } from '../selectors';
+import { escapeJsString } from './common';
 
 export interface Runtime {
   evaluate(options: { expression: string; returnByValue?: boolean }): Promise<{
@@ -185,12 +186,13 @@ export async function cdpFindElementByText(
 export async function cdpFindPickerButtonByInputId(
   inputId: string
 ): Promise<FindElementResult & { reason?: string }> {
+  const safeInputId = escapeJsString(inputId);
   return cdpEvaluate(`
     (function() {
       var allInputs = document.querySelectorAll('input');
       var input = null;
       for (var i = 0; i < allInputs.length; i++) {
-        if (allInputs[i].id === '${inputId}') {
+        if (allInputs[i].id === '${safeInputId}') {
           var rect = allInputs[i].getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0) {
             input = allInputs[i];

@@ -18,7 +18,7 @@ import * as doctor from '../lib/doctor';
 program
   .name('fip-cli')
   .description('FIP 一体化平台自动化 CLI')
-  .version('1.0.0')
+  .version(require('../package.json').version)
   .option('--no-screenshot', '命令失败时不自动截图')
   .option('--screenshot-dir <path>', '错误截图保存目录', './screenshots')
   .option('--debug', '输出详细调试信息')
@@ -838,7 +838,6 @@ FIP CLI 使用示例
 10. 选择纳税主体
     fip-cli pick-tax-subject 91110000101107173B
 `);
-    process.exit(0);
   });
 
 program

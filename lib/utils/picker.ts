@@ -74,6 +74,7 @@ export function findPopupCode(): string {
 }
 
 export async function pickFromDict(queryCode: string): Promise<boolean> {
+  const safeCode = escapeJsString(queryCode);
   const code = `
     (function() {
       var popup = ${findPopupCode()};
@@ -81,7 +82,7 @@ export async function pickFromDict(queryCode: string): Promise<boolean> {
       var input = popup.querySelector('input[type="text"]');
       if (!input) return { found: false, reason: 'input_not_found' };
       input.focus();
-      input.value = '${queryCode}';
+      input.value = '${safeCode}';
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
       input.blur();
@@ -132,7 +133,7 @@ export async function pickFromDict(queryCode: string): Promise<boolean> {
         if (!popup) return { found: false };
         var rows = Array.from(popup.querySelectorAll('tr'));
         for (var i = 0; i < rows.length; i++) {
-          if (rows[i].textContent.indexOf('${queryCode}') !== -1) {
+          if (rows[i].textContent.indexOf('${safeCode}') !== -1) {
             return { found: true };
           }
         }
@@ -156,7 +157,7 @@ export async function pickFromDict(queryCode: string): Promise<boolean> {
       var rows = Array.from(popup.querySelectorAll('tr'));
       var targetRow = null;
       for (var i = 0; i < rows.length; i++) {
-        if (rows[i].textContent.indexOf('${queryCode}') !== -1) {
+        if (rows[i].textContent.indexOf('${safeCode}') !== -1) {
           targetRow = rows[i];
           break;
         }
@@ -211,6 +212,7 @@ export async function pickTaxSubject(
 ): Promise<{ tax_code: string; selected: boolean }> {
   await clickPickerButton('纳税主体');
   await sleep(2000);
+  const safeTaxCode = escapeJsString(taxCode);
 
   const fillCode = `
     (function() {
@@ -218,8 +220,8 @@ export async function pickTaxSubject(
       if (!popup) return { found: false, reason: 'popup_not_found' };
       var input = popup.querySelector('#FormTextInput1-input');
       if (!input) return { found: false, reason: 'input_not_found' };
-      input.value = '${taxCode}';
-      input.setAttribute('value', '${taxCode}');
+      input.value = '${safeTaxCode}';
+      input.setAttribute('value', '${safeTaxCode}');
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
       return { found: true, value: input.value };

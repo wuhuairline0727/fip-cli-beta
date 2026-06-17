@@ -1,7 +1,9 @@
 import { evaluate } from '../browser';
 import { sleep } from './common';
+import { escapeJsString } from './common';
 
 export async function openSideMenu(menuName: string): Promise<boolean> {
+  const safeMenuName = escapeJsString(menuName);
   const preCheck = await evaluate(
     "document.querySelector('.ant-drawer-open') ? 'exists' : 'not_found'"
   );
@@ -13,7 +15,7 @@ export async function openSideMenu(menuName: string): Promise<boolean> {
     (function() {
       var items = Array.from(document.querySelectorAll('.ant-menu-item'));
       var target = items.find(function(item) {
-        return item.textContent.trim() === '${menuName}';
+        return item.textContent.trim() === '${safeMenuName}';
       });
       if (target) {
         target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
@@ -45,18 +47,19 @@ export async function openSideMenu(menuName: string): Promise<boolean> {
 }
 
 export async function clickDrawerItem(itemName: string): Promise<boolean> {
+  const safeItemName = escapeJsString(itemName);
   const code = `
     (function() {
       var drawer = document.querySelector('.ant-drawer-open');
       if (!drawer) return { found: false, reason: 'no_drawer' };
       var txts = Array.from(drawer.querySelectorAll('.txt'));
       var target = txts.find(function(t) {
-        return t.innerText && t.innerText.trim() === '${itemName}';
+        return t.innerText && t.innerText.trim() === '${safeItemName}';
       });
       if (!target) {
         var all = Array.from(drawer.querySelectorAll('*'));
         target = all.find(function(el) {
-          return el.innerHTML && el.innerHTML.indexOf('${itemName}') !== -1;
+          return el.innerText && el.innerText.trim() === '${safeItemName}';
         });
       }
       if (target) {
