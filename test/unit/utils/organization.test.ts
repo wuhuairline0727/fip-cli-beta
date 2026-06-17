@@ -31,6 +31,26 @@ const browserPath = require.resolve('../../../lib/browser');
 const cdpPath = require.resolve('../../../lib/utils/cdp');
 const loggerPath = require.resolve('../../../lib/logger');
 
+// 清除所有相关模块缓存，确保重新加载时获取注入的 fake 模块
+[
+  browserPath,
+  cdpPath,
+  loggerPath,
+  require.resolve('../../../lib/utils/organization'),
+  require.resolve('../../../lib/utils/organization/index'),
+  require.resolve('../../../lib/utils/organization/dialog'),
+  require.resolve('../../../lib/utils/organization/workflow'),
+  require.resolve('../../../lib/utils/organization/system'),
+  require.resolve('../../../lib/utils/organization/popup'),
+  require.resolve('../../../lib/utils/organization/types'),
+  require.resolve('../../../lib/utils/organization/wait-utils'),
+  require.resolve('../../../lib/utils/organization-cache'),
+  require.resolve('../../../lib/selectors'),
+  require.resolve('../../../lib/utils/common'),
+].forEach((p) => {
+  delete require.cache[p];
+});
+
 require.cache[browserPath] = {
   id: browserPath,
   filename: browserPath,
