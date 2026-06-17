@@ -268,6 +268,11 @@ program
             project: options.project,
             department: options.department,
             fromCache: options.fromCache,
+            autoSelect: !!(
+              options.set ||
+              options.project ||
+              options.department
+            ),
           });
           success(result);
         } else {

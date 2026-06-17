@@ -12,11 +12,7 @@ import {
   type OrganizationRecord,
 } from '../organization-cache';
 import { clickSystemConfirm } from './system';
-import {
-  openSwitchOrgDialog,
-  closeSwitchOrgDialog,
-  readDialogFields,
-} from './dialog';
+import { openSwitchOrgDialog, closeSwitchOrgDialog } from './dialog';
 import {
   queryAndSelectInPopup,
   selectFirstDepartment,
