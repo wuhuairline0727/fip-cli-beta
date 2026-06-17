@@ -452,6 +452,7 @@ export interface FipAPI {
     callback: (Runtime: CDPRuntime, Input: CDPInput) => Promise<T>
   ): Promise<T>;
   cdpClick(x: number, y: number, sleepMs?: number): Promise<ClickResult>;
+  cdpClickDouble(x: number, y: number, sleepMs?: number): Promise<ClickResult>;
   cdpEvaluateAndClick(
     expression: string,
     options?: EvaluateAndClickOptions

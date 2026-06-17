@@ -65,6 +65,38 @@ export async function cdpClick(
       button: 'left',
       clickCount: 1,
     });
+    if (sleepMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, sleepMs));
+    }
+    return { clicked: true, x, y };
+  });
+}
+
+/**
+ * 双重点击（CDP mousePressed/mouseReleased + DOM dispatchEvent）
+ * 用于需要同时触发 CDP 原生事件和 GWT 内部事件处理的特殊场景
+ * 注意：大多数场景使用 cdpClick 即可，双重点击可能导致 GWT 组件状态异常
+ */
+export async function cdpClickDouble(
+  x: number,
+  y: number,
+  sleepMs = 1000
+): Promise<ClickResult> {
+  return withCDP(async (Runtime, Input) => {
+    await Input.dispatchMouseEvent({
+      type: 'mousePressed',
+      x,
+      y,
+      button: 'left',
+      clickCount: 1,
+    });
+    await Input.dispatchMouseEvent({
+      type: 'mouseReleased',
+      x,
+      y,
+      button: 'left',
+      clickCount: 1,
+    });
     await Runtime.evaluate({
       expression: `
         (function() {
