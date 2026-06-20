@@ -1,5 +1,6 @@
 import * as utils from '../utils/index';
 import * as config from '../config';
+import { verbose } from '../logger';
 
 interface LedgerOptions {
   startPeriod?: string;
@@ -34,26 +35,26 @@ export async function exportVatPrepaymentLedger(
   const opts: Record<string, unknown> = { ...defaults, ...options };
 
   if (opts.queryOnly) {
-    console.log('开始增值税预缴款台账查询...');
+    verbose('开始增值税预缴款台账查询...');
   } else {
-    console.log('开始增值税预缴款台账查询导出...');
+    verbose('开始增值税预缴款台账查询导出...');
   }
 
   // 1. 导航至增值税预缴款台账
-  console.log('1. 打开税务系统菜单...');
+  verbose('1. 打开税务系统菜单...');
   await utils.openSideMenu('税务系统');
   await utils.sleep(1000);
 
-  console.log('2. 点击税务台账...');
+  verbose('2. 点击税务台账...');
   await utils.clickDrawerItem('税务台账');
   await utils.sleep(1000);
 
-  console.log('3. 点击增值税预缴款台账...');
+  verbose('3. 点击增值税预缴款台账...');
   await utils.clickDrawerItem('增值税预缴款台账');
   await utils.sleep(2000);
 
   // 2. 点击显示查询按钮（如果查询条件被折叠）
-  console.log('4. 展开查询条件...');
+  verbose('4. 展开查询条件...');
   const showQueryResult = await utils.cdpEvaluateAndClick(
     `(function() {
       var all = document.querySelectorAll('*');
@@ -70,12 +71,12 @@ export async function exportVatPrepaymentLedger(
     { sleepMs: 2000 }
   );
   if (!showQueryResult.clicked) {
-    console.log('未找到显示查询按钮，可能已展开');
+    verbose('未找到显示查询按钮，可能已展开');
   }
   await utils.sleep(1000);
 
   // 3. 设置单据类型
-  console.log('5. 设置单据类型:', opts.docType);
+  verbose('5. 设置单据类型:', opts.docType);
   const docTypeInputResult = (await utils.cdpEvaluate(`
     (function() {
       var allInputs = document.querySelectorAll('input');
@@ -102,12 +103,8 @@ export async function exportVatPrepaymentLedger(
       '未找到单据类型输入框: ' + (docTypeInputResult?.reason || 'unknown')
     );
   }
-  console.log('  找到输入框，当前值:', docTypeInputResult.value);
-  console.log(
-    '  点击输入框，坐标:',
-    docTypeInputResult.x,
-    docTypeInputResult.y
-  );
+  verbose('  找到输入框，当前值:', docTypeInputResult.value);
+  verbose('  点击输入框，坐标:', docTypeInputResult.x, docTypeInputResult.y);
   // 使用 cdpEvaluateAndClick 确保点击事件被正确触发
   await utils.cdpEvaluateAndClick(
     `(function() {
@@ -125,7 +122,7 @@ export async function exportVatPrepaymentLedger(
     })()`,
     { sleepMs: 2000 }
   );
-  console.log('  已点击输入框，等待下拉菜单打开...');
+  verbose('  已点击输入框，等待下拉菜单打开...');
 
   // 直接查找下拉选项
   const optionResult = await utils.cdpFindDropdownOption(
@@ -134,12 +131,12 @@ export async function exportVatPrepaymentLedger(
   if (!optionResult?.found) {
     throw new Error('未找到下拉选项: ' + opts.docType);
   }
-  console.log('  找到选项，坐标:', optionResult.x, optionResult.y);
+  verbose('  找到选项，坐标:', optionResult.x, optionResult.y);
   await utils.cdpClick(optionResult.x!, optionResult.y!, 1500);
-  console.log('  已点击选项，等待下拉菜单关闭...');
+  verbose('  已点击选项，等待下拉菜单关闭...');
 
   // 4. 设置所属税期
-  console.log('6. 设置所属税期:', opts.startPeriod, '至', opts.endPeriod);
+  verbose('6. 设置所属税期:', opts.startPeriod, '至', opts.endPeriod);
   await utils.cdpEvaluate(`
     (function() {
       var allInputs = document.querySelectorAll('input');
@@ -169,7 +166,7 @@ export async function exportVatPrepaymentLedger(
   await utils.sleep(500);
 
   // 5. 选择申请单位
-  console.log('7. 选择申请单位:', opts.companyCode);
+  verbose('7. 选择申请单位:', opts.companyCode);
   const companyBtn = await utils.cdpFindPickerButtonByInputId(
     'DataSetFieldComboBox1-input'
   );
@@ -180,7 +177,7 @@ export async function exportVatPrepaymentLedger(
   }
 
   // 6. 选择纳税主体
-  console.log('8. 选择纳税主体:', opts.taxCode);
+  verbose('8. 选择纳税主体:', opts.taxCode);
   const taxBtn = await utils.cdpFindPickerButtonByInputId(
     'DataSetFieldComboBox2-input'
   );
@@ -240,7 +237,7 @@ export async function exportVatPrepaymentLedger(
   }
 
   // 8. 点击查询按钮
-  console.log('8. 点击查询按钮...');
+  verbose('8. 点击查询按钮...');
   const queryBtn = (await utils.cdpEvaluate(`
     (function() {
       var all = document.querySelectorAll('*');
@@ -262,17 +259,17 @@ export async function exportVatPrepaymentLedger(
     throw new Error('查询按钮未找到');
   }
   await utils.cdpClick(queryBtn.x!, queryBtn.y!, 5000);
-  console.log('查询已执行，等待结果加载...');
+  verbose('查询已执行，等待结果加载...');
 
   // 如果仅查询模式，返回结果
   if (opts.queryOnly) {
     const rows = await utils.getTableRowCount();
-    console.log('查询完成，表格行数:', rows.visible);
+    verbose('查询完成，表格行数:', rows.visible);
     return { queried: true, rows, options: opts };
   }
 
   // 8. 点击导出按钮
-  console.log('10. 点击导出按钮...');
+  verbose('10. 点击导出按钮...');
   const exportBtnResult = (await utils.cdpEvaluate(`
     (function() {
       var all = document.querySelectorAll('*');
@@ -295,11 +292,11 @@ export async function exportVatPrepaymentLedger(
   if (!exportBtnResult?.found) {
     throw new Error('未找到导出按钮');
   }
-  console.log('  导出按钮坐标:', exportBtnResult.x, exportBtnResult.y);
+  verbose('  导出按钮坐标:', exportBtnResult.x, exportBtnResult.y);
   await utils.cdpClick(exportBtnResult.x!, exportBtnResult.y!, 2000);
 
   // 8. 点击弹窗中的导出按钮
-  console.log('11. 点击弹窗确认导出...');
+  verbose('11. 点击弹窗确认导出...');
 
   // 等待弹窗出现（最多5秒）
   let popupFound = false;
@@ -331,7 +328,7 @@ export async function exportVatPrepaymentLedger(
     `);
 
     if (popupCheck === 'closed') {
-      console.log('导出完成！');
+      verbose('导出完成！');
       await utils.closeBill();
       return { exported: true, options: opts };
     }

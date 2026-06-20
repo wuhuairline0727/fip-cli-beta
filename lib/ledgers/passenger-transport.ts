@@ -1,5 +1,6 @@
 import * as utils from '../utils/index';
 import * as config from '../config';
+import { verbose } from '../logger';
 
 interface LedgerOptions {
   startPeriod?: string;
@@ -32,26 +33,26 @@ export async function exportPassengerTransportLedger(
   const opts: Record<string, unknown> = { ...defaults, ...options };
 
   if (opts.queryOnly) {
-    console.log('开始旅客运输服务台账查询...');
+    verbose('开始旅客运输服务台账查询...');
   } else {
-    console.log('开始旅客运输服务台账查询导出...');
+    verbose('开始旅客运输服务台账查询导出...');
   }
 
   // 1. 导航至旅客运输服务台账
-  console.log('1. 打开税务系统菜单...');
+  verbose('1. 打开税务系统菜单...');
   await utils.openSideMenu('税务系统');
   await utils.sleep(1000);
 
-  console.log('2. 点击税务台账...');
+  verbose('2. 点击税务台账...');
   await utils.clickDrawerItem('税务台账');
   await utils.sleep(1000);
 
-  console.log('3. 点击旅客运输服务台账...');
+  verbose('3. 点击旅客运输服务台账...');
   await utils.clickDrawerItem('旅客运输服务台账');
   await utils.sleep(2000);
 
   // 2. 点击显示查询按钮
-  console.log('4. 展开查询条件...');
+  verbose('4. 展开查询条件...');
   const showQueryResult = await utils.cdpEvaluateAndClick(
     `(function() {
       var all = document.querySelectorAll('*');
@@ -68,12 +69,12 @@ export async function exportPassengerTransportLedger(
     { sleepMs: 2000 }
   );
   if (!showQueryResult.clicked) {
-    console.log('未找到显示查询按钮，可能已展开');
+    verbose('未找到显示查询按钮，可能已展开');
   }
   await utils.sleep(1000);
 
   // 3. 设置所属税期
-  console.log('5. 设置所属税期:', opts.startPeriod, '至', opts.endPeriod);
+  verbose('5. 设置所属税期:', opts.startPeriod, '至', opts.endPeriod);
   await utils.cdpEvaluate(`
     (function() {
       // GWT 多 tabpanel 共存导致多个同名输入框，必须找到可见的
@@ -104,7 +105,7 @@ export async function exportPassengerTransportLedger(
   await utils.sleep(500);
 
   // 4. 选择申请单位
-  console.log('6. 选择申请单位:', opts.companyCode);
+  verbose('6. 选择申请单位:', opts.companyCode);
   const companyBtn = await utils.cdpFindPickerButtonByInputId(
     'DataSetFieldComboBox1-input'
   );
@@ -115,7 +116,7 @@ export async function exportPassengerTransportLedger(
   }
 
   // 5. 选择纳税主体
-  console.log('7. 选择纳税主体:', opts.taxCode);
+  verbose('7. 选择纳税主体:', opts.taxCode);
   const taxBtn = await utils.cdpFindPickerButtonByInputId(
     'DataSetFieldComboBox2-input'
   );
@@ -205,7 +206,7 @@ export async function exportPassengerTransportLedger(
   }
 
   // 6. 点击查询按钮
-  console.log('8. 点击查询按钮...');
+  verbose('8. 点击查询按钮...');
   const queryClickResult = await utils.cdpEvaluateAndClick(
     `
     (function() {
@@ -234,12 +235,12 @@ export async function exportPassengerTransportLedger(
   // 如果仅查询模式，返回结果
   if (opts.queryOnly) {
     const rows = await utils.getTableRowCount();
-    console.log('查询完成，表格行数:', rows.visible);
+    verbose('查询完成，表格行数:', rows.visible);
     return { queried: true, rows, options: opts };
   }
 
   // 7. 点击导出按钮
-  console.log('9. 点击导出按钮...');
+  verbose('9. 点击导出按钮...');
   const exportBtnResult = (await utils.cdpEvaluate(`
     (function() {
       var all = document.querySelectorAll('*');
@@ -257,11 +258,11 @@ export async function exportPassengerTransportLedger(
   if (!exportBtnResult?.found) {
     throw new Error('未找到导出按钮');
   }
-  console.log('  导出按钮坐标:', exportBtnResult.x, exportBtnResult.y);
+  verbose('  导出按钮坐标:', exportBtnResult.x, exportBtnResult.y);
   await utils.cdpClick(exportBtnResult.x!, exportBtnResult.y!, 2000);
 
   // 8. 点击弹窗中的导出按钮
-  console.log('10. 点击弹窗确认导出...');
+  verbose('10. 点击弹窗确认导出...');
   await utils.cdpEvaluateAndClick(
     `
     (function() {
@@ -303,7 +304,7 @@ export async function exportPassengerTransportLedger(
   `);
 
   if (popupCheck === 'closed') {
-    console.log('导出完成！');
+    verbose('导出完成！');
     await utils.closeBill();
     return { exported: true, options: opts };
   }

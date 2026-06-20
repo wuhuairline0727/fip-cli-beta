@@ -1,6 +1,7 @@
 import * as utils from '../utils/index';
 import * as config from '../config';
 import { GWT } from '../selectors';
+import { verbose } from '../logger';
 
 export interface InputTransferOptions {
   startPeriod?: string;
@@ -34,20 +35,20 @@ export async function exportInputTransferLedger(
   const opts = { ...defaults, ...options };
 
   if (opts.queryOnly) {
-    console.log('开始进项转出明细台账查询...');
+    verbose('开始进项转出明细台账查询...');
   } else {
-    console.log('开始进项转出明细台账查询导出...');
+    verbose('开始进项转出明细台账查询导出...');
   }
 
-  console.log('1. 打开税务系统菜单...');
+  verbose('1. 打开税务系统菜单...');
   await utils.openSideMenu('税务系统');
   await utils.sleep(1000);
 
-  console.log('2. 点击税务台账...');
+  verbose('2. 点击税务台账...');
   await utils.clickDrawerItem('税务台账');
   await utils.sleep(1000);
 
-  console.log('3. 点击进项转出台账...');
+  verbose('3. 点击进项转出台账...');
   await utils.clickDrawerItem('进项转出台账');
   await utils.sleep(2000);
 
@@ -61,7 +62,7 @@ export async function exportInputTransferLedger(
   `);
 
   if (!isDetailLedgerPage) {
-    console.log('4. 选择进项转出明细台账...');
+    verbose('4. 选择进项转出明细台账...');
     const radioResult = await utils.cdpEvaluate<{
       success: boolean;
       x: number;
@@ -97,7 +98,7 @@ export async function exportInputTransferLedger(
     }
 
     await utils.cdpClick(radioResult.x, radioResult.y, 1500);
-    console.log('已点击进项转出明细台账:', radioResult.tag);
+    verbose('已点击进项转出明细台账:', radioResult.tag);
 
     await utils.sleep(500);
     const popupQueryResult = await utils.cdpEvaluateAndClick(
@@ -133,10 +134,10 @@ export async function exportInputTransferLedger(
       );
     }
   } else {
-    console.log('4. 当前已在进项转出明细台账页面，跳过单选按钮选择');
+    verbose('4. 当前已在进项转出明细台账页面，跳过单选按钮选择');
   }
 
-  console.log('5. 展开查询条件...');
+  verbose('5. 展开查询条件...');
   await utils.cdpEvaluateAndClick(
     `
     (function() {
@@ -155,7 +156,7 @@ export async function exportInputTransferLedger(
     { sleepMs: 1500 }
   );
 
-  console.log('5. 选择转出税期...');
+  verbose('5. 选择转出税期...');
   // 先找到"转出税期"文本，然后找它旁边的 radio
   const taxPeriodRadioResult = await utils.cdpEvaluate<{
     found: boolean;
@@ -209,12 +210,12 @@ export async function exportInputTransferLedger(
       taxPeriodRadioResult.y!,
       1000
     );
-    console.log('已点击转出税期单选按钮:', taxPeriodRadioResult.id);
+    verbose('已点击转出税期单选按钮:', taxPeriodRadioResult.id);
   } else {
-    console.log('警告: 未找到转出税期单选按钮:', taxPeriodRadioResult?.reason);
+    verbose('警告: 未找到转出税期单选按钮:', taxPeriodRadioResult?.reason);
   }
 
-  console.log('6. 设置转出税期:', opts.startPeriod, '至', opts.endPeriod);
+  verbose('6. 设置转出税期:', opts.startPeriod, '至', opts.endPeriod);
   await utils.cdpEvaluate(`
     (function() {
       var allInputs = document.querySelectorAll('input');
@@ -248,7 +249,7 @@ export async function exportInputTransferLedger(
   `);
   await utils.sleep(500);
 
-  console.log('7. 设置单据状态:', opts.docStatus);
+  verbose('7. 设置单据状态:', opts.docStatus);
   const statusResult = await utils.cdpEvaluate<{
     found: boolean;
     x?: number;
@@ -284,13 +285,13 @@ export async function exportInputTransferLedger(
     );
   }
 
-  console.log('8. 选择转出单位:', opts.companyCode);
+  verbose('8. 选择转出单位:', opts.companyCode);
   await utils.clickPickerButton('转出单位');
   await utils.sleep(2000);
   await utils.pickFromDict(opts.companyCode as string);
   await utils.sleep(1000);
 
-  console.log('9. 选择纳税主体:', opts.taxCode);
+  verbose('9. 选择纳税主体:', opts.taxCode);
   await utils.clickPickerButton('纳税主体');
   await utils.sleep(2000);
 
@@ -380,7 +381,7 @@ export async function exportInputTransferLedger(
   }
   await utils.sleep(500);
 
-  console.log('10. 点击查询按钮...');
+  verbose('10. 点击查询按钮...');
   const queryClickResult = await utils.cdpEvaluateAndClick(
     `
     (function() {
@@ -408,11 +409,11 @@ export async function exportInputTransferLedger(
 
   if (opts.queryOnly) {
     const rows = await utils.getTableRowCount();
-    console.log('查询完成，表格行数:', rows.visible);
+    verbose('查询完成，表格行数:', rows.visible);
     return { queried: true, rows, options: opts };
   }
 
-  console.log('11. 点击导出按钮...');
+  verbose('11. 点击导出按钮...');
   await utils.cdpEvaluateAndClick(
     `
     (function() {
@@ -433,7 +434,7 @@ export async function exportInputTransferLedger(
     { sleepMs: 2000 }
   );
 
-  console.log('12. 点击弹窗确认导出...');
+  verbose('12. 点击弹窗确认导出...');
   await utils.cdpEvaluateAndClick(
     `
     (function() {
@@ -474,7 +475,7 @@ export async function exportInputTransferLedger(
   `);
 
   if (exportPopupCheck === 'closed') {
-    console.log('导出完成！');
+    verbose('导出完成！');
     await utils.closeBill();
     return { exported: true, options: opts };
   }

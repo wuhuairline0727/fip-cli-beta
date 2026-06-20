@@ -1,6 +1,7 @@
 import * as utils from '../utils/index';
 import * as config from '../config';
 import { GWT } from '../selectors';
+import { verbose } from '../logger';
 
 export function periodToDateRange(
   period: string | null | undefined
@@ -63,49 +64,49 @@ export async function exportUnbilledIncomeLedger(
   }
 
   if (opts.queryOnly) {
-    console.log('开始未开票收入台账查询...');
+    verbose('开始未开票收入台账查询...');
   } else {
-    console.log('开始未开票收入台账查询导出...');
+    verbose('开始未开票收入台账查询导出...');
   }
 
-  console.log('1. 打开税务系统菜单...');
+  verbose('1. 打开税务系统菜单...');
   await utils.openSideMenu('税务系统');
   await utils.sleep(1000);
 
-  console.log('2. 点击税务台账...');
+  verbose('2. 点击税务台账...');
   await utils.clickDrawerItem('税务台账');
   await utils.sleep(1000);
 
-  console.log('3. 点击未开票收入台账...');
+  verbose('3. 点击未开票收入台账...');
   await utils.clickDrawerItem('未开票收入台账');
   await utils.sleep(2000);
 
-  console.log('4. 展开查询表单...');
+  verbose('4. 展开查询表单...');
   await utils.clickShowQuery();
   await utils.sleep(1000);
 
-  console.log('5. 设置单据日期:', opts.startDate, '至', opts.endDate);
+  verbose('5. 设置单据日期:', opts.startDate, '至', opts.endDate);
   await utils.setDateRange(opts.startDate as string, opts.endDate as string);
   await utils.sleep(500);
 
-  console.log('6. 设置所属税期:', opts.startPeriod, '至', opts.endPeriod);
+  verbose('6. 设置所属税期:', opts.startPeriod, '至', opts.endPeriod);
   await utils.setTaxPeriod(
     opts.startPeriod as string,
     opts.endPeriod as string
   );
   await utils.sleep(500);
 
-  console.log('7. 选择申请单位:', opts.companyCode);
+  verbose('7. 选择申请单位:', opts.companyCode);
   await utils.clickPickerButton('申请单位');
   await utils.sleep(2000);
   await utils.pickFromDict(opts.companyCode as string);
   await utils.sleep(1000);
 
-  console.log('8. 选择纳税主体:', opts.taxCode);
+  verbose('8. 选择纳税主体:', opts.taxCode);
   await utils.pickTaxSubject(opts.taxCode as string);
   await utils.sleep(1000);
 
-  console.log('9. 设置作废状态:', opts.voidStatus);
+  verbose('9. 设置作废状态:', opts.voidStatus);
 
   await utils.cdpEvaluateAndClick(
     `
@@ -161,7 +162,7 @@ export async function exportUnbilledIncomeLedger(
     { sleepMs: 500 }
   );
 
-  console.log('10. 点击查询按钮...');
+  verbose('10. 点击查询按钮...');
   await utils.cdpEvaluateAndClick(
     `
     (function() {
@@ -190,11 +191,11 @@ export async function exportUnbilledIncomeLedger(
 
   if (opts.queryOnly) {
     const rows = await utils.getTableRowCount();
-    console.log('查询完成，表格行数:', rows.visible);
+    verbose('查询完成，表格行数:', rows.visible);
     return { queried: true, rows, options: opts };
   }
 
-  console.log('11. 点击导出按钮...');
+  verbose('11. 点击导出按钮...');
   await utils.cdpEvaluateAndClick(
     `
     (function() {
@@ -221,7 +222,7 @@ export async function exportUnbilledIncomeLedger(
     { sleepMs: 2000 }
   );
 
-  console.log('12. 点击弹窗确认导出...');
+  verbose('12. 点击弹窗确认导出...');
   await utils.cdpEvaluateAndClick(
     `
     (function() {
@@ -254,7 +255,7 @@ export async function exportUnbilledIncomeLedger(
   );
 
   if (popupCheck === 'closed') {
-    console.log('导出完成！');
+    verbose('导出完成！');
     await utils.closeBill();
     return { exported: true, options: opts };
   }

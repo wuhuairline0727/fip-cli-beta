@@ -881,13 +881,13 @@ program
 
         // 1. 如果提供了 billId，先打开单据
         if (billId) {
-          console.log(`打开单据 ${billId}...`);
+          verbose(`打开单据 ${billId}...`);
           await fipTyped.openBill(billId);
           await fipTyped.sleep(3000);
         }
 
         // 2. 提取字段
-        console.log('提取单据字段...');
+        verbose('提取单据字段...');
         const fields = await fipTyped.extractInvoiceFields();
 
         if (!fields.invoice_no) {
@@ -896,7 +896,7 @@ program
           );
         }
 
-        console.log(`提取成功: 单据 ${fields.invoice_no}`);
+        verbose(`提取成功: 单据 ${fields.invoice_no}`);
 
         // 3. 合并人工输入的参数（转为数字）
         if (options.confirmedAmount) {
@@ -909,7 +909,7 @@ program
         }
 
         // 4. 执行审核
-        console.log('执行自动核对...');
+        verbose('执行自动核对...');
         const result = fipTyped.auditInvoice(fields);
 
         // 5. 生成报告
@@ -925,12 +925,12 @@ program
         // 6. 输出到文件或控制台
         if (options.output) {
           fs.writeFileSync(options.output, report, 'utf8');
-          console.log(`报告已保存: ${options.output}`);
+          verbose(`报告已保存: ${options.output}`);
         }
 
         // 7. 关闭单据（除非 --keep-open）
         if (!options.keepOpen) {
-          console.log('关闭单据...');
+          verbose('关闭单据...');
           await fipTyped.closeBill();
         }
 
@@ -995,7 +995,7 @@ program
             JSON.stringify(data, null, 2),
             'utf8'
           );
-          console.log(`结果已保存: ${options.output}`);
+          verbose(`结果已保存: ${options.output}`);
         }
 
         // 如果之前打开了单据，提取完成后关闭
@@ -1005,7 +1005,7 @@ program
             await fipTyped.closeBill();
           } catch (closeErr: any) {
             // 关闭失败不影响提取结果
-            console.log(`关闭单据跳过: ${closeErr.message}`);
+            verbose(`关闭单据跳过: ${closeErr.message}`);
           }
         }
 
@@ -1034,14 +1034,13 @@ program
       } else {
         console.error(doctor.generateReport(checks));
       }
-      // 如果有错误，退出码非零
+      // 如果有错误，抛出错误让 commander 统一处理
       const hasError = checks.some((c) => c.status === 'error');
       if (hasError) {
-        process.exit(1);
+        throw new Error('doctor: 发现环境错误，详见诊断报告');
       }
     } catch (e: any) {
-      console.error('诊断执行失败:', e.message);
-      process.exit(1);
+      throw new Error(`诊断执行失败: ${e.message}`, { cause: e });
     }
   });
 

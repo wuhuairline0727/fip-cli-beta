@@ -1,5 +1,6 @@
 import * as utils from '../utils/index';
 import * as config from '../config';
+import { verbose } from '../logger';
 
 interface LedgerOptions {
   startPeriod?: string;
@@ -32,21 +33,21 @@ export async function exportOutputInvoiceLedger(
   const opts: Record<string, unknown> = { ...defaults, ...options };
 
   if (opts.queryOnly) {
-    console.log('开始销项发票明细台账查询...');
+    verbose('开始销项发票明细台账查询...');
   } else {
-    console.log('开始销项发票明细台账查询导出...');
+    verbose('开始销项发票明细台账查询导出...');
   }
 
   // 1. 导航至销项发票台账
-  console.log('1. 打开税务系统菜单...');
+  verbose('1. 打开税务系统菜单...');
   await utils.openSideMenu('税务系统');
   await utils.sleep(1000);
 
-  console.log('2. 点击税务台账...');
+  verbose('2. 点击税务台账...');
   await utils.clickDrawerItem('税务台账');
   await utils.sleep(1000);
 
-  console.log('3. 点击销项发票台账...');
+  verbose('3. 点击销项发票台账...');
   await utils.clickDrawerItem('销项发票台账');
   await utils.sleep(2000);
 
@@ -61,7 +62,7 @@ export async function exportOutputInvoiceLedger(
 
   if (!isDetailLedgerPage) {
     // 页面没有查询表单，需要选择单选按钮
-    console.log('4. 选择销项发票明细台账...');
+    verbose('4. 选择销项发票明细台账...');
     const radioResult = (await utils.cdpEvaluate(`
       (function() {
         var all = document.querySelectorAll('*');
@@ -97,10 +98,10 @@ export async function exportOutputInvoiceLedger(
     }
 
     await utils.cdpClick(radioResult.x!, radioResult.y!, 1500);
-    console.log('已点击销项发票明细台账:', radioResult.tag);
+    verbose('已点击销项发票明细台账:', radioResult.tag);
 
     // 等待弹窗出现并点击查询按钮
-    console.log('等待弹窗出现...');
+    verbose('等待弹窗出现...');
     let popupClicked = false;
     for (let attempt = 0; attempt < 5; attempt++) {
       const result = await utils.cdpEvaluateAndClick(
@@ -139,14 +140,14 @@ export async function exportOutputInvoiceLedger(
     }
 
     if (!popupClicked) {
-      console.log('警告: 未找到弹窗查询按钮');
+      verbose('警告: 未找到弹窗查询按钮');
     }
   } else {
-    console.log('4. 当前已在销项发票明细台账页面，跳过单选按钮选择');
+    verbose('4. 当前已在销项发票明细台账页面，跳过单选按钮选择');
   }
 
   // 3. 展开查询条件
-  console.log('5. 展开查询条件...');
+  verbose('5. 展开查询条件...');
   await utils.cdpEvaluateAndClick(
     `
     (function() {
@@ -166,7 +167,7 @@ export async function exportOutputInvoiceLedger(
   );
 
   // 4. 选择"开票日期"单选按钮（先找到文本再找附近的 radio）
-  console.log('6. 选择开票日期...');
+  verbose('6. 选择开票日期...');
   const dateRadioResult = (await utils.cdpEvaluate(`
     (function() {
       var all = document.querySelectorAll('*');
@@ -214,14 +215,14 @@ export async function exportOutputInvoiceLedger(
 
   if (dateRadioResult?.found) {
     await utils.cdpClick(dateRadioResult.x!, dateRadioResult.y!, 1000);
-    console.log('已点击开票日期单选按钮:', dateRadioResult.id);
+    verbose('已点击开票日期单选按钮:', dateRadioResult.id);
   } else {
-    console.log('警告: 未找到开票日期单选按钮:', dateRadioResult?.reason);
+    verbose('警告: 未找到开票日期单选按钮:', dateRadioResult?.reason);
   }
   await utils.sleep(1000);
 
   // 5. 设置开票日期范围
-  console.log('7. 设置开票日期:', opts.startDate, '至', opts.endDate);
+  verbose('7. 设置开票日期:', opts.startDate, '至', opts.endDate);
   await utils.cdpEvaluate(`
     (function() {
       var start = document.getElementById('JINX_IPT_START-input');
@@ -248,7 +249,7 @@ export async function exportOutputInvoiceLedger(
   await utils.sleep(500);
 
   // 6. 选择申请单位（左上角蓝色按钮）
-  console.log('8. 选择申请单位:', opts.companyCode);
+  verbose('8. 选择申请单位:', opts.companyCode);
   const companyBtnResult = (await utils.cdpEvaluate(`
     (function() {
       var btns = document.querySelectorAll('.FD26IYC-w-l');
@@ -269,7 +270,7 @@ export async function exportOutputInvoiceLedger(
   }
 
   // 7. 选择销方（右侧蓝色按钮）
-  console.log('9. 选择销方:', opts.sellerCode);
+  verbose('9. 选择销方:', opts.sellerCode);
   const sellerBtnResult = (await utils.cdpEvaluate(`
     (function() {
       var input = document.getElementById('DataSetFieldComboBox6-input');
@@ -293,7 +294,7 @@ export async function exportOutputInvoiceLedger(
   }
 
   // 8. 点击查询按钮
-  console.log('10. 点击查询按钮...');
+  verbose('10. 点击查询按钮...');
   const queryClickResult = await utils.cdpEvaluateAndClick(
     `
     (function() {
@@ -322,12 +323,12 @@ export async function exportOutputInvoiceLedger(
   // 如果仅查询模式，返回结果
   if (opts.queryOnly) {
     const rows = await utils.getTableRowCount();
-    console.log('查询完成，表格行数:', rows.visible);
+    verbose('查询完成，表格行数:', rows.visible);
     return { queried: true, rows, options: opts };
   }
 
   // 9. 点击导出按钮
-  console.log('11. 点击导出按钮...');
+  verbose('11. 点击导出按钮...');
   await utils.cdpEvaluateAndClick(
     `
     (function() {
@@ -349,7 +350,7 @@ export async function exportOutputInvoiceLedger(
   );
 
   // 10. 点击弹窗中的导出按钮
-  console.log('12. 点击弹窗确认导出...');
+  verbose('12. 点击弹窗确认导出...');
   await utils.cdpEvaluateAndClick(
     `
     (function() {
@@ -391,7 +392,7 @@ export async function exportOutputInvoiceLedger(
   `);
 
   if (popupCheck === 'closed') {
-    console.log('导出完成！');
+    verbose('导出完成！');
     await utils.closeBill();
     return { exported: true, options: opts };
   }

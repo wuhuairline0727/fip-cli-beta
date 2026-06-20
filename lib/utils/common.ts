@@ -91,13 +91,14 @@ export async function getPageInfo(): Promise<PageInfo> {
 }
 
 export async function clickDashboardTab(tabName: string): Promise<boolean> {
+  const safeTabName = escapeJsString(tabName);
   const code = `
     (function() {
       var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
       var candidates = [];
       var node;
       while (node = walker.nextNode()) {
-        if (node.textContent.trim() === '${tabName}') {
+        if (node.textContent.trim() === '${safeTabName}') {
           var el = node.parentElement;
           while (el && el !== document.body) {
             if (el.tagName === 'LI' || el.onclick || el.getAttribute('onclick') || el.classList.contains('ant-tabs-tab')) {

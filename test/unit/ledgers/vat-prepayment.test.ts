@@ -95,6 +95,7 @@ describe('ledgers/vat-prepayment', () => {
         CONFIG_FILE: '/fake/.fiprc.json',
       },
       '../utils/index': fakeUtils,
+      '../logger': { verbose: sinon.stub() },
     });
   });
 

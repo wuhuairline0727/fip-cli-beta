@@ -76,6 +76,7 @@ describe('ledgers/passenger-transport', () => {
         CONFIG_FILE: '/fake/.fiprc.json',
       },
       '../utils/index': fakeUtils,
+      '../logger': { verbose: sinon.stub() },
     });
   });
 

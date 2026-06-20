@@ -78,6 +78,7 @@ describe('ledgers/input-transfer', () => {
         CONFIG_FILE: '/fake/.fiprc.json',
       },
       '../utils/index': fakeUtils,
+      '../logger': { verbose: sinon.stub() },
     });
   });
 
