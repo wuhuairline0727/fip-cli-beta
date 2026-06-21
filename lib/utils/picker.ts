@@ -133,7 +133,7 @@ export async function pickFromDict(queryCode: string): Promise<boolean> {
         if (!popup) return { found: false };
         var rows = Array.from(popup.querySelectorAll('tr'));
         for (var i = 0; i < rows.length; i++) {
-          if (rows[i].textContent.indexOf('${safeCode}') !== -1) {
+          if (rows[i].textContent.trim() === '${safeCode}') {
             return { found: true };
           }
         }
@@ -157,7 +157,7 @@ export async function pickFromDict(queryCode: string): Promise<boolean> {
       var rows = Array.from(popup.querySelectorAll('tr'));
       var targetRow = null;
       for (var i = 0; i < rows.length; i++) {
-        if (rows[i].textContent.indexOf('${safeCode}') !== -1) {
+        if (rows[i].textContent.trim() === '${safeCode}') {
           targetRow = rows[i];
           break;
         }

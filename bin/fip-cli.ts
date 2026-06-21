@@ -1045,7 +1045,6 @@ program
   });
 
 program.parseAsync(process.argv).catch(async (err: Error) => {
-  // 未捕获的异常
+  // 未捕获的异常 — error() 内部已设置 process.exitCode = 1
   await error('uncaught_error', err.message);
-  process.exit(1);
 });

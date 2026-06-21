@@ -141,7 +141,7 @@ export async function cdpEvaluateAndClick(
     }
 
     if (log) {
-      console.log(log);
+      console.error(log);
     }
 
     const { x, y } = value as { x: number; y: number };
