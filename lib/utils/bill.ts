@@ -1,6 +1,7 @@
 import { evaluate } from '../browser';
-import { sleep } from './common';
+import { sleep, escapeJsString } from './common';
 import { cdpClick } from './cdp';
+import { verbose } from '../logger';
 import { waitAndDismissDialogs } from './dialog';
 
 export interface OpenBillResult {
@@ -18,12 +19,13 @@ export async function openBill(
     : ['我的单据', '待办', '已办', '已办结'];
 
   for (const tab of tabsToSearch) {
-    console.log(`切换到 "${tab}" 标签页...`);
+    const safeTab = escapeJsString(tab);
+    verbose(`切换到 "${tab}" 标签页...`);
     const tabCode = `
       (function() {
         var all = document.querySelectorAll('*');
         for (var i = 0; i < all.length; i++) {
-          if (all[i].textContent.trim() === '${tab}' && all[i].tagName === 'LABEL') {
+          if (all[i].textContent.trim() === '${safeTab}' && all[i].tagName === 'LABEL') {
             var rect = all[i].getBoundingClientRect();
             if (rect.width > 0 && rect.height > 0 && rect.top < 150) {
               return { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
@@ -39,12 +41,13 @@ export async function openBill(
       await cdpClick(x, y, 1500);
     }
 
-    console.log(`输入单据编号 ${billId}...`);
+    const safeBillId = escapeJsString(billId);
+    verbose(`输入单据编号 ${billId}...`);
     const inputCode = `
       (function() {
         var input = document.getElementById('FormTextInputDJBH-input');
         if (input) {
-          input.value = '${billId}';
+          input.value = '${safeBillId}';
           input.dispatchEvent(new Event('input', { bubbles: true }));
           input.dispatchEvent(new Event('change', { bubbles: true }));
           return { success: true };
@@ -54,10 +57,10 @@ export async function openBill(
     `;
     const inputResult = await evaluate(inputCode);
     if (!inputResult.data?.value?.success) {
-      console.log('未找到单据编号输入框，尝试直接查询...');
+      verbose('未找到单据编号输入框，尝试直接查询...');
     }
 
-    console.log('点击查询按钮...');
+    verbose('点击查询按钮...');
     const queryCode = `
       (function() {
         var all = document.querySelectorAll('*');
@@ -78,7 +81,7 @@ export async function openBill(
       await cdpClick(x, y, 3000);
     }
 
-    console.log(`查找单据 ${billId}...`);
+    verbose(`查找单据 ${billId}...`);
     const openCode = `
       (function() {
         var rows = document.querySelectorAll('tr');
@@ -86,7 +89,7 @@ export async function openBill(
           var rowRect = rows[r].getBoundingClientRect();
           if (rowRect.width > 0 && rowRect.height > 0 && rowRect.top > 200) {
             var rowText = rows[r].textContent.trim();
-            if (rowText.includes('${billId}')) {
+            if (rowText.includes('${safeBillId}')) {
               var links = rows[r].querySelectorAll('a, span, button');
               for (var l = 0; l < links.length; l++) {
                 if (links[l].textContent.trim() === '打开单据') {
@@ -105,13 +108,13 @@ export async function openBill(
     const openResult = await evaluate(openCode);
     if (openResult.data?.value?.found) {
       const { x, y } = openResult.data.value;
-      console.log(`使用 CDP 真实点击打开单据 ${billId}...`);
+      verbose(`使用 CDP 真实点击打开单据 ${billId}...`);
       await cdpClick(x, y, 5000);
 
       const urlCheck = await evaluate('location.href');
       const url = urlCheck.data?.value || '';
       if (url.includes('FLOW_')) {
-        console.log(`单据 ${billId} 打开成功！`);
+        verbose(`单据 ${billId} 打开成功！`);
         return { opened: true, billId, url };
       }
     }
@@ -126,7 +129,7 @@ export interface CloseBillResult {
 }
 
 export async function closeBill(): Promise<CloseBillResult> {
-  console.log('关闭单据详情页...');
+  verbose('关闭单据详情页...');
 
   const closeCode = `
     (function() {
@@ -158,7 +161,7 @@ export async function closeBill(): Promise<CloseBillResult> {
     throw new Error('未找到关闭按钮');
   }
   const { x, y, tabName } = result.data.value;
-  console.log(`点击 "${tabName}" 标签页的关闭按钮...`);
+  verbose(`点击 "${tabName}" 标签页的关闭按钮...`);
   await cdpClick(x, y, 3000);
 
   await waitAndDismissDialogs(5000, { waitAfterClose: 1500 });
@@ -170,11 +173,11 @@ export async function closeBill(): Promise<CloseBillResult> {
     (url.includes('#/dashboard') || url.includes('CSCPortal.jsp')) &&
     !url.includes('FLOW_');
   if (isHomePage) {
-    console.log('已返回首页');
+    verbose('已返回首页');
     return { closed: true, url };
   }
 
-  console.log('尝试浏览器返回...');
+  verbose('尝试浏览器返回...');
   await evaluate('history.back()');
   await sleep(3000);
   await waitAndDismissDialogs(5000, { waitAfterClose: 1500 });
@@ -185,7 +188,7 @@ export async function closeBill(): Promise<CloseBillResult> {
     (url2.includes('#/dashboard') || url2.includes('CSCPortal.jsp')) &&
     !url2.includes('FLOW_');
   if (isHomePage2) {
-    console.log('已返回首页');
+    verbose('已返回首页');
     return { closed: true, url: url2 };
   }
 

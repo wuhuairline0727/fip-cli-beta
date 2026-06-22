@@ -1,5 +1,6 @@
 import { evaluate } from '../browser';
 import { cdpClick } from './cdp';
+import { verbose } from '../logger';
 
 export interface DismissOptions {
   closeButtonTexts?: string[];
@@ -86,14 +87,14 @@ export async function dismissDialogs(
     }
 
     const { x, y, text, source } = result.data.value;
-    console.log(`检测到${source}弹窗，点击"${text}"关闭...`);
+    verbose(`检测到${source}弹窗，点击"${text}"关闭...`);
     await cdpClick(x, y, waitAfterClose);
     closed++;
     details.push(`${source}:${text}`);
   }
 
   if (closed > 0) {
-    console.log(`共关闭 ${closed} 个弹窗`);
+    verbose(`共关闭 ${closed} 个弹窗`);
   }
 
   return { closed, details };
