@@ -498,7 +498,7 @@ module.exports = { validateConfig };
 #### 4.2 多环境配置支持
 
 ```bash
-fip-cli config --env production companyCode 1000200020040011
+fip-cli config --env production companyCode 00000000000000000000
 fip-cli config --env staging companyCode 1000200020040012
 ```
 

@@ -48,7 +48,7 @@ describe('config', () => {
 
     it('should accept valid companyCode', () => {
       expect(() =>
-        config.set('companyCode', '1000200020040011')
+        config.set('companyCode', '00000000000000000000')
       ).to.not.throw();
     });
 

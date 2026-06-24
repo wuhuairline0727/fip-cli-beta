@@ -26,7 +26,7 @@ export async function exportPassengerTransportLedger(
   const defaults = {
     startPeriod: (cfg.startPeriod as string) || '2026-04',
     endPeriod: (cfg.endPeriod as string) || '2026-04',
-    companyCode: (cfg.companyCode as string) || '1000200020040011',
+    companyCode: (cfg.companyCode as string) || '00000000000000000000',
     taxCode: (cfg.taxCode as string) || 'XXXXXXXXXXXXXXXXXX',
     queryOnly: false,
   };

@@ -180,7 +180,7 @@ fip-cli export-all --ledgers input-transfer,output-invoice --query-only
 #### 配置项
 
 ```bash
-fip-cli config companyCode   1000200020040011
+fip-cli config companyCode   00000000000000000000
 fip-cli config taxCode       XXXXXXXXXXXXXXXXXX
 fip-cli config startDate     2026-04-01
 fip-cli config endDate       2026-04-30
@@ -269,7 +269,7 @@ fip-cli table-data --max-rows 50
 fip-cli config <key> [value]
 
 # 常用配置项
-fip-cli config companyCode   1000200020040011
+fip-cli config companyCode   00000000000000000000
 fip-cli config taxCode       XXXXXXXXXXXXXXXXXX
 fip-cli config startDate     2026-04-01
 fip-cli config endDate       2026-04-30

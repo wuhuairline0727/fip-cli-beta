@@ -442,7 +442,7 @@ describe('🔴 真实浏览器测试', function () {
       const result = await inputTransfer.exportInputTransferLedger({
         startPeriod: '2026-04',
         endPeriod: '2026-04',
-        companyCode: '1000200020040011',
+        companyCode: '00000000000000000000',
         taxCode: 'XXXXXXXXXXXXXXXXXX',
         docStatus: '流程结束',
         queryOnly: true,
@@ -456,7 +456,7 @@ describe('🔴 真实浏览器测试', function () {
       const result = await outputInvoice.exportOutputInvoiceLedger({
         startDate: '2026-04-01',
         endDate: '2026-04-30',
-        companyCode: '1000200020040011',
+        companyCode: '00000000000000000000',
         sellerCode: 'XXXXXXXXXXXXXXXXXX',
         queryOnly: true,
       });
@@ -469,7 +469,7 @@ describe('🔴 真实浏览器测试', function () {
       const result = await passengerTransport.exportPassengerTransportLedger({
         startPeriod: '2026-04',
         endPeriod: '2026-04',
-        companyCode: '1000200020040011',
+        companyCode: '00000000000000000000',
         taxCode: 'XXXXXXXXXXXXXXXXXX',
         queryOnly: true,
       });
@@ -482,7 +482,7 @@ describe('🔴 真实浏览器测试', function () {
       const result = await vatPrepayment.exportVatPrepaymentLedger({
         startPeriod: '2026-04',
         endPeriod: '2026-04',
-        companyCode: '1000200020040011',
+        companyCode: '00000000000000000000',
         taxCode: 'XXXXXXXXXXXXXXXXXX',
         docType: '预缴计算单',
         queryOnly: true,
@@ -498,7 +498,7 @@ describe('🔴 真实浏览器测试', function () {
         endDate: '2026-04-30',
         startPeriod: '2026-01',
         endPeriod: '2026-04',
-        companyCode: '1000200020040011',
+        companyCode: '00000000000000000000',
         taxCode: 'XXXXXXXXXXXXXXXXXX',
         voidStatus: '未作废',
         queryOnly: true,

@@ -8,7 +8,7 @@ import {
 describe('config-schema', () => {
   describe('validateConfigValue()', () => {
     it('should return null for valid companyCode', () => {
-      const result = validateConfigValue('companyCode', '1000200020040011');
+      const result = validateConfigValue('companyCode', '00000000000000000000');
       expect(result).to.equal(null);
     });
 
@@ -68,7 +68,7 @@ describe('config-schema', () => {
   describe('validateConfig()', () => {
     it('should return empty array for valid config', () => {
       const config = {
-        companyCode: '1000200020040011',
+        companyCode: '00000000000000000000',
         taxCode: 'YYYYYYYYYYYYYYYYYY',
         startDate: '2026-04-01',
         endDate: '2026-04-30',
@@ -97,7 +97,7 @@ describe('config-schema', () => {
 
     it('should skip unknown keys', () => {
       const config = {
-        companyCode: '1000200020040011',
+        companyCode: '00000000000000000000',
         unknownKey: 'anything',
       };
       const errors = validateConfig(config);

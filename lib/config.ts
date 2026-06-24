@@ -39,7 +39,7 @@ export interface ConfigDefaults {
 }
 
 const DEFAULTS: ConfigDefaults = {
-  companyCode: '1000200020040011',
+  companyCode: '00000000000000000000',
   taxCode: 'XXXXXXXXXXXXXXXXXX',
   voidStatus: '未作废',
   docStatus: '流程结束',

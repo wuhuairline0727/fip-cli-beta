@@ -115,7 +115,7 @@ fip-cli audit-invoice <单据编号> --keep-open
 ## 配置 Key
 
 ```bash
-fip-cli config companyCode   1000200020040011
+fip-cli config companyCode   00000000000000000000
 fip-cli config taxCode       XXXXXXXXXXXXXXXXXX
 fip-cli config startDate     2026-04-01
 fip-cli config endDate       2026-04-30

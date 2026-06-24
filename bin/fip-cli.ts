@@ -203,7 +203,7 @@ program
 
 program
   .command('pick-company <code>')
-  .description('选择申请单位 (如: 1000200020040011)')
+  .description('选择申请单位 (如: 00000000000000000000)')
   .action(async (code: string) => {
     try {
       await fipTyped.clickPickerButton('申请单位');
@@ -840,7 +840,7 @@ FIP CLI 使用示例
    fip-cli export-passenger-transport --start-period 2026-04 --end-period 2026-04
 
 9. 选择申请单位
-   fip-cli pick-company 1000200020040011
+   fip-cli pick-company 00000000000000000000
 
 10. 选择纳税主体
     fip-cli pick-tax-subject XXXXXXXXXXXXXXXXXX   # 默认税号
