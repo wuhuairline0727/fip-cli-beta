@@ -61,7 +61,7 @@
 
 ```bash
 # 方式一：命令行启动 Chrome（推荐）
-"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
+"<Chrome安装路径>\chrome.exe" --remote-debugging-port=9222
 
 # 方式二：为 Chrome 创建快捷方式，在目标后追加参数
 # 右键 Chrome 快捷方式 → 属性 → 目标末尾添加: --remote-debugging-port=9222
@@ -339,7 +339,7 @@ C:\Users\<用户名>\.kimi-webbridge\bin\kimi-webbridge.exe start
 curl http://127.0.0.1:9222/json/version
 
 # 若未开启，重新启动 Chrome 并添加参数
-"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
+"<Chrome安装路径>\chrome.exe" --remote-debugging-port=9222
 ```
 
 ### 单据提取字段为空

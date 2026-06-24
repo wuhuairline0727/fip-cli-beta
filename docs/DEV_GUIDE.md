@@ -150,7 +150,7 @@ fip-cli config sellerCode    91110000101638302P
 
 ```bash
 # 命令行启动
-"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
+"<Chrome安装路径>\chrome.exe" --remote-debugging-port=9222
 
 # 验证端口
 curl http://127.0.0.1:9222/json/version

@@ -157,7 +157,7 @@ export async function checkCdpPort(): Promise<DiagnosticCheck> {
     message: `端口 ${CDP_PORT} 未开启，CDP 真实点击功能将不可用`,
     fix:
       '1. 关闭所有 Chrome 窗口\n' +
-      '2. 命令行启动: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --remote-debugging-port=9222\n' +
+      '2. 命令行启动: "<Chrome安装路径>\\chrome.exe" --remote-debugging-port=9222\n' +
       '3. 或为 Chrome 快捷方式添加启动参数: --remote-debugging-port=9222',
   };
 }

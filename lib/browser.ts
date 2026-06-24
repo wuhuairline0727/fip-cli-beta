@@ -79,9 +79,9 @@ export async function ensureConnection(): Promise<void> {
     const error = new Error(
       'Kimi WebBridge 未连接。请执行以下步骤：\n' +
         '1. 检查浏览器扩展是否启用\n' +
-        '2. 执行: C:/Users/40427/.kimi-webbridge/bin/kimi-webbridge.exe status\n' +
-        '3. 如果未运行，执行: C:/Users/40427/.kimi-webbridge/bin/kimi-webbridge.exe start\n' +
-        '4. 如果启动失败，执行: rm -f C:/Users/40427/.kimi-webbridge/*.pid && C:/Users/40427/.kimi-webbridge/bin/kimi-webbridge.exe start'
+        '2. 执行: <用户目录>/.kimi-webbridge/bin/kimi-webbridge.exe status\n' +
+        '3. 如果未运行，执行: <用户目录>/.kimi-webbridge/bin/kimi-webbridge.exe start\n' +
+        '4. 如果启动失败，执行: rm -f <用户目录>/.kimi-webbridge/*.pid && <用户目录>/.kimi-webbridge/bin/kimi-webbridge.exe start'
     ) as WebBridgeError;
     error.code = 'WEBBRIDGE_NOT_CONNECTED';
     throw error;
@@ -102,7 +102,7 @@ export async function request(
   if (!connectionOk) {
     connectionCheckPromise = null; // 重置，下次重新检查连接
     throw new Error(
-      'Kimi WebBridge 未连接。请执行: C:/Users/40427/.kimi-webbridge/bin/kimi-webbridge.exe start'
+      'Kimi WebBridge 未连接。请执行: <用户目录>/.kimi-webbridge/bin/kimi-webbridge.exe start'
     );
   }
   const result = await rawRequest(action, args, session);

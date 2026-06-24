@@ -11,6 +11,7 @@ import * as config from '../lib/config';
 import fip from '../lib/fip';
 const fipTyped = fip as FipAPI;
 import * as fs from 'fs';
+import * as path from 'path';
 import { debug, verbose, setDebug, setVerbose } from '../lib/logger';
 import * as organizationCache from '../lib/utils/organization-cache';
 import * as doctor from '../lib/doctor';
@@ -483,7 +484,8 @@ program
       }
 
       const outputPath =
-        options.output || `D:/claude/fip-cli/screenshot_${Date.now()}.png`;
+        options.output ||
+        path.join(process.cwd(), `screenshot_${Date.now()}.png`);
 
       // WebBridge 返回文件路径
       if (result.data.path && fs.existsSync(result.data.path as string)) {
