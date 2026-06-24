@@ -44,8 +44,8 @@ export async function exportUnbilledIncomeLedger(
     endDate: cfg.endDate || '2026-12-31',
     startPeriod: cfg.startPeriod || '2026-01',
     endPeriod: cfg.endPeriod || '2026-12',
-    companyCode: cfg.companyCode || '00000000000000000000',
-    taxCode: cfg.taxCode || 'XXXXXXXXXXXXXXXXXX',
+    companyCode: (cfg.companyCode as string) || config.DEFAULTS.companyCode,
+    taxCode: (cfg.taxCode as string) || config.DEFAULTS.taxCode,
     voidStatus: cfg.voidStatus || '未作废',
     queryOnly: false,
   };

@@ -38,7 +38,7 @@ export interface ConfigDefaults {
   sellerCode: string;
 }
 
-const DEFAULTS: ConfigDefaults = {
+export const DEFAULTS: ConfigDefaults = {
   companyCode: '00000000000000000000',
   taxCode: 'XXXXXXXXXXXXXXXXXX',
   voidStatus: '未作废',

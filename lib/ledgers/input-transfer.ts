@@ -27,9 +27,9 @@ export async function exportInputTransferLedger(
   const defaults = {
     startPeriod: cfg.startPeriod || '2026-04',
     endPeriod: cfg.endPeriod || '2026-04',
-    companyCode: cfg.companyCode || '00000000000000000000',
-    taxCode: cfg.taxCode || 'XXXXXXXXXXXXXXXXXX',
-    docStatus: cfg.docStatus || '流程结束',
+    companyCode: (cfg.companyCode as string) || config.DEFAULTS.companyCode,
+    taxCode: (cfg.taxCode as string) || config.DEFAULTS.taxCode,
+    docStatus: (cfg.docStatus as string) || config.DEFAULTS.docStatus,
     queryOnly: false,
   };
   const opts = { ...defaults, ...options };
