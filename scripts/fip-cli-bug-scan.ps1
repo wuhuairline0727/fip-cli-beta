@@ -1,10 +1,10 @@
-﻿# fip-cli-bug-scan.ps1
+# fip-cli-bug-scan.ps1
 # Purpose: cron-driven scanner for fip-cli repo. Runs lint + test + format:check + npm audit.
 # If new bugs are found, dedup against open issues then create a GitHub issue via gh CLI.
 # Trigger: mavis cron (every 4 hours)
-# Credential: reads C:\Users\40427\.config\gh\cron-token
+# Credential: reads <用户目录>/.config/gh/cron-token
 # Dedupe: matches bug title against existing open issues
-# Output: appends to D:\claude\fip-cli\scripts\bug-scan.log
+# Output: appends to <项目目录>/scripts/bug-scan.log
 #
 # NOTE: This script is intentionally English-only in source. PowerShell 5.1 on zh-CN systems
 # sometimes mis-tokenizes CJK in .ps1 source even with a UTF-8 BOM, causing parser errors
@@ -14,10 +14,10 @@
 
 param(
   [string]$Repo = "wuhuairline0727/fip-cli",
-  [string]$WorkDir = "D:\claude\fip-cli",
-  [string]$TokenFile = "C:\Users\40427\.config\gh\cron-token",
-  [string]$LogFile = "D:\claude\fip-cli\scripts\bug-scan.log",
-  [string]$I18nFile = "D:\claude\fip-cli\scripts\bug-scan-i18n.json"
+  [string]$WorkDir = $PSScriptRoot,
+  [string]$TokenFile = "$env:USERPROFILE/.config/gh/cron-token",
+  [string]$LogFile = "$PSScriptRoot/bug-scan.log",
+  [string]$I18nFile = "$PSScriptRoot/bug-scan-i18n.json"
 )
 
 $ErrorActionPreference = "Continue"

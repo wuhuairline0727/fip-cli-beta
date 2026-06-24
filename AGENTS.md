@@ -16,17 +16,17 @@
 - **时区**：Asia/Shanghai
 - **Session 模式**：new（每次 tick 独立 session）
 - **Report**：结果汇总到 root session
-- **执行**：`D:\claude\fip-cli\scripts\fip-cli-bug-scan.ps1`
+- **执行**：`<项目目录>/scripts/fip-cli-bug-scan.ps1`
 - **流程**：
   1. 拉最新 master
   2. 跑 `npm run lint` / `npm test` / `npm run format:check` / `npm audit`（high+critical 级别）
   3. 任何一项失败 → 调 `gh issue create` 推 issue（带 bug label）
   4. 推之前**先去重**（拉 GitHub open issue 列表查标题）
-  5. 日志写到 `D:\claude\fip-cli\scripts\bug-scan.log`
+  5. 日志写到 `<项目目录>/scripts/bug-scan.log`
 
 ### 凭据维护
 
-- **GitHub PAT 路径**：`C:\Users\40427\.config\gh\cron-token`
+- **GitHub PAT 路径**：`<用户目录>/.config/gh/cron-token`
 - **必需 scope**：`repo`（本 cron 只需 issue 写权限）
 - **当前过期**：2026-09-09（90 天）
 - **过期后**：去 https://github.com/settings/tokens 重新生成 PAT，把新 token 覆盖到上述路径

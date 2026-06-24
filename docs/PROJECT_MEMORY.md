@@ -197,12 +197,12 @@ description: Phase 2功能开发进度、测试结果、部署状态
 根据成熟仓库要素指南（cli/cli, sharkdp/bat, BurntSushi/ripgrep等），补齐缺失文件：
 
 **新增必备文件**:
-| 文件 | 说明 |
-|------|------|
-| `LICENSE` | MIT许可证（package.json已引用但文件缺失） |
-| `CONTRIBUTING.md` | 贡献指南：开发环境、代码规范、提交规范、分支策略 |
-| `SECURITY.md` | 安全政策：漏洞报告流程、安全最佳实践 |
-| `CODE_OF_CONDUCT.md` | 行为准则（改编自Contributor Covenant 2.1） |
+| 文件 | 说明 | 状态 |
+|------|------|------|
+| `LICENSE` | MIT许可证（package.json已引用但文件缺失） | ✅ 保留 |
+| `CONTRIBUTING.md` | 贡献指南：开发环境、代码规范、提交规范、分支策略 | ✅ 保留 |
+| `SECURITY.md` | 安全政策：漏洞报告流程、安全最佳实践 | ❌ 已删除（个人项目无外部贡献者） |
+| `CODE_OF_CONDUCT.md` | 行为准则（改编自Contributor Covenant 2.1） | ❌ 已删除（个人项目无外部贡献者） |
 
 **新增.github/配置**:
 | 文件 | 说明 |
