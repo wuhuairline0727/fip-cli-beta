@@ -18,6 +18,53 @@ describe('config', () => {
     });
   });
 
+  describe('DEFAULTS', () => {
+    it('should export DEFAULTS constant', () => {
+      expect(config.DEFAULTS).to.be.an('object');
+    });
+
+    it('should have companyCode as fallback string', () => {
+      expect(config.DEFAULTS.companyCode).to.be.a('string');
+      expect(config.DEFAULTS.companyCode).to.have.lengthOf(20);
+    });
+
+    it('should have taxCode as fallback string', () => {
+      expect(config.DEFAULTS.taxCode).to.be.a('string');
+    });
+
+    it('should have sellerCode as fallback string', () => {
+      expect(config.DEFAULTS.sellerCode).to.be.a('string');
+    });
+
+    it('should have docStatus as fallback string', () => {
+      expect(config.DEFAULTS.docStatus).to.be.a('string');
+    });
+
+    it('should have voidStatus as fallback string', () => {
+      expect(config.DEFAULTS.voidStatus).to.be.a('string');
+    });
+
+    it('should have docType as fallback string', () => {
+      expect(config.DEFAULTS.docType).to.be.a('string');
+    });
+  });
+
+  describe('loadConfig()', () => {
+    it('should load config and include DEFAULTS fields', () => {
+      const result = config.loadConfig();
+      expect(result).to.have.property('companyCode');
+      expect(result).to.have.property('taxCode');
+      expect(result).to.have.property('sellerCode');
+      expect(result).to.have.property('docStatus');
+      expect(result).to.have.property('voidStatus');
+      expect(result).to.have.property('docType');
+      expect(result).to.have.property('startDate');
+      expect(result).to.have.property('endDate');
+      expect(result).to.have.property('startPeriod');
+      expect(result).to.have.property('endPeriod');
+    });
+  });
+
   describe('get()', () => {
     it('should return default values when config file does not exist', () => {
       const result = config.get();

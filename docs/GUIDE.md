@@ -179,6 +179,14 @@ fip-cli export-all --ledgers input-transfer,output-invoice --query-only
 
 #### 配置项
 
+配置支持**三级优先级**（从高到低）：
+
+1. **命令行参数** — 单次运行时覆盖，如 `--companyCode 1234567890`
+2. **项目级配置** — 当前目录的 `fip.config.json`，适用于项目专用配置
+3. **全局配置** — 用户目录的 `~/.fiprc.json`，适用于个人默认配置
+
+如果以上均不存在，使用代码中的默认值（`config.DEFAULTS`）。修改默认值只需改 `lib/config.ts` 一处，所有台账导出自动同步。
+
 ```bash
 fip-cli config companyCode   00000000000000000000
 fip-cli config taxCode       XXXXXXXXXXXXXXXXXX
@@ -190,6 +198,12 @@ fip-cli config docStatus     流程结束
 fip-cli config voidStatus    未作废
 fip-cli config docType       预缴计算单
 fip-cli config sellerCode    XXXXXXXXXXXXXXXXXX
+```
+
+查看当前配置：
+
+```bash
+fip-cli config
 ```
 
 #### YJK（预缴计算单）提取字段
