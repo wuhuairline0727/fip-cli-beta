@@ -15,3 +15,4 @@ coverage/*.js linguist-generated=true
 
 # 配置文件标记为 generated
 eslint.config.js linguist-generated=true
+
