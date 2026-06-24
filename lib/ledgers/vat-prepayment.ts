@@ -29,7 +29,7 @@ export async function exportVatPrepaymentLedger(
     endPeriod: (cfg.endPeriod as string) || '2026-04',
     companyCode: (cfg.companyCode as string) || config.DEFAULTS.companyCode,
     taxCode: (cfg.taxCode as string) || config.DEFAULTS.taxCode,
-    docType: (cfg.docType as string) || '预缴计算单',
+    docType: (cfg.docType as string) || config.DEFAULTS.docType,
     queryOnly: false,
   };
   const opts: Record<string, unknown> = { ...defaults, ...options };

@@ -9,7 +9,7 @@ describe('audit/reporter', () => {
   describe('generateTextReport()', () => {
     it('should generate a text report with all checks', () => {
       const result = {
-        invoice_no: 'KP20002026060500211',
+        invoice_no: 'KP20000000000000000',
         project_name: '测试项目',
         profit_center: '利润中心A',
         checks: {
@@ -62,7 +62,7 @@ describe('audit/reporter', () => {
   describe('generateMarkdownReport()', () => {
     it('should generate a markdown report', () => {
       const result = {
-        invoice_no: 'KP20002026060500211',
+        invoice_no: 'KP20000000000000000',
         project_name: '测试项目',
         profit_center: '利润中心A',
         checks: {

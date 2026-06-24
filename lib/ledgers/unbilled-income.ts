@@ -46,7 +46,7 @@ export async function exportUnbilledIncomeLedger(
     endPeriod: cfg.endPeriod || '2026-12',
     companyCode: (cfg.companyCode as string) || config.DEFAULTS.companyCode,
     taxCode: (cfg.taxCode as string) || config.DEFAULTS.taxCode,
-    voidStatus: cfg.voidStatus || '未作废',
+    voidStatus: (cfg.voidStatus as string) || config.DEFAULTS.voidStatus,
     queryOnly: false,
   };
   let opts = { ...defaults, ...options };
