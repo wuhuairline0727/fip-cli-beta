@@ -71,7 +71,7 @@ describe('ledgers/input-transfer', () => {
             startPeriod: '2026-05',
             endPeriod: '2026-05',
             companyCode: '9999999999999999',
-            taxCode: '91110000101107173B',
+            taxCode: 'YYYYYYYYYYYYYYYYYY',
             docStatus: '审批中',
           };
         },
@@ -97,7 +97,7 @@ describe('ledgers/input-transfer', () => {
     expect(result.options.startPeriod).to.equal('2026-05');
     expect(result.options.endPeriod).to.equal('2026-05');
     expect(result.options.companyCode).to.equal('9999999999999999');
-    expect(result.options.taxCode).to.equal('91110000101107173B');
+    expect(result.options.taxCode).to.equal('YYYYYYYYYYYYYYYYYY');
     expect(result.options.docStatus).to.equal('审批中');
   });
 
@@ -106,7 +106,7 @@ describe('ledgers/input-transfer', () => {
       startPeriod: '2026-06',
       endPeriod: '2026-06',
       companyCode: '1111111111111111',
-      taxCode: '91110000101638302P',
+      taxCode: 'XXXXXXXXXXXXXXXXXX',
       docStatus: '流程结束',
       queryOnly: true,
     });
@@ -115,7 +115,7 @@ describe('ledgers/input-transfer', () => {
     expect(result.options.startPeriod).to.equal('2026-06');
     expect(result.options.endPeriod).to.equal('2026-06');
     expect(result.options.companyCode).to.equal('1111111111111111');
-    expect(result.options.taxCode).to.equal('91110000101638302P');
+    expect(result.options.taxCode).to.equal('XXXXXXXXXXXXXXXXXX');
     expect(result.options.docStatus).to.equal('流程结束');
   });
 });

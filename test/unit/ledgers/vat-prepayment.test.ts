@@ -88,7 +88,7 @@ describe('ledgers/vat-prepayment', () => {
             startPeriod: '2026-05',
             endPeriod: '2026-05',
             companyCode: '9999999999999999',
-            taxCode: '91110000101107173B',
+            taxCode: 'YYYYYYYYYYYYYYYYYY',
             docType: '预缴计算单',
           };
         },

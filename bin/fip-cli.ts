@@ -216,7 +216,7 @@ program
 
 program
   .command('pick-tax-subject <code>')
-  .description('选择纳税主体 (如: 91110000101638302P 或 91110000101107173B)')
+  .description('选择纳税主体 (如: XXXXXXXXXXXXXXXXXX 或 YYYYYYYYYYYYYYYYYY)')
   .action(async (code: string) => {
     try {
       await fipTyped.pickTaxSubject(code);
@@ -843,8 +843,8 @@ FIP CLI 使用示例
    fip-cli pick-company 1000200020040011
 
 10. 选择纳税主体
-    fip-cli pick-tax-subject 91110000101638302P   # 默认税号
-    fip-cli pick-tax-subject 91110000101107173B   # 另一纳税主体
+    fip-cli pick-tax-subject XXXXXXXXXXXXXXXXXX   # 默认税号
+    fip-cli pick-tax-subject YYYYYYYYYYYYYYYYYY   # 另一纳税主体
 `);
   });
 

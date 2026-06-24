@@ -249,13 +249,13 @@ describe('utils/organization', () => {
           value: {
             found: true,
             source: 'header',
-            organization: '中建一局总部',
+            organization: '某建筑公司总部',
           },
         },
       });
 
       const result = await getCurrentOrganization();
-      expect(result.organization).to.equal('中建一局总部');
+      expect(result.organization).to.equal('某建筑公司总部');
       expect(result.fromDialog).to.be.undefined;
     });
 
@@ -279,7 +279,7 @@ describe('utils/organization', () => {
               fields: {
                 组织机构: {
                   id: 'DataSetFieldComboBox1-input',
-                  value: '中建一局山东分公司',
+                  value: '某建筑公司山东分公司',
                 },
               },
             },
@@ -291,7 +291,7 @@ describe('utils/organization', () => {
         });
 
       const result = await getCurrentOrganization();
-      expect(result.organization).to.equal('中建一局山东分公司');
+      expect(result.organization).to.equal('某建筑公司山东分公司');
       expect(result.fromDialog).to.be.true;
     });
 

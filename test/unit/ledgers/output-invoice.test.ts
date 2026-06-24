@@ -70,7 +70,7 @@ describe('ledgers/output-invoice', () => {
             startDate: '2026-05-01',
             endDate: '2026-05-31',
             companyCode: '9999999999999999',
-            sellerCode: '91110000101107173B',
+            sellerCode: 'YYYYYYYYYYYYYYYYYY',
           };
         },
         CONFIG_FILE: '/fake/.fiprc.json',
@@ -95,7 +95,7 @@ describe('ledgers/output-invoice', () => {
     expect(result.options.startDate).to.equal('2026-05-01');
     expect(result.options.endDate).to.equal('2026-05-31');
     expect(result.options.companyCode).to.equal('9999999999999999');
-    expect(result.options.sellerCode).to.equal('91110000101107173B');
+    expect(result.options.sellerCode).to.equal('YYYYYYYYYYYYYYYYYY');
   });
 
   it('should allow options to override date range', async () => {
@@ -103,7 +103,7 @@ describe('ledgers/output-invoice', () => {
       startDate: '2026-01-01',
       endDate: '2026-12-31',
       companyCode: '1111111111111111',
-      sellerCode: '91110000101638302P',
+      sellerCode: 'XXXXXXXXXXXXXXXXXX',
       queryOnly: true,
     });
     expect(configGetCalled).to.equal(true);
@@ -111,6 +111,6 @@ describe('ledgers/output-invoice', () => {
     expect(result.options.startDate).to.equal('2026-01-01');
     expect(result.options.endDate).to.equal('2026-12-31');
     expect(result.options.companyCode).to.equal('1111111111111111');
-    expect(result.options.sellerCode).to.equal('91110000101638302P');
+    expect(result.options.sellerCode).to.equal('XXXXXXXXXXXXXXXXXX');
   });
 });

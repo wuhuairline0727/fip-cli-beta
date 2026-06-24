@@ -71,7 +71,7 @@ describe('utils/organization-cache', () => {
   describe('addOrganizationRecord()', () => {
     it('should add a new record', () => {
       const isNew = addOrganizationRecord({
-        organization: '中建一局',
+        organization: '某建筑公司',
         project: '某项目',
         department: '财务部',
         plateCode: '0101',
@@ -86,7 +86,7 @@ describe('utils/organization-cache', () => {
 
     it('should not add duplicate record', () => {
       const record = {
-        organization: '中建一局',
+        organization: '某建筑公司',
         project: '某项目',
         department: '财务部',
       };
@@ -100,7 +100,7 @@ describe('utils/organization-cache', () => {
 
     it('should update useCount for existing record', () => {
       const record = {
-        organization: '中建一局',
+        organization: '某建筑公司',
         project: '某项目',
         department: '财务部',
       };
@@ -115,12 +115,12 @@ describe('utils/organization-cache', () => {
   describe('findOrganization()', () => {
     beforeEach(() => {
       addOrganizationRecord({
-        organization: '中建一局总部',
+        organization: '某建筑公司总部',
         project: '总部项目A',
         department: '财务部',
       });
       addOrganizationRecord({
-        organization: '中建一局山东分公司',
+        organization: '某建筑公司山东分公司',
         project: '山东项目B',
         department: '工程部',
       });
@@ -132,14 +132,14 @@ describe('utils/organization-cache', () => {
     });
 
     it('should find by organization name', () => {
-      const matches = findOrganization({ organization: '中建一局' });
+      const matches = findOrganization({ organization: '某建筑公司' });
       expect(matches).to.have.lengthOf(2);
     });
 
     it('should find by project name', () => {
       const matches = findOrganization({ project: '项目B' });
       expect(matches).to.have.lengthOf(1);
-      expect(matches[0].organization).to.equal('中建一局山东分公司');
+      expect(matches[0].organization).to.equal('某建筑公司山东分公司');
     });
 
     it('should find by department name', () => {
@@ -149,7 +149,7 @@ describe('utils/organization-cache', () => {
 
     it('should support combined query', () => {
       const matches = findOrganization({
-        organization: '中建一局',
+        organization: '某建筑公司',
         department: '工程部',
       });
       expect(matches).to.have.lengthOf(1);

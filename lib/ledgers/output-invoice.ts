@@ -27,7 +27,7 @@ export async function exportOutputInvoiceLedger(
     startDate: (cfg.startDate as string) || '2026-04-01',
     endDate: (cfg.endDate as string) || '2026-04-30',
     companyCode: (cfg.companyCode as string) || '1000200020040011',
-    sellerCode: (cfg.sellerCode as string) || '91110000101638302P',
+    sellerCode: (cfg.sellerCode as string) || 'XXXXXXXXXXXXXXXXXX',
     queryOnly: false,
   };
   const opts: Record<string, unknown> = { ...defaults, ...options };

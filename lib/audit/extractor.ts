@@ -176,8 +176,8 @@ export async function extractInvoiceFields(): Promise<Record<string, unknown>> {
 
         // 合同信息数据行
         if (contractTableFound && (
-          cellTexts.some(t => t.startsWith('中建一局')) ||
-          cellTexts.some(t => t.match(/^中建一局[0-9]+$/))
+          cellTexts.some(t => t.startsWith('某建筑')) ||
+          cellTexts.some(t => t.match(/^某建筑[0-9]+$/))
         )) {
           const get = (header) => cellTexts[contractColMap[header]] || null;
           result.contract_no = get('合同编号');

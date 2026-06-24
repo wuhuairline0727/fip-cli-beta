@@ -181,7 +181,7 @@ fip-cli export-all --ledgers input-transfer,output-invoice --query-only
 
 ```bash
 fip-cli config companyCode   1000200020040011
-fip-cli config taxCode       91110000101638302P
+fip-cli config taxCode       XXXXXXXXXXXXXXXXXX
 fip-cli config startDate     2026-04-01
 fip-cli config endDate       2026-04-30
 fip-cli config startPeriod   2026-04
@@ -189,7 +189,7 @@ fip-cli config endPeriod     2026-04
 fip-cli config docStatus     流程结束
 fip-cli config voidStatus    未作废
 fip-cli config docType       预缴计算单
-fip-cli config sellerCode    91110000101638302P
+fip-cli config sellerCode    XXXXXXXXXXXXXXXXXX
 ```
 
 #### YJK（预缴计算单）提取字段
@@ -270,7 +270,7 @@ fip-cli config <key> [value]
 
 # 常用配置项
 fip-cli config companyCode   1000200020040011
-fip-cli config taxCode       91110000101638302P
+fip-cli config taxCode       XXXXXXXXXXXXXXXXXX
 fip-cli config startDate     2026-04-01
 fip-cli config endDate       2026-04-30
 ```

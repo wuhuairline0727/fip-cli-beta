@@ -77,7 +77,7 @@ fip-cli export-input-transfer --start-period 2026-04 --query-only
 ```bash
 # 常用配置项
 fip-cli config companyCode   1000200020040011
-fip-cli config taxCode       91110000101638302P
+fip-cli config taxCode       XXXXXXXXXXXXXXXXXX
 fip-cli config startPeriod   2026-04
 fip-cli config endPeriod     2026-04
 ```

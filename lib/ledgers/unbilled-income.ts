@@ -45,7 +45,7 @@ export async function exportUnbilledIncomeLedger(
     startPeriod: cfg.startPeriod || '2026-01',
     endPeriod: cfg.endPeriod || '2026-12',
     companyCode: cfg.companyCode || '1000200020040011',
-    taxCode: cfg.taxCode || '91110000101638302P',
+    taxCode: cfg.taxCode || 'XXXXXXXXXXXXXXXXXX',
     voidStatus: cfg.voidStatus || '未作废',
     queryOnly: false,
   };

@@ -39,7 +39,7 @@ describe('config-schema', () => {
     });
 
     it('should validate taxCode format', () => {
-      expect(validateConfigValue('taxCode', '91110000101107173B')).to.equal(
+      expect(validateConfigValue('taxCode', 'YYYYYYYYYYYYYYYYYY')).to.equal(
         null
       );
       expect(validateConfigValue('taxCode', 'short')).to.equal(
@@ -48,7 +48,7 @@ describe('config-schema', () => {
     });
 
     it('should validate sellerCode format', () => {
-      expect(validateConfigValue('sellerCode', '91110000101107173B')).to.equal(
+      expect(validateConfigValue('sellerCode', 'YYYYYYYYYYYYYYYYYY')).to.equal(
         null
       );
       expect(validateConfigValue('sellerCode', 'invalid')).to.equal(
@@ -69,7 +69,7 @@ describe('config-schema', () => {
     it('should return empty array for valid config', () => {
       const config = {
         companyCode: '1000200020040011',
-        taxCode: '91110000101107173B',
+        taxCode: 'YYYYYYYYYYYYYYYYYY',
         startDate: '2026-04-01',
         endDate: '2026-04-30',
         startPeriod: '2026-04',

@@ -20,8 +20,8 @@ describe('organization auto-select integration', function () {
   it('should auto-select organization, project and department', async function () {
     const result = await switchOrganization({
       autoSelect: true,
-      organization: '中建一局集团第五建筑有限公司总部',
-      project: '中建一局五公司-本部项目',
+      organization: '某建筑公司分部',
+      project: '某项目',
       department: '财务资金部',
     });
 

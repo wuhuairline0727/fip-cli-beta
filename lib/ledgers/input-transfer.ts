@@ -28,7 +28,7 @@ export async function exportInputTransferLedger(
     startPeriod: cfg.startPeriod || '2026-04',
     endPeriod: cfg.endPeriod || '2026-04',
     companyCode: cfg.companyCode || '1000200020040011',
-    taxCode: cfg.taxCode || '91110000101638302P',
+    taxCode: cfg.taxCode || 'XXXXXXXXXXXXXXXXXX',
     docStatus: cfg.docStatus || '流程结束',
     queryOnly: false,
   };

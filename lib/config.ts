@@ -40,11 +40,11 @@ export interface ConfigDefaults {
 
 const DEFAULTS: ConfigDefaults = {
   companyCode: '1000200020040011',
-  taxCode: '91110000101638302P',
+  taxCode: 'XXXXXXXXXXXXXXXXXX',
   voidStatus: '未作废',
   docStatus: '流程结束',
   docType: '预缴计算单',
-  sellerCode: '91110000101638302P',
+  sellerCode: 'XXXXXXXXXXXXXXXXXX',
 };
 
 export interface FipConfig extends ConfigDefaults, LastMonthRange {

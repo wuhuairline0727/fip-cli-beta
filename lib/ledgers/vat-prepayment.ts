@@ -28,7 +28,7 @@ export async function exportVatPrepaymentLedger(
     startPeriod: (cfg.startPeriod as string) || '2026-04',
     endPeriod: (cfg.endPeriod as string) || '2026-04',
     companyCode: (cfg.companyCode as string) || '1000200020040011',
-    taxCode: (cfg.taxCode as string) || '91110000101638302P',
+    taxCode: (cfg.taxCode as string) || 'XXXXXXXXXXXXXXXXXX',
     docType: (cfg.docType as string) || '预缴计算单',
     queryOnly: false,
   };

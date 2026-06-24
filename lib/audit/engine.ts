@@ -94,11 +94,11 @@ export function loadRules(): Rules {
     // 内建 fallback — 与 rules.json 内容保持一致
     rules = {
       profit_center_mapping: {
-        L1000: '中国建筑一局（集团）有限公司总部',
-        L1005: '中建一局集团第五建筑有限公司总部',
+        L1000: '某建筑公司总部',
+        L1005: '某建筑公司分部',
       },
       warning_threshold: 5000000,
-      expected_approver: '刘书豪',
+      expected_approver: '某审批人',
       tax_rate_expected: '9%',
       check_order: [
         'profit_center',

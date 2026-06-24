@@ -443,7 +443,7 @@ describe('🔴 真实浏览器测试', function () {
         startPeriod: '2026-04',
         endPeriod: '2026-04',
         companyCode: '1000200020040011',
-        taxCode: '91110000101638302P',
+        taxCode: 'XXXXXXXXXXXXXXXXXX',
         docStatus: '流程结束',
         queryOnly: true,
       });
@@ -457,7 +457,7 @@ describe('🔴 真实浏览器测试', function () {
         startDate: '2026-04-01',
         endDate: '2026-04-30',
         companyCode: '1000200020040011',
-        sellerCode: '91110000101638302P',
+        sellerCode: 'XXXXXXXXXXXXXXXXXX',
         queryOnly: true,
       });
       expect(result.queried).to.equal(true);
@@ -470,7 +470,7 @@ describe('🔴 真实浏览器测试', function () {
         startPeriod: '2026-04',
         endPeriod: '2026-04',
         companyCode: '1000200020040011',
-        taxCode: '91110000101638302P',
+        taxCode: 'XXXXXXXXXXXXXXXXXX',
         queryOnly: true,
       });
       expect(result.queried).to.equal(true);
@@ -483,7 +483,7 @@ describe('🔴 真实浏览器测试', function () {
         startPeriod: '2026-04',
         endPeriod: '2026-04',
         companyCode: '1000200020040011',
-        taxCode: '91110000101638302P',
+        taxCode: 'XXXXXXXXXXXXXXXXXX',
         docType: '预缴计算单',
         queryOnly: true,
       });
@@ -499,7 +499,7 @@ describe('🔴 真实浏览器测试', function () {
         startPeriod: '2026-01',
         endPeriod: '2026-04',
         companyCode: '1000200020040011',
-        taxCode: '91110000101638302P',
+        taxCode: 'XXXXXXXXXXXXXXXXXX',
         voidStatus: '未作废',
         queryOnly: true,
       });

@@ -70,7 +70,7 @@ describe('ledgers/passenger-transport', () => {
             startPeriod: '2026-05',
             endPeriod: '2026-05',
             companyCode: '9999999999999999',
-            taxCode: '91110000101107173B',
+            taxCode: 'YYYYYYYYYYYYYYYYYY',
           };
         },
         CONFIG_FILE: '/fake/.fiprc.json',
@@ -97,7 +97,7 @@ describe('ledgers/passenger-transport', () => {
     expect(result.options.startPeriod).to.equal('2026-05');
     expect(result.options.endPeriod).to.equal('2026-05');
     expect(result.options.companyCode).to.equal('9999999999999999');
-    expect(result.options.taxCode).to.equal('91110000101107173B');
+    expect(result.options.taxCode).to.equal('YYYYYYYYYYYYYYYYYY');
   });
 
   it('should allow period override', async () => {
@@ -105,7 +105,7 @@ describe('ledgers/passenger-transport', () => {
       startPeriod: '2026-01',
       endPeriod: '2026-12',
       companyCode: '1111111111111111',
-      taxCode: '91110000101638302P',
+      taxCode: 'XXXXXXXXXXXXXXXXXX',
       queryOnly: true,
     });
     expect(configGetCalled).to.equal(true);
@@ -113,6 +113,6 @@ describe('ledgers/passenger-transport', () => {
     expect(result.options.startPeriod).to.equal('2026-01');
     expect(result.options.endPeriod).to.equal('2026-12');
     expect(result.options.companyCode).to.equal('1111111111111111');
-    expect(result.options.taxCode).to.equal('91110000101638302P');
+    expect(result.options.taxCode).to.equal('XXXXXXXXXXXXXXXXXX');
   });
 });
