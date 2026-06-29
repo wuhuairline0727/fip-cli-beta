@@ -39,7 +39,7 @@ program
   .description(
     '查看或设置配置（key: companyCode, taxCode, startDate, endDate 等）'
   )
-  .action((key: string | undefined, value: string | undefined) => {
+  .action(async (key: string | undefined, value: string | undefined) => {
     try {
       if (!key) {
         success(config.get());
@@ -56,7 +56,7 @@ program
         success({ key, value: config.get(key) });
       }
     } catch (e: any) {
-      error('config_error', e.message);
+      await error('config_error', e.message);
     }
   });
 
@@ -71,7 +71,7 @@ program
       debug('login-status: url=', info.url, 'isLoggedIn=', isLoggedIn);
       success({ logged_in: isLoggedIn, url: info.url, title: info.title });
     } catch (e: any) {
-      error('login_status_error', e.message);
+      await error('login_status_error', e.message);
     }
   });
 
@@ -83,7 +83,7 @@ program
       await navigate(url, false);
       success({ navigated: true, url });
     } catch (e: any) {
-      error('navigate_error', e.message);
+      await error('navigate_error', e.message);
     }
   });
 
@@ -95,7 +95,7 @@ program
       await fipTyped.clickDashboardTab(name);
       success({ tab: name, switched: true });
     } catch (e: any) {
-      error('tab_switch_error', e.message);
+      await error('tab_switch_error', e.message);
     }
   });
 
@@ -108,7 +108,7 @@ program
       const rows = await fipTyped.getTableRowCount();
       success({ queried: true, rows });
     } catch (e: any) {
-      error('query_error', e.message);
+      await error('query_error', e.message);
     }
   });
 
@@ -120,7 +120,7 @@ program
       await fipTyped.openSideMenu(name);
       success({ menu: name, opened: true });
     } catch (e: any) {
-      error('menu_error', e.message);
+      await error('menu_error', e.message);
     }
   });
 
@@ -132,7 +132,7 @@ program
       await fipTyped.clickDrawerItem(name);
       success({ item: name, clicked: true });
     } catch (e: any) {
-      error('drawer_error', e.message);
+      await error('drawer_error', e.message);
     }
   });
 
@@ -144,7 +144,7 @@ program
       await fipTyped.clickShowQuery();
       success({ show_query: true });
     } catch (e: any) {
-      error('show_query_error', e.message);
+      await error('show_query_error', e.message);
     }
   });
 
@@ -156,7 +156,7 @@ program
       await fipTyped.setDateRange(start, end);
       success({ start_date: start, end_date: end, set: true });
     } catch (e: any) {
-      error('set_date_error', e.message);
+      await error('set_date_error', e.message);
     }
   });
 
@@ -168,7 +168,7 @@ program
       await fipTyped.setTaxPeriod(start, end);
       success({ start_period: start, end_period: end, set: true });
     } catch (e: any) {
-      error('set_tax_period_error', e.message);
+      await error('set_tax_period_error', e.message);
     }
   });
 
@@ -180,7 +180,7 @@ program
       const rows = await fipTyped.getTableRowCount();
       success(rows);
     } catch (e: any) {
-      error('rows_error', e.message);
+      await error('rows_error', e.message);
     }
   });
 
@@ -197,7 +197,7 @@ program
       });
       success(result);
     } catch (e: any) {
-      error('table_data_error', e.message);
+      await error('table_data_error', e.message);
     }
   });
 
@@ -210,7 +210,7 @@ program
       await fipTyped.pickFromDict(code);
       success({ company_code: code, selected: true });
     } catch (e: any) {
-      error('pick_company_error', e.message);
+      await error('pick_company_error', e.message);
     }
   });
 
@@ -222,7 +222,7 @@ program
       await fipTyped.pickTaxSubject(code);
       success({ tax_code: code, selected: true });
     } catch (e: any) {
-      error('pick_tax_subject_error', e.message);
+      await error('pick_tax_subject_error', e.message);
     }
   });
 
@@ -282,7 +282,7 @@ program
           success(result);
         }
       } catch (e: any) {
-        error('switch_org_error', e.message);
+        await error('switch_org_error', e.message);
       }
     }
   );
@@ -295,7 +295,7 @@ program
       const info = await fipTyped.getPageInfo();
       success(info);
     } catch (e: any) {
-      error('page_info_error', e.message);
+      await error('page_info_error', e.message);
     }
   });
 
@@ -325,7 +325,7 @@ program
         });
         success({ text, found: !!result, coordinates: result });
       } catch (e: any) {
-        error('find_element_error', e.message);
+        await error('find_element_error', e.message);
       }
     }
   );
@@ -338,7 +338,7 @@ program
       await fipTyped.sleep(parseInt(ms));
       success({ waited: parseInt(ms) });
     } catch (e: any) {
-      error('wait_error', e.message);
+      await error('wait_error', e.message);
     }
   });
 
@@ -350,7 +350,7 @@ program
       await fipTyped.clickPickerButton(label);
       success({ label, clicked: true });
     } catch (e: any) {
-      error('picker_button_error', e.message);
+      await error('picker_button_error', e.message);
     }
   });
 
@@ -362,7 +362,7 @@ program
       await fipTyped.pickFromDict(code);
       success({ code, selected: true });
     } catch (e: any) {
-      error('pick_dict_error', e.message);
+      await error('pick_dict_error', e.message);
     }
   });
 
@@ -375,7 +375,7 @@ program
       const result = await fipTyped.openBill(billId, options.tab || null);
       success(result);
     } catch (e: any) {
-      error('open_bill_error', e.message);
+      await error('open_bill_error', e.message);
     }
   });
 
@@ -387,7 +387,7 @@ program
       const result = await fipTyped.closeBill();
       success(result);
     } catch (e: any) {
-      error('close_bill_error', e.message);
+      await error('close_bill_error', e.message);
     }
   });
 
@@ -402,7 +402,7 @@ program
       });
       success(result);
     } catch (e: any) {
-      error('list_attachments_error', e.message);
+      await error('list_attachments_error', e.message);
     }
   });
 
@@ -419,7 +419,7 @@ program
       });
       success(result);
     } catch (e: any) {
-      error('download_attachments_error', e.message);
+      await error('download_attachments_error', e.message);
     }
   });
 
@@ -437,7 +437,7 @@ program
         });
         success(result);
       } catch (e: any) {
-        error('wait_for_element_error', e.message);
+        await error('wait_for_element_error', e.message);
       }
     }
   );
@@ -451,7 +451,7 @@ program
       const result = await fipTyped.waitForPopup(parseInt(options.timeout));
       success(result);
     } catch (e: any) {
-      error('wait_for_popup_error', e.message);
+      await error('wait_for_popup_error', e.message);
     }
   });
 
@@ -467,7 +467,7 @@ program
       );
       success(result);
     } catch (e: any) {
-      error('wait_for_url_error', e.message);
+      await error('wait_for_url_error', e.message);
     }
   });
 
@@ -514,7 +514,7 @@ program
 
       error('screenshot_error', 'Screenshot returned empty data');
     } catch (e: any) {
-      error('screenshot_error', e.message);
+      await error('screenshot_error', e.message);
     }
   });
 
@@ -556,7 +556,7 @@ program
         const result = await fipTyped.exportUnbilledIncomeLedger(args);
         success(result);
       } catch (e: any) {
-        error('export_unbilled_error', e.message);
+        await error('export_unbilled_error', e.message);
       }
     }
   );
@@ -594,7 +594,7 @@ program
         });
         success(result);
       } catch (e: any) {
-        error('export_input_transfer_error', e.message);
+        await error('export_input_transfer_error', e.message);
       }
     }
   );
@@ -626,7 +626,7 @@ program
         });
         success(result);
       } catch (e: any) {
-        error('export_output_invoice_error', e.message);
+        await error('export_output_invoice_error', e.message);
       }
     }
   );
@@ -661,7 +661,7 @@ program
         });
         success(result);
       } catch (e: any) {
-        error('export_vat_prepayment_error', e.message);
+        await error('export_vat_prepayment_error', e.message);
       }
     }
   );
@@ -693,7 +693,7 @@ program
         });
         success(result);
       } catch (e: any) {
-        error('export_passenger_transport_error', e.message);
+        await error('export_passenger_transport_error', e.message);
       }
     }
   );
@@ -802,7 +802,7 @@ program
         }
         success({ executed: ledgers.length, results });
       } catch (e: any) {
-        error('export_all_error', e.message);
+        await error('export_all_error', e.message);
       }
     }
   );
@@ -856,7 +856,7 @@ program
       const fields = await fipTyped.extractInvoiceFields();
       success(fields);
     } catch (e: any) {
-      error('extract_invoice_error', e.message);
+      await error('extract_invoice_error', e.message);
     }
   });
 
@@ -903,12 +903,22 @@ program
 
         // 3. 合并人工输入的参数（转为数字）
         if (options.confirmedAmount) {
-          fields.confirmed_amount = parseFloat(options.confirmedAmount);
+          const val = parseFloat(options.confirmedAmount);
+          if (isNaN(val)) {
+            throw new Error(
+              `--confirmed-amount 必须是有效数字，收到: "${options.confirmedAmount}"`
+            );
+          }
+          fields.confirmed_amount = val;
         }
         if (options.attachmentContract) {
-          fields.attachment_contract_amount = parseFloat(
-            options.attachmentContract
-          );
+          const val = parseFloat(options.attachmentContract);
+          if (isNaN(val)) {
+            throw new Error(
+              `--attachment-contract 必须是有效数字，收到: "${options.attachmentContract}"`
+            );
+          }
+          fields.attachment_contract_amount = val;
         }
 
         // 4. 执行审核
@@ -946,7 +956,7 @@ program
           format: options.format,
         });
       } catch (e: any) {
-        error('audit_invoice_error', e.message);
+        await error('audit_invoice_error', e.message);
       }
     }
   );
@@ -1014,7 +1024,7 @@ program
 
         success(data);
       } catch (e: any) {
-        error('extract_bill_error', e.message);
+        await error('extract_bill_error', e.message);
       }
     }
   );

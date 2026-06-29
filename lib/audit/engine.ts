@@ -123,6 +123,7 @@ export function loadRules(): Rules {
   if (userApprover) {
     rules.expected_approver = userApprover;
   }
+  RULES = rules;
   return rules;
 }
 
