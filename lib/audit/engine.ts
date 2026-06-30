@@ -120,7 +120,7 @@ export function loadRules(): Rules {
 
   // 允许用户通过 config 覆盖 expected_approver
   const userApprover = config.get('expectedApprover') as string | undefined;
-  if (userApprover) {
+  if (userApprover && userApprover.trim() !== '') {
     rules.expected_approver = userApprover;
   }
   RULES = rules;

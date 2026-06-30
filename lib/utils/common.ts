@@ -15,6 +15,14 @@ export function escapeJsString(str: string): string {
     .replace(/\t/g, '\\t');
 }
 
+export function parseIntOrThrow(value: string, paramName: string): number {
+  const parsed = parseInt(value, 10);
+  if (isNaN(parsed)) {
+    throw new Error(`"${paramName}" 必须是有效整数，收到: "${value}"`);
+  }
+  return parsed;
+}
+
 export interface ElementConstraints {
   leftMin?: number;
   leftMax?: number;

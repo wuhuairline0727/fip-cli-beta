@@ -13,6 +13,7 @@ const fipTyped = fip as FipAPI;
 import * as fs from 'fs';
 import * as path from 'path';
 import { debug, verbose, setDebug, setVerbose } from '../lib/logger';
+import { parseIntOrThrow } from '../lib/utils/common';
 import * as organizationCache from '../lib/utils/organization-cache';
 import * as doctor from '../lib/doctor';
 
@@ -192,7 +193,7 @@ program
   .action(async (options: { maxRows: string; headers: boolean }) => {
     try {
       const result = await fipTyped.getTableData({
-        maxRows: parseInt(options.maxRows),
+        maxRows: parseIntOrThrow(options.maxRows, '--max-rows'),
         includeHeaders: options.headers !== false,
       });
       success(result);
@@ -335,8 +336,8 @@ program
   .description('等待指定毫秒数')
   .action(async (ms: string) => {
     try {
-      await fipTyped.sleep(parseInt(ms));
-      success({ waited: parseInt(ms) });
+      await fipTyped.sleep(parseIntOrThrow(ms, '<ms>'));
+      success({ waited: parseIntOrThrow(ms, '<ms>') });
     } catch (e: any) {
       await error('wait_error', e.message);
     }
@@ -432,8 +433,8 @@ program
     async (text: string, options: { timeout: string; interval: string }) => {
       try {
         const result = await fipTyped.waitForElement(text, {
-          timeout: parseInt(options.timeout),
-          interval: parseInt(options.interval),
+          timeout: parseIntOrThrow(options.timeout, '--timeout'),
+          interval: parseIntOrThrow(options.interval, '--interval'),
         });
         success(result);
       } catch (e: any) {
@@ -448,7 +449,9 @@ program
   .option('--timeout <ms>', '超时毫秒数', '10000')
   .action(async (options: { timeout: string }) => {
     try {
-      const result = await fipTyped.waitForPopup(parseInt(options.timeout));
+      const result = await fipTyped.waitForPopup(
+        parseIntOrThrow(options.timeout, '--timeout')
+      );
       success(result);
     } catch (e: any) {
       await error('wait_for_popup_error', e.message);
@@ -463,7 +466,7 @@ program
     try {
       const result = await fipTyped.waitForUrl(
         pattern,
-        parseInt(options.timeout)
+        parseIntOrThrow(options.timeout, '--timeout')
       );
       success(result);
     } catch (e: any) {
