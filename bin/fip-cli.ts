@@ -482,13 +482,22 @@ program
     try {
       const result = await screenshot('png');
       if (!result.ok || !result.data) {
-        error('screenshot_error', result.error?.message || 'Screenshot failed');
+        await error(
+          'screenshot_error',
+          result.error?.message || 'Screenshot failed'
+        );
         return;
       }
 
       const outputPath =
         options.output ||
         path.join(process.cwd(), `screenshot_${Date.now()}.png`);
+
+      // 确保父目录存在
+      const outputDir = path.dirname(outputPath);
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
 
       // WebBridge 返回文件路径
       if (result.data.path && fs.existsSync(result.data.path as string)) {
@@ -515,7 +524,7 @@ program
         return;
       }
 
-      error('screenshot_error', 'Screenshot returned empty data');
+      await error('screenshot_error', 'Screenshot returned empty data');
     } catch (e: any) {
       await error('screenshot_error', e.message);
     }
@@ -940,6 +949,10 @@ program
 
         // 6. 输出到文件或控制台
         if (options.output) {
+          const outDir = path.dirname(options.output);
+          if (!fs.existsSync(outDir)) {
+            fs.mkdirSync(outDir, { recursive: true });
+          }
           fs.writeFileSync(options.output, report, 'utf8');
           verbose(`报告已保存: ${options.output}`);
         }
@@ -1006,6 +1019,10 @@ program
         (data as Record<string, unknown>).audit_hints = hints;
 
         if (options.output) {
+          const outDir = path.dirname(options.output);
+          if (!fs.existsSync(outDir)) {
+            fs.mkdirSync(outDir, { recursive: true });
+          }
           fs.writeFileSync(
             options.output,
             JSON.stringify(data, null, 2),
