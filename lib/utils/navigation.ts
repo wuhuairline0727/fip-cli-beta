@@ -1,6 +1,5 @@
 import { evaluate } from '../browser';
-import { sleep } from './common';
-import { escapeJsString } from './common';
+import { sleep, escapeJsString } from './common';
 
 export async function openSideMenu(menuName: string): Promise<boolean> {
   const safeMenuName = escapeJsString(menuName);

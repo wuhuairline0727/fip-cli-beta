@@ -1,10 +1,6 @@
 import CDP from 'chrome-remote-interface';
 import { evaluate } from '../browser';
-import { sleep } from './common';
-
-function escapeJsString(str: string): string {
-  return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
-}
+import { sleep, escapeJsString } from './common';
 
 export async function clickPickerButton(labelText: string): Promise<boolean> {
   const safeLabel = escapeJsString(labelText);
